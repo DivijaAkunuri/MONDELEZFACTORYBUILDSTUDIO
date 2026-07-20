@@ -1,0 +1,24 @@
+{
+  "summary": "First-finish smoke test of Construction Cost Estimator. All backend endpoints (reference, fx-rates, calculate-fast, calculate, save, list) return 200 with correct shape. Regional multiplier verified (India 8.34M < Europe 17.44M). AI insights returned with source='ai', 6 assumptions, 5 risks, executive_summary present. Frontend /estimator loads with default estimate; 6 KPIs, donut+line charts, 9 tabs, top BOQ populated, all 7 utility cards render, sidebar visible, no console errors. Currency change USD->EUR converts client-side (17,442,913 -> 15,262,741). Recalculate button triggers calculation with spinner. Step-1 jump loads Project Details form; wizard-next advances to Step 2 (Building Geometry). Tab switching (boq, utilities, assumptions) works.",
+  "tested_scope": ["backend", "frontend", "integration"],
+  "passed": [
+    "GET /api/estimator/reference returns all 12 dropdown keys incl. complexity[{key,label}]",
+    "GET /api/estimator/fx-rates returns base=USD with rates{} and symbols{}",
+    "POST /api/estimator/calculate-fast returns totals(cost=17.44M, confidence=92), 6 breakdown, 16 BOQ, 12 top_cost_items, utility_demand has all 7 fields, 11 months cost_trend",
+    "Regional multiplier: India (8.34M) < Europe (17.44M)",
+    "insights has assumptions(6), risks(5), executive_summary, source='ai'",
+    "Save returns {id, created_at}; list contains saved id",
+    "Frontend loads without console errors; sidebar 'CONSTRUCTION COST ESTIMATOR' visible",
+    "All 6 KPI cards render with numeric values; donut+line charts visible",
+    "All 7 utility cards present (water, steam, chiller, power, air, etp, fire)",
+    "All 8 output tabs present and switchable (boq, breakdown, utilities, assumptions, sensitivity, cashflow, process, infra)",
+    "Currency select USD->EUR converts KPI client-side ($17,442,913 -> €15,262,741)",
+    "Recalculate button shows spinner and refreshes",
+    "step-1 jump shows Project Details form; wizard-next advances step correctly"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}
