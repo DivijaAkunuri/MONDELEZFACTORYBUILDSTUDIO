@@ -34,13 +34,15 @@ api_router = APIRouter(prefix="/api")
 # ---------- Models ----------
 class ProjectInputs(BaseModel):
     model_config = ConfigDict(extra="allow")
-    # Step 1
+    # Step 1 - Project Identification
     project_name: str = "Chocolate & Bakery Manufacturing Plant"
     project_type: str = "Greenfield"           # Greenfield / Brownfield / Retrofit
-    industry_type: str = "Chocolate Plant"
+    industry_type: str = "Food"                 # Food / FMCG / Warehouse / Process Building
+    product_category: str = "Chocolate Plant"   # Chocolate Plant / Biscuit Plant / ...
     location_city: str = "Hamburg"
     location_country: str = "Germany"
-    region: str = "Europe"
+    region: str = "Europe"                      # Stage 2 region
+    continent: str = "Europe"                   # Stage 3 world/continent
     location_tier: str = "Metro"                # Metro / Non-Metro / Remote
     # Step 2 - geometry
     building_type: str = "Industrial Building (RCC + PEB)"
@@ -50,25 +52,52 @@ class ProjectInputs(BaseModel):
     num_floors: int = 1
     bay_spacing_m: float = 8.0
     plot_area_sqm: float = 32000.0
-    # Step 3 - structural
+    building_components: List[str] = Field(default_factory=lambda: [
+        "Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building",
+    ])
+    # Step 3 - structural & site
     soil_type: str = "Medium Dense Sand"
+    sbc_soil_type: str = "Hard Stone"           # Bearing capacity type
+    soil_hardness: str = "Medium"               # Hard / Medium / Soft
     foundation_type: str = "Raft Foundation"
     floor_load_kn: float = 5.0
     column_type: str = "Steel"
     roof_type: str = "PEB + Insulated Panel"
     seismic_zone: str = "Zone 0 (Very Low)"
+    wind_zone: str = "Zone 2"
     wind_speed_ms: float = 24.0
-    # Step 4 - utilities
+    gwt_depth: str = "Medium (3-8 m)"
+    # Step 4 - utilities & process
     utility_scope: List[str] = Field(default_factory=lambda: [
         "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
         "Water Treatment Plant", "Fire Fighting System", "Electrical Substation",
     ])
     production_capacity_tpd: float = 120.0
     annual_output_mt: float = 36000.0
-    # Step 5 - infra
+    # Chocolate-specific
+    cooling_tunnel_load_tr: float = 180.0
+    tempering_utility_demand: str = "Medium"
+    humidity_controlled_pct: float = 40.0
+    chocolate_storage_temp_c: float = 16.0
+    process_hot_water_lph: float = 2500.0
+    # Biscuit-specific
+    oven_capacity_kg_hr: float = 1200.0
+    fuel_type: str = "PNG"                      # PNG / LPG / Diesel / Biomass
+    baking_line_qty: int = 2
+    compressed_air_demand_cfm: float = 1500.0
+    dust_collection_required: bool = True
+    cooling_conveyor_load: str = "Standard"
+    # Step 5 - infra & site
     include_roads: bool = True
     include_landscaping: bool = True
     include_fence: bool = True
+    land_area_sqm: float = 32000.0
+    ground_coverage_pct: float = 58.0
+    far_fsi: float = 1.2
+    water_availability: str = "Municipal + Borewell"
+    grid_reliability: str = "Good"
+    ambient_temp_range: str = "Temperate (5°C - 30°C)"
+    relative_humidity_pct: float = 70.0
     # Complexity toggles
     complexity: Dict[str, bool] = Field(default_factory=lambda: {
         "seismic_zone_high": False, "high_humidity": False, "cold_region": False,
@@ -424,31 +453,69 @@ async def fx_rates():
 
 @api_router.get("/estimator/reference")
 async def reference_data():
-    """Return dropdown / static reference data for the wizard."""
+    """Return dropdown / static reference data for the wizard - grouped by wizard step."""
     return {
-        "regions": list(REGION_MULTIPLIERS.keys()),
-        "tiers": list(LOCATION_FACTOR.keys()),
-        "industries": list(INDUSTRY_PRESETS.keys()),
+        # ---- Stage-based cost intelligence (framework) ----
+        "regions": list(REGION_MULTIPLIERS.keys()),         # Stage 2 - Region
+        "continents": ["Asia", "Europe", "North America", "South America", "Africa", "Oceania"],  # Stage 3
+        "tiers": list(LOCATION_FACTOR.keys()),              # Stage 1 - Country tier
+        # ---- Step 1: Project Identification ----
         "project_types": ["Greenfield", "Brownfield / Expansion", "Retrofit / Capacity Upgrade"],
+        "industries": ["Food", "FMCG", "Warehouse / Logistics", "Process Building"],
+        "product_categories": list(INDUSTRY_PRESETS.keys()),
+        # ---- Step 2: Building Geometry ----
         "building_types": [
             "Industrial Shed", "RCC Industrial Building", "Industrial Building (RCC + PEB)",
             "Warehouse", "Utility / Admin Block", "Mezzanine", "Hybrid",
         ],
+        "building_components": [
+            "Production Block", "Warehouse", "Cold Store", "Utilities Block",
+            "Admin Building", "ETP / STP", "R&D Lab", "Packaging Hall",
+        ],
+        # ---- Step 3: Structural & Site ----
         "foundation_types": [
             "Isolated Footing", "Combined Footing", "Raft Foundation",
             "Pile Foundation", "Engineering Fill",
         ],
+        "sbc_soil_types": [
+            "Black Cotton", "Silty", "Reclaimed / Engineering Fill", "Hard Stone",
+        ],
         "soil_types": [
             "Black Cotton", "Silty", "Reclaimed / Engineering Fill",
-            "Hard Stone", "Medium Dense Sand",
+            "Hard Stone", "Medium Dense Sand", "Loose Sand", "Clayey",
         ],
+        "soil_hardness": ["Hard", "Medium", "Soft"],
         "roof_types": ["PEB + Insulated Panel", "RCC Slab", "Metal Deck + Insulation"],
         "column_types": ["RCC", "Steel", "Composite"],
-        "utility_scope": [s for s, _, _ in UTILITY_SYSTEMS] + [
-            "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
-            "Water Treatment Plant", "Nitrogen Plant", "Electrical Substation",
-            "DG Backup", "Solar Plant", "Steam Distribution", "Process Piping",
+        "seismic_zones": [
+            "Zone 0 (Very Low)", "Zone I", "Zone II", "Zone III",
+            "Zone IV", "Zone V (High)",
         ],
+        "wind_zones": [
+            "Zone 1 (Low)", "Zone 2", "Zone 3", "Zone 4 (High)", "Zone 5 (Cyclonic)",
+        ],
+        "gwt_depths": ["Shallow (<3 m)", "Medium (3-8 m)", "Deep (>8 m)"],
+        # ---- Step 4: Utilities & Process ----
+        "utility_scope": [
+            "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
+            "Water Treatment Plant", "Nitrogen Plant", "Fire Fighting System",
+            "Electrical Substation", "DG Backup", "Solar Plant",
+            "Steam Distribution", "Process Piping",
+        ],
+        "fuel_types": ["PNG", "LPG", "Diesel", "Biomass", "Electric"],
+        "tempering_utility_demand": ["Low", "Medium", "High", "Very High"],
+        "cooling_conveyor_load": ["Light", "Standard", "Heavy Duty"],
+        # ---- Step 5: Infra & Site ----
+        "water_availability": [
+            "Municipal", "Municipal + Borewell", "Borewell", "Tanker",
+            "Recycled + Fresh", "Limited",
+        ],
+        "grid_reliability": ["Excellent", "Good", "Average", "Poor (frequent outages)"],
+        "ambient_temp_ranges": [
+            "Tropical (25°C - 40°C)", "Temperate (5°C - 30°C)", "Cold (-10°C - 15°C)",
+            "Hot Arid (30°C - 48°C)", "Cool Temperate (0°C - 22°C)",
+        ],
+        # ---- Complexity toggles ----
         "complexity": [
             {"key": "seismic_zone_high", "label": "Seismic Zone High"},
             {"key": "high_humidity", "label": "High Humidity Region"},
