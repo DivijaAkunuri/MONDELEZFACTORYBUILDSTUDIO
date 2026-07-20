@@ -21,6 +21,10 @@ export async function calculateFast(inputs) {
   const { data } = await api.post("/estimator/calculate-fast", inputs);
   return data;
 }
+export async function getInsights(inputs, result) {
+  const { data } = await api.post("/estimator/insights", { inputs, result });
+  return data;
+}
 export async function saveEstimate(inputs, result) {
   const { data } = await api.post("/estimator/save", { inputs, result });
   return data;

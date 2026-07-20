@@ -12,7 +12,7 @@ import UtilityCards from "@/components/estimator/UtilityCards";
 import Wizard from "@/components/estimator/Wizard";
 import EditProjectDialog from "@/components/estimator/EditProjectDialog";
 import { TabsBar, BoqTable, UtilitiesSummary, ProjectOverview, AssumptionsBox, RisksBox, OptimizationsBox } from "@/components/estimator/OutputPanels";
-import { getReference, getFxRates, calculate, saveEstimate } from "@/lib/api";
+import { getReference, getFxRates, calculate, calculateFast, getInsights, saveEstimate } from "@/lib/api";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { TID } from "@/constants/testIds";
 
@@ -90,13 +90,42 @@ export default function Estimator() {
   async function recalc(inp = inputs) {
     setLoading(true);
     try {
-      const data = await calculate(inp);
-      setResult(data);
-      if (data.fx_rates) setFxRates(data.fx_rates);
+      // Fast path: instant numeric recalculation (KPIs, breakdown, BOQ,
+      // confidence, utilities, cost_trend) — no AI, sub-second response.
+      const fast = await calculateFast(inp);
+      setResult((prev) => ({
+        ...fast,
+        insights: prev?.insights,      // keep any existing insights on-screen
+        fx_rates: prev?.fx_rates,
+      }));
+      if (fast.live_rate_index) {
+        // no-op: already inside fast
+      }
+      setLoading(false);
       toast.success("Estimate recalculated");
+
+      // Background: refresh FX + AI insights without blocking UI
+      (async () => {
+        try {
+          const [fx, ins] = await Promise.all([
+            getFxRates().catch(() => null),
+            getInsights(inp, fast).catch(() => null),
+          ]);
+          setResult((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              insights: ins ?? prev.insights,
+              fx_rates: fx?.rates ?? prev.fx_rates,
+            };
+          });
+          if (fx?.rates) setFxRates(fx.rates);
+        } catch (_) { /* silent */ }
+      })();
     } catch (e) {
+      setLoading(false);
       toast.error("Calculation failed: " + (e.response?.data?.detail || e.message));
-    } finally { setLoading(false); }
+    }
   }
 
   async function onSave() {

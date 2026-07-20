@@ -720,6 +720,17 @@ async def rate_index():
     return await get_live_rate_index()
 
 
+@api_router.post("/estimator/insights")
+async def insights(payload: Dict[str, Any]):
+    """Return only AI insights for given inputs + result. Runs in parallel with
+    the fast calculate path so KPIs update instantly."""
+    inp_data = payload.get("inputs") or {}
+    result = payload.get("result") or {}
+    inp = ProjectInputs(**inp_data)
+    ai = await generate_ai_insights(inp, result)
+    return ai
+
+
 @api_router.post("/estimator/calculate")
 async def calculate(inp: ProjectInputs):
     live_index = await get_live_rate_index()
