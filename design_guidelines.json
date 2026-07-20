@@ -1,0 +1,142 @@
+{
+  "app_name": "Construction Cost Estimator Tool",
+  "app_type": "enterprise_saas_dashboard",
+  "theme": "light",
+  "typography": {
+    "headings": "Manrope",
+    "body": "IBM Plex Sans",
+    "import_url": "@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap');",
+    "hierarchy": {
+      "h1": "text-2xl font-bold tracking-tight text-slate-900 font-['Manrope']",
+      "h2": "text-lg font-semibold tracking-tight text-slate-800 font-['Manrope']",
+      "h3": "text-base font-semibold text-slate-900 font-['Manrope']",
+      "body": "text-sm text-slate-600 font-['IBM_Plex_Sans']",
+      "table_data": "text-sm text-slate-700 font-['IBM_Plex_Sans']",
+      "small_label": "text-xs font-medium text-slate-500 uppercase tracking-wider font-['IBM_Plex_Sans']"
+    }
+  },
+  "colors": {
+    "sidebar": {
+      "background": "bg-[#0B1120]",
+      "text": "text-slate-400",
+      "text_hover": "text-slate-200",
+      "active_background": "bg-blue-600",
+      "active_text": "text-white"
+    },
+    "canvas": {
+      "background": "bg-slate-50"
+    },
+    "surface": {
+      "card": "bg-white border border-slate-200 shadow-sm rounded-lg",
+      "header": "bg-white border-b border-slate-200"
+    },
+    "primary_action": "bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors",
+    "secondary_action": "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm transition-colors",
+    "kpi_metrics": {
+      "total_cost": {
+        "icon_bg": "bg-slate-900",
+        "icon_color": "text-white"
+      },
+      "cost_per_sqm": {
+        "icon_bg": "bg-purple-100",
+        "icon_color": "text-purple-700"
+      },
+      "duration": {
+        "icon_bg": "bg-emerald-100",
+        "icon_color": "text-emerald-700"
+      },
+      "confidence": {
+        "icon_bg": "bg-amber-100",
+        "icon_color": "text-amber-700"
+      },
+      "contingency": {
+        "icon_bg": "bg-rose-100",
+        "icon_color": "text-rose-700"
+      },
+      "benchmark": {
+        "icon_bg": "bg-blue-100",
+        "icon_color": "text-blue-700"
+      }
+    }
+  },
+  "spacing_and_layout": {
+    "global_structure": "flex h-screen w-full overflow-hidden bg-slate-50",
+    "sidebar": "w-[260px] flex-shrink-0 flex flex-col h-full bg-[#0B1120] text-slate-300 overflow-y-auto",
+    "main_content": "flex-1 flex flex-col min-w-0 overflow-hidden",
+    "right_toolbar": "w-16 flex-shrink-0 bg-white border-l border-slate-200 flex flex-col items-center py-4 gap-4",
+    "header": "h-16 flex-shrink-0 flex items-center justify-between px-6 bg-white border-b border-slate-200 z-10",
+    "scrollable_area": "flex-1 overflow-y-auto p-6 space-y-6",
+    "grid_bento": "grid grid-cols-1 lg:grid-cols-12 gap-6"
+  },
+  "component_styles": {
+    "stepper": "flex items-center w-full max-w-4xl mb-8 space-x-2",
+    "stepper_item_completed": "flex items-center text-emerald-600 font-medium",
+    "stepper_icon_completed": "w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mr-2",
+    "stepper_item_active": "flex items-center text-blue-600 font-medium",
+    "stepper_icon_active": "w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2",
+    "stepper_line": "flex-1 h-px bg-slate-200",
+    "kpi_card": "flex items-center p-4 bg-white border border-slate-200 rounded-lg shadow-sm gap-4",
+    "tabs_list": "flex space-x-6 border-b border-slate-200 mb-6 px-2 overflow-x-auto",
+    "tab_active": "py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 whitespace-nowrap",
+    "tab_inactive": "py-3 text-sm font-medium text-slate-500 hover:text-slate-700 whitespace-nowrap",
+    "data_table": {
+      "container": "w-full overflow-hidden rounded-lg border border-slate-200 bg-white",
+      "header": "bg-slate-50 border-b border-slate-200 text-left text-xs font-medium text-slate-500 uppercase tracking-wider",
+      "row": "border-b border-slate-100 hover:bg-slate-50 transition-colors text-sm text-slate-700"
+    }
+  },
+  "charts": {
+    "library": "recharts",
+    "donut_colors": ["#0F172A", "#334155", "#64748B", "#94A3B8", "#CBD5E1"],
+    "line_colors": ["#2563EB", "#10B981", "#F59E0B"],
+    "tooltip_style": {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#e2e8f0",
+      "color": "#0f172a",
+      "borderRadius": "8px",
+      "boxShadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "instructions": "Use specific lucid-react icons: Check for completed steps, LayoutDashboard for dashboard, Calculator for estimate, Activity for process, Settings for admin, Bell for notifications, User for avatar, TrendingUp/Down for trends."
+  },
+  "accessibility_and_interactions": {
+    "focus_rings": "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+    "hover_states": "All buttons and table rows must have visual hover feedback.",
+    "transparent_backgrounds": "CRITICAL: Do not use fully transparent backgrounds for dropdowns, popovers, or floating menus. Always use bg-white with shadow-lg and border.",
+    "testing": "All interactive elements MUST include a data-testid attribute (e.g., data-testid='save-estimate-button', data-testid='base-unit-select')."
+  },
+  "instructions_to_main_agent": [
+    "You are building a high-fidelity replica of an enterprise Construction Cost Estimator based on the provided problem statement specifications.",
+    "Construct a full-page flex layout. Left sidebar (navy blue #0B1120), center canvas (slate-50 bg, scrollable), and a slim right toolbar for quick actions.",
+    "Implement the Header with Base Unit and Currency dropdowns, Recalculate and Save buttons.",
+    "Build the 6-step horizontal progress stepper exactly as requested.",
+    "Create a grid of 6 KPI metric cards. Use the specific background and text colors detailed in colors.kpi_metrics for their icons.",
+    "Build a robust Tab navigation bar (Summary, Cost Breakdown, BOQ, Utilities, etc.). Implement dummy state to toggle active tab visually.",
+    "In the main content, place a Recharts Donut chart (Cost Breakdown) alongside a Line chart (Cost Trend).",
+    "Build the 'Top 12 Cost Items' data table with columns: #, Activity, Quantity, Unit, Rate, Amount, % of Total.",
+    "Add 'Key Assumptions' list with green checks, and 'Risk & Cost Drivers' with yellow warning icons.",
+    "At the bottom, place the 7 utility demand metric cards (Water, Steam, Chiller, Power, etc.) with colorful icons.",
+    "In the bottom of the left sidebar, add an 'Active Project' info box showing FX Rate and unit settings.",
+    "Use Shadcn UI for standard elements (Buttons, Dropdowns) but customize them heavily using Tailwind to achieve the required dense enterprise look.",
+    "Do NOT add global transitions like 'transition: all' in CSS. Manage transitions via Tailwind classes.",
+    "Create all elements in React (.js files, not .tsx)."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) where appropriate, BUT DO NOT use transparent backgrounds for overlays with content underneath.",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms.",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 etc for icons. Use lucide-react.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Use sonner for toasts, located in /app/src/components/ui/sonner.tsx."
+  ]
+}
