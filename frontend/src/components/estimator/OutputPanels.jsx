@@ -84,36 +84,53 @@ export function UtilitiesSummary({ utilities, total, currency, fxRates }) {
   );
 }
 
-export function ProjectOverview({ inputs, totals }) {
+export function ProjectOverview({ inputs, totals, onEdit }) {
   const rows = [
     ["Project Type", inputs.project_type],
     ["Industry Type", inputs.industry_type],
+    ["Product Category", inputs.product_category],
     ["Building Type", inputs.building_type],
     ["Built-up Area", `${fmtNumber(totals.built_up_area_sqm)} m²`],
     ["Plot Area", `${fmtNumber(inputs.plot_area_sqm)} m²`],
     ["Location", `${inputs.location_city}, ${inputs.location_country}`],
+    ["Region / Tier", `${inputs.region} · ${inputs.location_tier}`],
     ["Seismic Zone", inputs.seismic_zone],
+    ["Wind Zone", inputs.wind_zone],
     ["Wind Speed", `${inputs.wind_speed_ms} m/s`],
     ["Soil Type", inputs.soil_type],
+    ["SBC / Soil Type", inputs.sbc_soil_type],
     ["Foundation Type", inputs.foundation_type],
+    ["GWT Depth", inputs.gwt_depth],
     ["Floor Load", `${inputs.floor_load_kn} kN/m²`],
     ["Roof Type", inputs.roof_type],
     ["No. of Floors", inputs.num_floors],
     ["Clear Height", `${(inputs.height_m * 1000).toFixed(0)} mm`],
     ["Bay Spacing", `${(inputs.bay_spacing_m * 1000).toFixed(0)} mm`],
+    ["Production Capacity", `${inputs.production_capacity_tpd} TPD`],
+    ["Annual Output", `${fmtNumber(inputs.annual_output_mt)} MT`],
+    ["Water Availability", inputs.water_availability],
+    ["Grid Reliability", inputs.grid_reliability],
+    ["Ambient Temperature", inputs.ambient_temp_range],
+    ["Relative Humidity", `${inputs.relative_humidity_pct}%`],
   ];
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm h-full">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">Project Overview</h3>
-        <button className="text-xs text-blue-600 hover:underline">✎ Edit</button>
+        <button
+          data-testid="edit-overview-btn"
+          onClick={onEdit}
+          className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+        >
+          <span className="inline-block">✎</span> Edit
+        </button>
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
         {rows.map(([k, v]) => (
           <div key={k} className="flex text-[13px]">
-            <div className="text-slate-500 w-[42%]">{k}</div>
+            <div className="text-slate-500 w-[42%] flex-shrink-0">{k}</div>
             <div className="text-slate-500 mr-2">:</div>
-            <div className="text-slate-800 font-medium flex-1 truncate">{v}</div>
+            <div className="text-slate-800 font-medium flex-1 truncate">{v ?? "—"}</div>
           </div>
         ))}
       </div>

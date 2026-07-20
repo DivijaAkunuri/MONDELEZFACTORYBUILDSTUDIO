@@ -10,6 +10,7 @@ import KpiCards from "@/components/estimator/KpiCards";
 import { DonutChart, TrendChart } from "@/components/estimator/Charts";
 import UtilityCards from "@/components/estimator/UtilityCards";
 import Wizard from "@/components/estimator/Wizard";
+import EditProjectDialog from "@/components/estimator/EditProjectDialog";
 import { TabsBar, BoqTable, UtilitiesSummary, ProjectOverview, AssumptionsBox, RisksBox, OptimizationsBox } from "@/components/estimator/OutputPanels";
 import { getReference, getFxRates, calculate, saveEstimate } from "@/lib/api";
 import { fmtMoney, fmtNumber } from "@/lib/format";
@@ -18,20 +19,32 @@ import { TID } from "@/constants/testIds";
 const DEFAULT_INPUTS = {
   project_name: "Chocolate & Bakery Manufacturing Plant",
   project_type: "Greenfield",
-  industry_type: "Chocolate Plant",
+  industry_type: "Food",
+  product_category: "Chocolate Plant",
   location_city: "Hamburg",
   location_country: "Germany",
   region: "Europe",
+  continent: "Europe",
   location_tier: "Metro",
   building_type: "Industrial Building (RCC + PEB)",
   length_m: 185, width_m: 100, height_m: 10.5, num_floors: 1, bay_spacing_m: 8,
   plot_area_sqm: 32000,
-  soil_type: "Medium Dense Sand", foundation_type: "Raft Foundation",
+  building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
+  soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium",
+  foundation_type: "Raft Foundation",
   floor_load_kn: 5.0, column_type: "Steel", roof_type: "PEB + Insulated Panel",
-  seismic_zone: "Zone 0 (Very Low)", wind_speed_ms: 24,
+  seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
+  gwt_depth: "Medium (3-8 m)",
   utility_scope: ["Boiler House", "Chiller Plant", "HVAC System", "Air Compressors", "Water Treatment Plant", "Fire Fighting System", "Electrical Substation"],
   production_capacity_tpd: 120, annual_output_mt: 36000,
+  cooling_tunnel_load_tr: 180, tempering_utility_demand: "Medium",
+  humidity_controlled_pct: 40, chocolate_storage_temp_c: 16, process_hot_water_lph: 2500,
+  oven_capacity_kg_hr: 1200, fuel_type: "PNG", baking_line_qty: 2,
+  compressed_air_demand_cfm: 1500, dust_collection_required: true, cooling_conveyor_load: "Standard",
   include_roads: true, include_landscaping: true, include_fence: true,
+  land_area_sqm: 32000, ground_coverage_pct: 58, far_fsi: 1.2,
+  water_availability: "Municipal + Borewell", grid_reliability: "Good",
+  ambient_temp_range: "Temperate (5°C - 30°C)", relative_humidity_pct: 70,
   complexity: {
     seismic_zone_high: false, high_humidity: false, cold_region: false,
     brownfield: false, gmp_hygienic: true, explosion_risk: false,
@@ -60,6 +73,7 @@ export default function Estimator() {
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = React.useState(5);      // start on Output & Review
   const [activeTab, setActiveTab] = React.useState("summary");
+  const [editOpen, setEditOpen] = React.useState(false);
 
   // Load reference + FX, then compute default estimate
   React.useEffect(() => {
@@ -194,7 +208,7 @@ export default function Estimator() {
                     <BoqTable rows={result.top_cost_items} currency={currency} fxRates={fxRates} testid={TID.boqTable} />
                   </div>
                   <div className="xl:col-span-4 space-y-4">
-                    <ProjectOverview inputs={inputs} totals={result.totals} />
+                    <ProjectOverview inputs={inputs} totals={result.totals} onEdit={() => setEditOpen(true)} />
                     <AssumptionsBox items={result.insights?.assumptions || []} />
                     <RisksBox items={result.insights?.risks || []} />
                     <OptimizationsBox items={result.insights?.optimizations || []} />
@@ -240,7 +254,7 @@ export default function Estimator() {
                   <UtilityCards demand={result.utility_demand} />
                 </div>
               )}
-              {result && activeTab === "process" && <ProjectOverview inputs={inputs} totals={result.totals} />}
+              {result && activeTab === "process" && <ProjectOverview inputs={inputs} totals={result.totals} onEdit={() => setEditOpen(true)} />}
               {result && activeTab === "infra" && (
                 <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Infra Summary</h3>
@@ -295,7 +309,21 @@ export default function Estimator() {
         </div>
       </div>
 
-      <RightToolbar onAction={(k) => toast.info(`Opening ${k}...`)} />
+      <RightToolbar onAction={(k) => {
+        if (k === "quick-inputs") setEditOpen(true);
+        else toast.info(`Opening ${k}...`);
+      }} />
+
+      <EditProjectDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        inputs={inputs}
+        reference={reference}
+        onSave={async (updated) => {
+          setInputs(updated);
+          await recalc(updated);
+        }}
+      />
     </div>
   );
 }
