@@ -74,6 +74,8 @@ export default function Estimator() {
   const [step, setStep] = React.useState(5);      // start on Output & Review
   const [activeTab, setActiveTab] = React.useState("summary");
   const [editOpen, setEditOpen] = React.useState(false);
+  const isFirstInputsChange = React.useRef(true);
+  const recalcTimer = React.useRef(null);
 
   // Load reference + FX, then compute default estimate
   React.useEffect(() => {
@@ -86,6 +88,21 @@ export default function Estimator() {
       recalc(DEFAULT_INPUTS);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-recalculate whenever `inputs` changes (debounced 400ms). This makes
+  // every edit — wizard field, edit dialog Save, stepper jump — refresh the
+  // dashboard automatically without needing a manual Recalculate press.
+  React.useEffect(() => {
+    if (isFirstInputsChange.current) {
+      isFirstInputsChange.current = false;
+      return;
+    }
+    if (recalcTimer.current) clearTimeout(recalcTimer.current);
+    recalcTimer.current = setTimeout(() => {
+      recalc(inputs);
+    }, 400);
+    return () => { if (recalcTimer.current) clearTimeout(recalcTimer.current); };
+  }, [inputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function recalc(inp = inputs) {
     setLoading(true);
@@ -137,8 +154,7 @@ export default function Estimator() {
   }
 
   async function onFinish() {
-    setStep(5);
-    await recalc(inputs);
+    setStep(5);   // auto-recalc effect will pick up any pending input changes
   }
 
   const currency = inputs.currency;
@@ -350,8 +366,7 @@ export default function Estimator() {
         inputs={inputs}
         reference={reference}
         onSave={async (updated) => {
-          setInputs(updated);
-          await recalc(updated);
+          setInputs(updated);   // auto-recalc effect will trigger recalc
         }}
       />
     </div>
