@@ -22,10 +22,13 @@ const items = [
   { key: "help", label: "Help & Support", icon: HelpCircle },
 ];
 
-export default function Sidebar({ activeProject, fxRates, currency }) {
+export default function Sidebar({ activeProject, fxRates, currency, liveRateIndex }) {
   const [active, setActive] = React.useState("new-estimate");
   const eurRate = fxRates?.EUR ?? 0.919;
   const eurUsd = (1 / eurRate).toFixed(4);
+  const idx = liveRateIndex || {};
+  const idxPct = idx.delta_pct;
+  const idxColor = idxPct > 0 ? "text-amber-400" : idxPct < 0 ? "text-emerald-400" : "text-slate-300";
   return (
     <aside data-testid={TID.sidebar} className="sidebar-scroll w-[260px] flex-shrink-0 flex flex-col h-full bg-[#0B1120] text-slate-300 overflow-y-auto">
       {/* Logo */}
@@ -78,6 +81,18 @@ export default function Sidebar({ activeProject, fxRates, currency }) {
         <Row label="Currency" value={currency ?? "USD"} />
         <Row label="FX Rate (EUR/USD)" value={eurUsd} />
         <div className="text-[10px] text-slate-500 mt-1">({new Date().toLocaleDateString("en-GB")})</div>
+        {idx.material_index != null && (
+          <div className="mt-2 pt-2 border-t border-slate-800">
+            <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-1">Live Rate Index</div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-slate-400 text-[11px]">Material Index</span>
+              <span className={`font-bold ${idxColor}`}>{idx.material_index?.toFixed(3)} ({idxPct >= 0 ? "+" : ""}{idxPct}%)</span>
+            </div>
+            <div className="text-[9px] text-slate-500 mt-0.5">
+              {idx.source === "fallback" ? "Fallback (baseline)" : `Live · Cu ${idx.copper_usd_oz}/oz`}
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

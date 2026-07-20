@@ -148,48 +148,140 @@ async def get_fx_rates() -> Dict[str, float]:
     return fallback
 
 
+# ---------- Live commodity / material index ----------
+_rate_index_cache: Dict[str, Any] = {"ts": 0, "data": None}
+
+async def get_live_rate_index() -> Dict[str, Any]:
+    """Fetch live copper price (USD/oz) as a proxy for construction material cost index.
+    Copper is a well-established leading indicator for steel + electrical + HVAC costs.
+    Free, keyless endpoint: api.gold-api.com. Cache 30 min. Fallback to baseline."""
+    import time
+    now = time.time()
+    if _rate_index_cache["data"] and now - _rate_index_cache["ts"] < 1800:
+        return _rate_index_cache["data"]
+
+    # Baseline copper price (USD/oz) as of Q1 2026 - anchors the index at 1.00
+    BASELINE_COPPER_USD_OZ = 0.32
+    data = {"source": "fallback", "copper_usd_oz": BASELINE_COPPER_USD_OZ,
+            "material_index": 1.00, "delta_pct": 0.0,
+            "fetched_at": datetime.now(timezone.utc).isoformat()}
+    try:
+        async with httpx.AsyncClient(timeout=6.0) as c:
+            r = await c.get("https://api.gold-api.com/price/copper")
+            j = r.json()
+            price = float(j.get("price") or 0)
+            if price > 0:
+                idx = price / BASELINE_COPPER_USD_OZ
+                # Cap swings between 0.80 and 1.35 to avoid runaway
+                idx = max(0.80, min(1.35, idx))
+                data = {
+                    "source": "api.gold-api.com",
+                    "copper_usd_oz": round(price, 4),
+                    "material_index": round(idx, 4),
+                    "delta_pct": round((idx - 1.0) * 100, 2),
+                    "fetched_at": datetime.now(timezone.utc).isoformat(),
+                }
+    except Exception as e:
+        logging.warning(f"Rate-index API failed, using fallback: {e}")
+
+    _rate_index_cache["data"] = data
+    _rate_index_cache["ts"] = now
+    return data
+
+
+# ---------- Fine-grained input multipliers ----------
+FOUNDATION_M   = {"Isolated Footing": 0.90, "Combined Footing": 0.95, "Raft Foundation": 1.00, "Pile Foundation": 1.28, "Engineering Fill": 1.10}
+SOIL_HARDNESS_M= {"Hard": 0.92, "Medium": 1.00, "Soft": 1.14}
+SBC_M          = {"Black Cotton": 1.15, "Silty": 1.08, "Reclaimed / Engineering Fill": 1.20, "Hard Stone": 0.90}
+GWT_M          = {"Shallow (<3 m)": 1.18, "Medium (3-8 m)": 1.05, "Deep (>8 m)": 1.00}
+WIND_ZONE_M    = {"Zone 1 (Low)": 0.96, "Zone 2": 1.00, "Zone 3": 1.05, "Zone 4 (High)": 1.10, "Zone 5 (Cyclonic)": 1.18}
+SEISMIC_ZONE_M = {"Zone 0 (Very Low)": 0.97, "Zone I": 1.00, "Zone II": 1.03, "Zone III": 1.06, "Zone IV": 1.10, "Zone V (High)": 1.16}
+ROOF_M         = {"PEB + Insulated Panel": 1.00, "RCC Slab": 1.22, "Metal Deck + Insulation": 1.05}
+COLUMN_M       = {"RCC": 1.12, "Steel": 1.00, "Composite": 1.18}
+FUEL_M         = {"PNG": 1.00, "LPG": 1.08, "Diesel": 1.15, "Biomass": 0.92, "Electric": 1.28}
+GRID_DG_ADD    = {"Excellent": 0.00, "Good": 0.02, "Average": 0.06, "Poor (frequent outages)": 0.12}
+WATER_AVAIL_M  = {"Municipal": 0.85, "Municipal + Borewell": 1.00, "Borewell": 1.08, "Tanker": 1.20, "Recycled + Fresh": 1.10, "Limited": 1.25}
+AMBIENT_HVAC_M = {"Tropical (25°C - 40°C)": 1.15, "Temperate (5°C - 30°C)": 1.00, "Cold (-10°C - 15°C)": 1.08, "Hot Arid (30°C - 48°C)": 1.20, "Cool Temperate (0°C - 22°C)": 1.05}
+BUILDING_TYPE_M= {"Industrial Shed": 0.88, "RCC Industrial Building": 1.10, "Industrial Building (RCC + PEB)": 1.00, "Warehouse": 0.82, "Utility / Admin Block": 0.96, "Mezzanine": 0.90, "Hybrid": 1.05}
+PROJECT_TYPE_M = {"Greenfield": 1.00, "Brownfield / Expansion": 0.94, "Retrofit / Capacity Upgrade": 0.72}
+
+
 # ---------- Core estimator ----------
-def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
+def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     built_up = inp.length_m * inp.width_m * inp.num_floors  # m² gross floor
     plot_area = inp.plot_area_sqm
 
+    # ---- Global multipliers (region + tier + complexity + LIVE material index) ----
     region_m = REGION_MULTIPLIERS.get(inp.region, 1.0)
     tier_m = LOCATION_FACTOR.get(inp.location_tier, 1.0)
+    project_type_m = PROJECT_TYPE_M.get(inp.project_type, 1.0)
+    live_m = float((live_index or {}).get("material_index", 1.0))
 
-    # Complexity multiplier (compound)
     complexity_m = 1.0
     active_complexity = []
-    for k, v in inp.complexity.items():
+    for k, v in (inp.complexity or {}).items():
         if v and k in COMPLEXITY_FACTORS:
             complexity_m *= COMPLEXITY_FACTORS[k]
             active_complexity.append(k)
 
-    global_m = region_m * tier_m * complexity_m
+    global_m = region_m * tier_m * complexity_m * live_m * project_type_m
+
+    # ---- Building multiplier (structural, site, envelope) ----
+    building_m = (
+        FOUNDATION_M.get(inp.foundation_type, 1.0)
+        * SOIL_HARDNESS_M.get(inp.soil_hardness, 1.0)
+        * SBC_M.get(inp.sbc_soil_type, 1.0)
+        * GWT_M.get(inp.gwt_depth, 1.0)
+        * WIND_ZONE_M.get(inp.wind_zone, 1.0)
+        * SEISMIC_ZONE_M.get(inp.seismic_zone, 1.0)
+        * COLUMN_M.get(inp.column_type, 1.0)
+        * ROOF_M.get(inp.roof_type, 1.0)
+        * BUILDING_TYPE_M.get(inp.building_type, 1.0)
+    ) ** (1.0 / 2.5)   # geometric moderation - avoid extreme compounding
+
+    # ---- Utility multiplier (fuel, water, grid, ambient) ----
+    utility_m = (
+        FUEL_M.get(inp.fuel_type, 1.0)
+        * WATER_AVAIL_M.get(inp.water_availability, 1.0)
+        * AMBIENT_HVAC_M.get(inp.ambient_temp_range, 1.0) ** 0.6
+        * (1.0 + GRID_DG_ADD.get(inp.grid_reliability, 0.0))
+    )
+
+    # ---- Floor-load adder (>5 kN significant) ----
+    if inp.floor_load_kn > 5:
+        building_m *= 1.0 + (inp.floor_load_kn - 5) * 0.012
+
+    # ---- Building components add scope (multi-select) ----
+    comp_scope_adder = 1.0 + max(0, (len(inp.building_components or []) - 3)) * 0.03
 
     # Auto quantity take-off (heuristic ratios) - proportional to built-up area
     a = built_up
     perimeter = 2 * (inp.length_m + inp.width_m)
     boq_rows: List[Dict[str, Any]] = []
 
+    # Landscaping quantity from Ground Coverage / plot area
+    coverage_frac = max(0.0, min(1.0, (inp.ground_coverage_pct or 0) / 100.0))
+    landscape_qty = plot_area * max(0.0, (1.0 - coverage_frac)) if inp.include_landscaping else 0
+
     qty_map = {
-        "Excavation":                     a * 0.65,   # m³
-        "PCC (M10)":                      a * 0.10,   # m³
-        "RCC Foundation (Raft)":          a * 0.42,   # m³
-        "Structural Steel (PEB)":         a * 0.055,  # MT
+        "Excavation":                     a * 0.65,
+        "PCC (M10)":                      a * 0.10,
+        "RCC Foundation (Raft)":          a * 0.42,
+        "Structural Steel (PEB)":         a * 0.055,
         "RCC Superstructure":             a * 0.24 * (inp.num_floors - 1 if inp.num_floors > 1 else 0.15),
-        "Roofing (Insulated Panel)":      a,          # m²
-        "Flooring (Epoxy + PU)":          a,          # m²
+        "Roofing (Insulated Panel)":      a,
+        "Flooring (Epoxy + PU)":          a,
         "Walls (Block + Plaster + Tile)": perimeter * inp.height_m * inp.num_floors,
         "Plumbing & Sanitary":            1,
         "External Works & Roads":         plot_area * 0.28 if inp.include_roads else 0,
         "Compound Wall / Fence":          (perimeter + 200) if inp.include_fence else 0,
-        "Landscaping":                    plot_area * 0.15 if inp.include_landscaping else 0,
+        "Landscaping":                    landscape_qty,
     }
 
     building_total = 0.0
     for activity, unit, base_rate, category in CIVIL_ACTIVITIES:
         qty = round(qty_map.get(activity, 0), 2)
-        rate = round(base_rate * global_m, 2)
+        rate = round(base_rate * global_m * building_m, 2)
         amount = round(qty * rate, 2)
         if amount > 0:
             boq_rows.append({
@@ -198,29 +290,46 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
             })
             building_total += amount
 
+    building_total *= comp_scope_adder
+
+    # Product category preset shifts utilities share
+    preset = INDUSTRY_PRESETS.get(inp.product_category, INDUSTRY_PRESETS.get("Chocolate Plant", {"utilities_pct": 0.35}))
+    utilities_share_hint = preset.get("utilities_pct", 0.35)
+
     # Utilities cost (scope-filtered)
     utilities_total = 0.0
     utilities_rows = []
     for name, unit, base_rate in UTILITY_SYSTEMS:
-        # Match utility to scope tags
         included = False
         s = name.lower()
-        for scope in inp.utility_scope:
+        for scope in (inp.utility_scope or []):
             if scope.lower() in s or s.split()[0] in scope.lower():
                 included = True
                 break
         if not included and name in ("Water Supply System", "Electrical Infrastructure", "Fire Fighting System"):
-            included = True  # base essentials always in
+            included = True
         if included:
-            # Scale utility by capacity vs 100 TPD baseline
             cap_scale = max(0.5, (inp.production_capacity_tpd / 100.0))
-            amount = round(base_rate * global_m * cap_scale, 2)
-            utilities_rows.append({
-                "name": name, "unit": unit, "amount": amount,
-            })
+            amount = round(base_rate * global_m * utility_m * cap_scale, 2)
+            utilities_rows.append({"name": name, "unit": unit, "amount": amount})
             utilities_total += amount
 
-    # Add utilities as a BOQ line
+    # Chocolate-specific utility bump (cooling tunnel, humidity)
+    is_chocolate = ("chocolate" in (inp.product_category or "").lower() or "combo" in (inp.product_category or "").lower())
+    is_biscuit = any(t in (inp.product_category or "").lower() for t in ["biscuit", "wafer", "cookie", "combo"])
+    if is_chocolate:
+        # Cooling tunnel + humidity adds cost
+        choco_bump = 1.0 + (inp.cooling_tunnel_load_tr / 1000.0) + (inp.humidity_controlled_pct / 500.0)
+        utilities_total *= choco_bump
+        for u in utilities_rows:
+            u["amount"] = round(u["amount"] * choco_bump, 2)
+    if is_biscuit:
+        # Oven + baking lines add cost (fuel type applied via utility_m)
+        biscuit_bump = 1.0 + (inp.oven_capacity_kg_hr / 20000.0) + (inp.baking_line_qty * 0.02)
+        utilities_total *= biscuit_bump
+        for u in utilities_rows:
+            u["amount"] = round(u["amount"] * biscuit_bump, 2)
+
     if utilities_total > 0:
         boq_rows.append({
             "activity": "Utilities & Process Systems", "unit": "LS", "quantity": 1,
@@ -242,7 +351,7 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
     })
 
     subtotal = building_total + utilities_total + infra_total + compliance_total
-    other_fees = round(subtotal * 0.06, 2)  # design + PM + insurance
+    other_fees = round(subtotal * 0.06, 2)
     boq_rows.append({
         "activity": "Design + PM + Other Fees", "unit": "LS", "quantity": 1,
         "rate": other_fees, "amount": other_fees, "category": "Other",
@@ -252,22 +361,26 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
     contingency = round(subtotal * (inp.contingency_pct / 100.0), 2)
     total = subtotal + contingency
 
-    # Confidence score (0-100)
-    # base 92 - penalize for uncertainty flags
+    # Confidence score
     confidence = 92
-    if inp.project_type == "Brownfield":
+    if inp.project_type == "Brownfield / Expansion":
         confidence -= 6
+    if inp.project_type == "Retrofit / Capacity Upgrade":
+        confidence -= 4
     if inp.location_tier == "Remote":
         confidence -= 4
-    if inp.complexity.get("brownfield"): confidence -= 3
-    if inp.complexity.get("explosion_risk"): confidence -= 3
-    if inp.complexity.get("remote_site"): confidence -= 2
+    if (inp.complexity or {}).get("brownfield"): confidence -= 3
+    if (inp.complexity or {}).get("explosion_risk"): confidence -= 3
+    if (inp.complexity or {}).get("remote_site"): confidence -= 2
     if inp.production_capacity_tpd == 0:
         confidence -= 8
+    if inp.grid_reliability == "Poor (frequent outages)":
+        confidence -= 2
+    if (live_index or {}).get("source") == "fallback":
+        confidence -= 1
     confidence = max(45, min(96, confidence))
     conf_label = "High" if confidence >= 85 else "Medium" if confidence >= 70 else "Low"
 
-    # % breakdown
     def pct(x): return round((x / total) * 100, 2) if total > 0 else 0
     breakdown = [
         {"name": "Civil Building", "value": round(building_total, 2), "pct": pct(building_total)},
@@ -278,7 +391,6 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
         {"name": "Contingency", "value": contingency, "pct": pct(contingency)},
     ]
 
-    # Top 12 cost items sorted by amount
     sorted_boq = sorted(boq_rows, key=lambda r: r["amount"], reverse=True)
     top12 = []
     for i, r in enumerate(sorted_boq[:12], start=1):
@@ -287,22 +399,20 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
         r2["pct_of_total"] = round((r["amount"] / total) * 100, 2) if total > 0 else 0
         top12.append(r2)
 
-    # Duration (heuristic): 8 + area/6000 months
     duration = round(8 + built_up / 6000 + (0.15 * inp.num_floors), 1)
 
-    # Utility demand cards
     cap = inp.production_capacity_tpd
     utility_demand = {
         "water_kld": round(0.35 * cap * 10 + 20, 0),
-        "steam_kg_hr": round(35 * cap + 400, 0),
-        "chiller_tr": round(3.5 * cap, 0),
+        "steam_kg_hr": round(35 * cap + 400 + (inp.oven_capacity_kg_hr * 0.15 if is_biscuit else 0), 0),
+        "chiller_tr": round(3.5 * cap + (inp.cooling_tunnel_load_tr if is_chocolate else 0), 0),
         "power_kva": round(23 * cap + 300, 0),
-        "compressed_air_cfm": round(12 * cap + 300, 0),
+        "compressed_air_cfm": round(12 * cap + 300 + (inp.compressed_air_demand_cfm * 0.3 if is_biscuit else 0), 0),
         "etp_kld": round(1.5 * cap, 0),
         "fire_water_m3": 600,
     }
 
-    # 12-month cost trend (S-curve)
+    # Cost trend S-curve
     n = int(round(duration))
     n = max(6, min(24, n))
     import math
@@ -310,9 +420,7 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
     start = datetime.now(timezone.utc)
     cum = 0
     for i in range(n):
-        # S-curve weight
         x = (i + 1) / n
-        # cumulative pct
         cum_pct = 1 / (1 + math.exp(-10 * (x - 0.5)))
         period_amount = round(total * cum_pct - cum, 0)
         cum = total * cum_pct
@@ -350,10 +458,16 @@ def compute_estimate(inp: ProjectInputs) -> Dict[str, Any]:
         "utility_demand": utility_demand,
         "cost_trend": trend,
         "multipliers": {
-            "region": region_m, "tier": tier_m, "complexity": round(complexity_m, 4),
+            "region": region_m, "tier": tier_m,
+            "complexity": round(complexity_m, 4),
+            "building": round(building_m, 4),
+            "utility": round(utility_m, 4),
+            "project_type": project_type_m,
+            "live_material_index": live_m,
             "combined": round(global_m, 4),
         },
         "active_complexity": active_complexity,
+        "live_rate_index": live_index or {},
     }
 
 
@@ -531,9 +645,16 @@ async def reference_data():
     }
 
 
+@api_router.get("/estimator/rate-index")
+async def rate_index():
+    """Live construction material cost index (copper price proxy)."""
+    return await get_live_rate_index()
+
+
 @api_router.post("/estimator/calculate")
 async def calculate(inp: ProjectInputs):
-    result = compute_estimate(inp)
+    live_index = await get_live_rate_index()
+    result = compute_estimate(inp, live_index=live_index)
     ai = await generate_ai_insights(inp, result)
     result["insights"] = ai
     fx = await get_fx_rates()
@@ -544,7 +665,8 @@ async def calculate(inp: ProjectInputs):
 @api_router.post("/estimator/calculate-fast")
 async def calculate_fast(inp: ProjectInputs):
     """Same as calculate but skips AI (for live slider preview)."""
-    return compute_estimate(inp)
+    live_index = await get_live_rate_index()
+    return compute_estimate(inp, live_index=live_index)
 
 
 @api_router.post("/estimator/save")

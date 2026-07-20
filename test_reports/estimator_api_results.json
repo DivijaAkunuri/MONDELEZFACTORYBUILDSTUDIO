@@ -1,0 +1,426 @@
+{
+  "base_url": "https://predict-calc-1.preview.emergentagent.com/api",
+  "rate_index": {
+    "source": "fallback",
+    "copper_usd_oz": 0.32,
+    "material_index": 1.0,
+    "delta_pct": 0.0,
+    "fetched_at": "2026-07-20T17:03:54.797790+00:00"
+  },
+  "live_calculate": {
+    "source": "fallback",
+    "live_rate_index_material_index": 1.0,
+    "multipliers_live_material_index": 1.0,
+    "total_project_cost": 19994008.26
+  },
+  "directional_tests": [
+    {
+      "field": "project_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 14395601.93,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 5175789.24,
+      "passed": true,
+      "expectation": "Retrofit should lower total vs Greenfield"
+    },
+    {
+      "field": "region",
+      "baseline_total": 19994008.26,
+      "variant_total": 9562443.97,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 3438024.27,
+      "passed": true,
+      "expectation": "India / South Asia should lower total vs Europe"
+    },
+    {
+      "field": "location_tier",
+      "baseline_total": 19994008.26,
+      "variant_total": 23592550.51,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 8482543.47,
+      "passed": true,
+      "expectation": "Remote should raise total vs Metro"
+    },
+    {
+      "field": "foundation_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 21138137.38,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Pile Foundation should raise total vs Raft"
+    },
+    {
+      "field": "soil_hardness",
+      "baseline_total": 19994008.26,
+      "variant_total": 20586914.52,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Soft soil should raise total vs Medium"
+    },
+    {
+      "field": "sbc_soil_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 21129587.05,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Black Cotton should raise total vs Hard Stone"
+    },
+    {
+      "field": "gwt_depth",
+      "baseline_total": 19994008.26,
+      "variant_total": 20520839.44,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Shallow GWT should raise total vs Medium"
+    },
+    {
+      "field": "wind_zone",
+      "baseline_total": 19994008.26,
+      "variant_total": 20748364.91,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Zone 5 should raise total vs Zone 2"
+    },
+    {
+      "field": "seismic_zone",
+      "baseline_total": 19994008.26,
+      "variant_total": 20811409.02,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Zone V should raise total vs Zone 0"
+    },
+    {
+      "field": "roof_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 20906457.63,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "RCC slab should raise total vs PEB"
+    },
+    {
+      "field": "column_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 20505390.57,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "RCC columns should raise total vs Steel"
+    },
+    {
+      "field": "fuel_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 22505653.14,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 9201403.1,
+      "passed": true,
+      "expectation": "Electric fuel should raise utility cost vs PNG"
+    },
+    {
+      "field": "grid_reliability",
+      "baseline_total": 19994008.26,
+      "variant_total": 20873435.72,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7893360.49,
+      "passed": true,
+      "expectation": "Poor grid should raise total vs Good"
+    },
+    {
+      "field": "water_availability",
+      "baseline_total": 19994008.26,
+      "variant_total": 22236548.33,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 8985745.21,
+      "passed": true,
+      "expectation": "Limited water should raise total vs Municipal+Borewell"
+    },
+    {
+      "field": "ambient_temp_range",
+      "baseline_total": 19994008.26,
+      "variant_total": 20778660.04,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7817408.22,
+      "passed": true,
+      "expectation": "Tropical should raise total vs Temperate"
+    },
+    {
+      "field": "building_type",
+      "baseline_total": 19994008.26,
+      "variant_total": 19152500.92,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Warehouse should lower total vs RCC+PEB"
+    },
+    {
+      "field": "production_capacity_tpd",
+      "baseline_total": 19994008.26,
+      "variant_total": 28964168.59,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 14377192.34,
+      "passed": true,
+      "expectation": "240 TPD should raise total vs 120 TPD"
+    },
+    {
+      "field": "utility_scope_remove",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": false,
+      "expectation": "Removing utilities should lower utilities_total"
+    },
+    {
+      "field": "contingency_pct",
+      "baseline_total": 19994008.26,
+      "variant_total": 22215564.73,
+      "baseline_utilities": 7188596.18,
+      "variant_utilities": 7188596.18,
+      "passed": true,
+      "expectation": "Higher contingency should raise total"
+    },
+    {
+      "field": "gwt_depth_deep_vs_shallow",
+      "deep_total": 19780728.17,
+      "shallow_total": 20520839.44,
+      "passed": true
+    },
+    {
+      "field": "grid_excellent_vs_poor",
+      "excellent_total": 19818122.74,
+      "poor_total": 20873435.72,
+      "passed": true
+    },
+    {
+      "field": "water_municipal_vs_limited",
+      "municipal_total": 18648484.2,
+      "limited_total": 22236548.33,
+      "passed": true
+    },
+    {
+      "field": "complexity.seismic_zone_high",
+      "baseline_total": 16525052.47,
+      "variant_total": 17516639.24,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.06,
+      "passed": true
+    },
+    {
+      "field": "complexity.high_humidity",
+      "baseline_total": 16525052.47,
+      "variant_total": 17186027.55,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.04,
+      "passed": true
+    },
+    {
+      "field": "complexity.cold_region",
+      "baseline_total": 16525052.47,
+      "variant_total": 17351514.26,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.05,
+      "passed": true
+    },
+    {
+      "field": "complexity.brownfield",
+      "baseline_total": 16525052.47,
+      "variant_total": 17847028.53,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.08,
+      "passed": true
+    },
+    {
+      "field": "complexity.gmp_hygienic",
+      "baseline_total": 16525052.47,
+      "variant_total": 18012441.13,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.09,
+      "passed": true
+    },
+    {
+      "field": "complexity.explosion_risk",
+      "baseline_total": 16525052.47,
+      "variant_total": 17682018.88,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.07,
+      "passed": true
+    },
+    {
+      "field": "complexity.utility_redundancy",
+      "baseline_total": 16525052.47,
+      "variant_total": 18343009.92,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.11,
+      "passed": true
+    },
+    {
+      "field": "complexity.high_floor_load",
+      "baseline_total": 16525052.47,
+      "variant_total": 17351514.26,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.05,
+      "passed": true
+    },
+    {
+      "field": "complexity.remote_site",
+      "baseline_total": 16525052.47,
+      "variant_total": 18508411.01,
+      "baseline_complexity_m": 1.0,
+      "variant_complexity_m": 1.12,
+      "passed": true
+    }
+  ],
+  "non_effect_editable_tests": [
+    {
+      "field": "industry_type",
+      "changed_to": "FMCG",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "continent",
+      "changed_to": "Asia",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "bay_spacing_m",
+      "changed_to": 12,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "soil_type",
+      "changed_to": "Black Cotton",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "wind_speed_ms",
+      "changed_to": 42,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "annual_output_mt",
+      "changed_to": 72000,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "tempering_utility_demand",
+      "changed_to": "Very High",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "chocolate_storage_temp_c",
+      "changed_to": 10,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "process_hot_water_lph",
+      "changed_to": 5000,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "dust_collection_required",
+      "changed_to": false,
+      "baseline_total": 18854940.28,
+      "variant_total": 18854940.28,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "cooling_conveyor_load",
+      "changed_to": "Heavy Duty",
+      "baseline_total": 18854940.28,
+      "variant_total": 18854940.28,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "land_area_sqm",
+      "changed_to": 64000,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "far_fsi",
+      "changed_to": 2.4,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "relative_humidity_pct",
+      "changed_to": 95,
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "currency",
+      "changed_to": "EUR",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    },
+    {
+      "field": "base_unit",
+      "changed_to": "ft",
+      "baseline_total": 19994008.26,
+      "variant_total": 19994008.26,
+      "changes_total_project_cost": false
+    }
+  ],
+  "failures": [
+    "directional check failed for utility_scope_remove: Removing utilities should lower utilities_total; got total 19994008.26, utilities 7188596.18",
+    "editable field industry_type did not change total_project_cost",
+    "editable field continent did not change total_project_cost",
+    "editable field bay_spacing_m did not change total_project_cost",
+    "editable field soil_type did not change total_project_cost",
+    "editable field wind_speed_ms did not change total_project_cost",
+    "editable field annual_output_mt did not change total_project_cost",
+    "editable field tempering_utility_demand did not change total_project_cost",
+    "editable field chocolate_storage_temp_c did not change total_project_cost",
+    "editable field process_hot_water_lph did not change total_project_cost",
+    "editable field dust_collection_required did not change total_project_cost",
+    "editable field cooling_conveyor_load did not change total_project_cost",
+    "editable field land_area_sqm did not change total_project_cost",
+    "editable field far_fsi did not change total_project_cost",
+    "editable field relative_humidity_pct did not change total_project_cost",
+    "editable field currency did not change total_project_cost",
+    "editable field base_unit did not change total_project_cost"
+  ],
+  "baseline_fast": {
+    "total_project_cost": 19994008.26,
+    "utilities_total": 7188596.18,
+    "multipliers": {
+      "region": 1.15,
+      "tier": 1.0,
+      "complexity": 1.2099,
+      "building": 0.9658,
+      "utility": 1.02,
+      "project_type": 1.0,
+      "live_material_index": 1.0,
+      "combined": 1.3914
+    }
+  }
+}

@@ -119,6 +119,7 @@ export default function Estimator() {
       <Sidebar
         currency={currency}
         fxRates={fxRates}
+        liveRateIndex={result?.live_rate_index}
         activeProject={{
           name: inputs.project_name,
           location: `${inputs.location_city}, ${inputs.location_country}`,
