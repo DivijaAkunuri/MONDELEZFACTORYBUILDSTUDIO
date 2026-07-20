@@ -11,6 +11,7 @@ import { DonutChart, TrendChart } from "@/components/estimator/Charts";
 import UtilityCards from "@/components/estimator/UtilityCards";
 import Wizard from "@/components/estimator/Wizard";
 import EditProjectDialog from "@/components/estimator/EditProjectDialog";
+import CityFactorsCard from "@/components/estimator/CityFactorsCard";
 import { TabsBar, BoqTable, UtilitiesSummary, ProjectOverview, AssumptionsBox, RisksBox, OptimizationsBox } from "@/components/estimator/OutputPanels";
 import { getReference, getFxRates, calculate, calculateFast, getInsights, saveEstimate } from "@/lib/api";
 import { fmtMoney, fmtNumber } from "@/lib/format";
@@ -255,6 +256,7 @@ export default function Estimator() {
                   </div>
                   <div className="xl:col-span-4 space-y-4">
                     <ProjectOverview inputs={inputs} totals={result.totals} onEdit={() => setEditOpen(true)} />
+                    <CityFactorsCard cityFactors={result.city_factors} requestedCity={inputs.location_city} />
                     <AssumptionsBox items={result.insights?.assumptions || []} />
                     <RisksBox items={result.insights?.risks || []} />
                     <OptimizationsBox items={result.insights?.optimizations || []} />

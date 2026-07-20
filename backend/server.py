@@ -19,6 +19,7 @@ from rate_data import (
     CIVIL_ACTIVITIES, UTILITY_SYSTEMS, REGION_MULTIPLIERS,
     LOCATION_FACTOR, COMPLEXITY_FACTORS, INDUSTRY_PRESETS,
     COMPLIANCE_ADDER_PCT, CONTINGENCY_PCT, CURRENCY_SYMBOLS,
+    CITY_FACTORS, city_factor_lookup,
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -262,6 +263,19 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     continent_m = CONTINENT_M.get(inp.continent, 1.0)
     live_m = float((live_index or {}).get("material_index", 1.0))
 
+    # ---- City-specific factors (civil / mechanical / electrical / labour) ----
+    city = city_factor_lookup(inp.location_city)
+    city_civil = float(city["civil"])
+    city_mech  = float(city["mechanical"])
+    city_elec  = float(city["electrical"])
+    city_lab   = float(city["labour"])
+    # Labour weight in the total mix (~30% of construction cost is labour)
+    LAB_W = 0.30
+    # Effective per-discipline city multipliers = 70% discipline material + 30% labour
+    civil_city_m = (1 - LAB_W) * city_civil + LAB_W * city_lab
+    mech_city_m  = (1 - LAB_W) * city_mech  + LAB_W * city_lab
+    elec_city_m  = (1 - LAB_W) * city_elec  + LAB_W * city_lab
+
     complexity_m = 1.0
     active_complexity = []
     for k, v in (inp.complexity or {}).items():
@@ -339,7 +353,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     building_total = 0.0
     for activity, unit, base_rate, category in CIVIL_ACTIVITIES:
         qty = round(qty_map.get(activity, 0), 2)
-        rate = round(base_rate * global_m * building_m, 2)
+        rate = round(base_rate * global_m * building_m * civil_city_m, 2)
         amount = round(qty * rate, 2)
         if amount > 0:
             boq_rows.append({
@@ -362,14 +376,16 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 
     utilities_total = 0.0
     utilities_rows = []
-    for name, unit, base_rate in UTILITY_SYSTEMS:
+    for name, unit, base_rate, discipline in UTILITY_SYSTEMS:
         if name not in scope_canonical:
             continue
         cap_scale = max(0.5, (inp.production_capacity_tpd / 100.0))
         # Annual output slightly scales utility sizing
         output_scale = 1.0 + max(0.0, (inp.annual_output_mt - 36000) / 200000.0)
-        amount = round(base_rate * global_m * utility_m * cap_scale * output_scale, 2)
-        utilities_rows.append({"name": name, "unit": unit, "amount": amount})
+        # Apply the correct city discipline factor per utility type
+        disc_m = {"mechanical": mech_city_m, "electrical": elec_city_m, "civil": civil_city_m}.get(discipline, mech_city_m)
+        amount = round(base_rate * global_m * utility_m * cap_scale * output_scale * disc_m, 2)
+        utilities_rows.append({"name": name, "unit": unit, "amount": amount, "discipline": discipline})
         utilities_total += amount
 
     # Chocolate-specific utility bump
@@ -537,6 +553,18 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         },
         "active_complexity": active_complexity,
         "live_rate_index": live_index or {},
+        "city_factors": {
+            "matched": city.get("matched", False),
+            "resolved": city.get("resolved"),
+            "requested": inp.location_city,
+            "civil": round(city_civil, 3),
+            "mechanical": round(city_mech, 3),
+            "electrical": round(city_elec, 3),
+            "labour": round(city_lab, 3),
+            "civil_effective": round(civil_city_m, 3),
+            "mechanical_effective": round(mech_city_m, 3),
+            "electrical_effective": round(elec_city_m, 3),
+        },
     }
 
 
@@ -711,6 +739,7 @@ async def reference_data():
             {"key": "remote_site", "label": "Remote Site"},
         ],
         "currencies": list(CURRENCY_SYMBOLS.keys()),
+        "cities": sorted({k.title() for k in CITY_FACTORS.keys()}),
     }
 
 
