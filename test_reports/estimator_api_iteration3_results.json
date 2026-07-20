@@ -1,0 +1,335 @@
+{
+  "base_url": "https://predict-calc-1.preview.emergentagent.com/api",
+  "rate_index": {
+    "source": "fallback",
+    "copper_usd_oz": 0.32,
+    "material_index": 1.0,
+    "delta_pct": 0.0,
+    "fetched_at": "2026-07-20T17:15:48.473676+00:00"
+  },
+  "full_calculate_live_index": {
+    "source": "fallback",
+    "live_rate_index_material_index": 1.0,
+    "multipliers_live_material_index": 1.0,
+    "total_project_cost": 35209245.7
+  },
+  "baseline": {
+    "total_project_cost": 35209245.7,
+    "utilities_total": 19329286.48,
+    "multipliers": {
+      "region": 1.15,
+      "tier": 1.0,
+      "complexity": 1.2099,
+      "building": 0.9658,
+      "utility": 1.02,
+      "project_type": 1.0,
+      "live_material_index": 1.0,
+      "combined": 1.3997
+    },
+    "live_rate_index": {
+      "source": "fallback",
+      "copper_usd_oz": 0.32,
+      "material_index": 1.0,
+      "delta_pct": 0.0,
+      "fetched_at": "2026-07-20T17:15:48.473676+00:00"
+    }
+  },
+  "one_off_patch_tests": [
+    {
+      "patch": {
+        "industry_type": "Warehouse / Logistics"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 27463135.84,
+      "delta": -7746109.86,
+      "passed": true
+    },
+    {
+      "patch": {
+        "industry_type": "Process Building"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 40490367.51,
+      "delta": 5281121.81,
+      "passed": true
+    },
+    {
+      "patch": {
+        "continent": "North America"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 35516507.16,
+      "delta": 307261.46,
+      "passed": true
+    },
+    {
+      "patch": {
+        "continent": "Africa"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 34135857.44,
+      "delta": -1073388.26,
+      "passed": true
+    },
+    {
+      "patch": {
+        "bay_spacing_m": 4
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 35679954.33,
+      "delta": 470708.63,
+      "passed": true
+    },
+    {
+      "patch": {
+        "soil_type": "Clayey"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 35427424.47,
+      "delta": 218178.77,
+      "passed": true
+    },
+    {
+      "patch": {
+        "wind_speed_ms": 40
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 35756415.22,
+      "delta": 547169.52,
+      "passed": true
+    },
+    {
+      "patch": {
+        "annual_output_mt": 80000
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 40515580.17,
+      "delta": 5306334.47,
+      "passed": true
+    },
+    {
+      "patch": {
+        "tempering_utility_demand": "Very High"
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 40515580.19,
+      "delta": 5306334.49,
+      "passed": true
+    },
+    {
+      "patch": {
+        "chocolate_storage_temp_c": 8
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 38919969.12,
+      "delta": 3710723.42,
+      "passed": true
+    },
+    {
+      "patch": {
+        "process_hot_water_lph": 10000
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 38654917.45,
+      "delta": 3445671.75,
+      "passed": true
+    },
+    {
+      "patch": {
+        "dust_collection_required": false,
+        "product_category": "Biscuit Plant"
+      },
+      "compare_total": 31143717.67,
+      "variant_total": 30372403.28,
+      "delta": -771314.39,
+      "passed": true
+    },
+    {
+      "patch": {
+        "cooling_conveyor_load": "Heavy Duty",
+        "product_category": "Biscuit Plant"
+      },
+      "compare_total": 31143717.67,
+      "variant_total": 34151843.8,
+      "delta": 3008126.13,
+      "passed": true
+    },
+    {
+      "patch": {
+        "land_area_sqm": 80000
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 37080380.72,
+      "delta": 1871135.02,
+      "passed": true
+    },
+    {
+      "patch": {
+        "far_fsi": 2.5
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 35470712.45,
+      "delta": 261466.75,
+      "passed": true
+    },
+    {
+      "patch": {
+        "relative_humidity_pct": 90
+      },
+      "compare_total": 35209245.7,
+      "variant_total": 37621215.9,
+      "delta": 2411970.2,
+      "passed": true
+    }
+  ],
+  "utility_scope_tests": [
+    {
+      "name": "reduced utility scope lowers utilities_total",
+      "baseline_utilities_total": 19329286.48,
+      "variant_utilities_total": 7896720.69,
+      "baseline_total": 35209245.7,
+      "variant_total": 20943324.27,
+      "passed": true
+    },
+    {
+      "name": "empty utility scope utilities_total is zero",
+      "variant_utilities_total": 0.0,
+      "variant_total": 11089543.5,
+      "passed": true
+    }
+  ],
+  "regression_tests": [
+    {
+      "name": "project_type Retrofit lowers total",
+      "patch": {
+        "project_type": "Retrofit / Capacity Upgrade"
+      },
+      "baseline_total": 35209245.7,
+      "variant_total": 25350843.69,
+      "passed": true
+    },
+    {
+      "name": "foundation_type Pile raises total",
+      "patch": {
+        "foundation_type": "Pile Foundation"
+      },
+      "baseline_total": 35209245.7,
+      "variant_total": 36359987.71,
+      "passed": true
+    },
+    {
+      "name": "region India/South Asia lowers total",
+      "patch": {
+        "region": "India / South Asia"
+      },
+      "baseline_total": 35209245.7,
+      "variant_total": 16838981.68,
+      "passed": true
+    },
+    {
+      "name": "location_tier Remote raises total",
+      "patch": {
+        "location_tier": "Remote"
+      },
+      "baseline_total": 35209245.7,
+      "variant_total": 41546476.49,
+      "passed": true
+    },
+    {
+      "name": "contingency_pct changes contingency line",
+      "patch": {
+        "contingency_pct": 20.0
+      },
+      "baseline_total": 35209245.7,
+      "variant_total": 39121384.12,
+      "passed": true,
+      "baseline_contingency": 2608092.27,
+      "variant_contingency": 6520230.69
+    },
+    {
+      "name": "complexity.seismic_zone_high changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 30847068.0,
+      "passed": true
+    },
+    {
+      "name": "complexity.high_humidity changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 30264666.98,
+      "passed": true
+    },
+    {
+      "name": "complexity.cold_region changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 30555801.21,
+      "passed": true
+    },
+    {
+      "name": "complexity.brownfield changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 31428829.87,
+      "passed": true
+    },
+    {
+      "name": "complexity.gmp_hygienic changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 31719805.35,
+      "passed": true
+    },
+    {
+      "name": "complexity.explosion_risk changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 31137981.71,
+      "passed": true
+    },
+    {
+      "name": "complexity.utility_redundancy changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 32302128.53,
+      "passed": true
+    },
+    {
+      "name": "complexity.high_floor_load changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 30555801.21,
+      "passed": true
+    },
+    {
+      "name": "complexity.remote_site changes total",
+      "baseline_total": 29100843.32,
+      "variant_total": 32592766.15,
+      "passed": true
+    }
+  ],
+  "display_only_tests": [
+    {
+      "patch": {
+        "currency": "EUR"
+      },
+      "baseline_total_usd": 35209245.7,
+      "variant_total_project_cost_usd": 35209245.7,
+      "delta": 0.0,
+      "passed": true
+    },
+    {
+      "patch": {
+        "base_unit": "ft"
+      },
+      "baseline_total_usd": 35209245.7,
+      "variant_total_project_cost_usd": 35209245.7,
+      "delta": 0.0,
+      "passed": true
+    },
+    {
+      "patch": {
+        "currency": "INR",
+        "base_unit": "m"
+      },
+      "baseline_total_usd": 35209245.7,
+      "variant_total_project_cost_usd": 35209245.7,
+      "delta": 0.0,
+      "passed": true
+    }
+  ],
+  "failures": []
+}

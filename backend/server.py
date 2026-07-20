@@ -204,17 +204,48 @@ WATER_AVAIL_M  = {"Municipal": 0.85, "Municipal + Borewell": 1.00, "Borewell": 1
 AMBIENT_HVAC_M = {"Tropical (25°C - 40°C)": 1.15, "Temperate (5°C - 30°C)": 1.00, "Cold (-10°C - 15°C)": 1.08, "Hot Arid (30°C - 48°C)": 1.20, "Cool Temperate (0°C - 22°C)": 1.05}
 BUILDING_TYPE_M= {"Industrial Shed": 0.88, "RCC Industrial Building": 1.10, "Industrial Building (RCC + PEB)": 1.00, "Warehouse": 0.82, "Utility / Admin Block": 0.96, "Mezzanine": 0.90, "Hybrid": 1.05}
 PROJECT_TYPE_M = {"Greenfield": 1.00, "Brownfield / Expansion": 0.94, "Retrofit / Capacity Upgrade": 0.72}
+INDUSTRY_TYPE_M= {"Food": 1.00, "FMCG": 0.92, "Warehouse / Logistics": 0.78, "Process Building": 1.15}
+SOIL_TYPE_M    = {"Black Cotton": 1.12, "Silty": 1.06, "Reclaimed / Engineering Fill": 1.18, "Hard Stone": 0.92, "Medium Dense Sand": 1.00, "Loose Sand": 1.08, "Clayey": 1.05}
+TEMPERING_M    = {"Low": 0.94, "Medium": 1.00, "High": 1.10, "Very High": 1.22}
+CONVEYOR_M     = {"Light": 0.94, "Standard": 1.00, "Heavy Duty": 1.15}
+CONTINENT_M    = {"Asia": 0.98, "Europe": 1.02, "North America": 1.05, "South America": 0.94, "Africa": 0.92, "Oceania": 1.06}
+
+# Explicit map: UI utility_scope label -> canonical UTILITY_SYSTEMS row name
+UTILITY_SCOPE_MAP = {
+    "Boiler House":              "Steam & Boiler System",
+    "Steam Distribution":        "Steam & Boiler System",
+    "Chiller Plant":             "Refrigeration / Cold Chain",
+    "HVAC System":               "Refrigeration / Cold Chain",
+    "Air Compressors":           "Compressed Air System",
+    "Process Piping":            "Compressed Air System",
+    "Water Treatment Plant":     "Water Supply System",
+    "Nitrogen Plant":            "Compressed Air System",
+    "Fire Fighting System":      "Fire Fighting System",
+    "Electrical Substation":     "Electrical Infrastructure",
+    "DG Backup":                 "Electrical Infrastructure",
+    "Solar Plant":               "Electrical Infrastructure",
+    # legacy passthroughs (dialog may pass canonical name directly)
+    "Steam & Boiler System":     "Steam & Boiler System",
+    "Refrigeration / Cold Chain":"Refrigeration / Cold Chain",
+    "Compressed Air System":     "Compressed Air System",
+    "Water Supply System":       "Water Supply System",
+    "ETP / STP System":          "ETP / STP System",
+    "Electrical Infrastructure": "Electrical Infrastructure",
+}
 
 
 # ---------- Core estimator ----------
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     built_up = inp.length_m * inp.width_m * inp.num_floors  # m² gross floor
-    plot_area = inp.plot_area_sqm
+    # Prefer land_area_sqm (framework) if it differs from legacy plot_area_sqm
+    plot_area = max(inp.plot_area_sqm or 0, inp.land_area_sqm or 0) or inp.plot_area_sqm
 
     # ---- Global multipliers (region + tier + complexity + LIVE material index) ----
     region_m = REGION_MULTIPLIERS.get(inp.region, 1.0)
     tier_m = LOCATION_FACTOR.get(inp.location_tier, 1.0)
     project_type_m = PROJECT_TYPE_M.get(inp.project_type, 1.0)
+    industry_m = INDUSTRY_TYPE_M.get(inp.industry_type, 1.0)
+    continent_m = CONTINENT_M.get(inp.continent, 1.0)
     live_m = float((live_index or {}).get("material_index", 1.0))
 
     complexity_m = 1.0
@@ -224,27 +255,40 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             complexity_m *= COMPLEXITY_FACTORS[k]
             active_complexity.append(k)
 
-    global_m = region_m * tier_m * complexity_m * live_m * project_type_m
+    global_m = region_m * tier_m * complexity_m * live_m * project_type_m * industry_m * (continent_m ** 0.3)
 
     # ---- Building multiplier (structural, site, envelope) ----
+    # Bay spacing: smaller spacing => more columns => higher steel
+    bay_m = (8.0 / max(2.0, inp.bay_spacing_m)) ** 0.15
+    # Wind speed above 24 m/s bumps steel/roof
+    wind_speed_m = 1.0 + max(0.0, (inp.wind_speed_ms - 24) * 0.008)
+    # FAR/FSI > 1.5 requires more structural depth
+    far_m = 1.0 + max(0.0, (inp.far_fsi - 1.5) * 0.06)
+
     building_m = (
         FOUNDATION_M.get(inp.foundation_type, 1.0)
         * SOIL_HARDNESS_M.get(inp.soil_hardness, 1.0)
         * SBC_M.get(inp.sbc_soil_type, 1.0)
+        * SOIL_TYPE_M.get(inp.soil_type, 1.0)
         * GWT_M.get(inp.gwt_depth, 1.0)
         * WIND_ZONE_M.get(inp.wind_zone, 1.0)
         * SEISMIC_ZONE_M.get(inp.seismic_zone, 1.0)
         * COLUMN_M.get(inp.column_type, 1.0)
         * ROOF_M.get(inp.roof_type, 1.0)
         * BUILDING_TYPE_M.get(inp.building_type, 1.0)
+        * bay_m
+        * wind_speed_m
+        * far_m
     ) ** (1.0 / 2.5)   # geometric moderation - avoid extreme compounding
 
-    # ---- Utility multiplier (fuel, water, grid, ambient) ----
+    # ---- Utility multiplier (fuel, water, grid, ambient, humidity) ----
+    humidity_m = 1.0 + max(0.0, (inp.relative_humidity_pct - 70) * 0.005)
     utility_m = (
         FUEL_M.get(inp.fuel_type, 1.0)
         * WATER_AVAIL_M.get(inp.water_availability, 1.0)
         * AMBIENT_HVAC_M.get(inp.ambient_temp_range, 1.0) ** 0.6
         * (1.0 + GRID_DG_ADD.get(inp.grid_reliability, 0.0))
+        * humidity_m
     )
 
     # ---- Floor-load adder (>5 kN significant) ----
@@ -294,38 +338,49 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 
     # Product category preset shifts utilities share
     preset = INDUSTRY_PRESETS.get(inp.product_category, INDUSTRY_PRESETS.get("Chocolate Plant", {"utilities_pct": 0.35}))
-    utilities_share_hint = preset.get("utilities_pct", 0.35)
 
-    # Utilities cost (scope-filtered)
+    # Utilities cost (scope-filtered) using explicit UI-label -> canonical map
+    scope_canonical = set()
+    for label in (inp.utility_scope or []):
+        canonical = UTILITY_SCOPE_MAP.get(label)
+        if canonical:
+            scope_canonical.add(canonical)
+
     utilities_total = 0.0
     utilities_rows = []
     for name, unit, base_rate in UTILITY_SYSTEMS:
-        included = False
-        s = name.lower()
-        for scope in (inp.utility_scope or []):
-            if scope.lower() in s or s.split()[0] in scope.lower():
-                included = True
-                break
-        if not included and name in ("Water Supply System", "Electrical Infrastructure", "Fire Fighting System"):
-            included = True
-        if included:
-            cap_scale = max(0.5, (inp.production_capacity_tpd / 100.0))
-            amount = round(base_rate * global_m * utility_m * cap_scale, 2)
-            utilities_rows.append({"name": name, "unit": unit, "amount": amount})
-            utilities_total += amount
+        if name not in scope_canonical:
+            continue
+        cap_scale = max(0.5, (inp.production_capacity_tpd / 100.0))
+        # Annual output slightly scales utility sizing
+        output_scale = 1.0 + max(0.0, (inp.annual_output_mt - 36000) / 200000.0)
+        amount = round(base_rate * global_m * utility_m * cap_scale * output_scale, 2)
+        utilities_rows.append({"name": name, "unit": unit, "amount": amount})
+        utilities_total += amount
 
-    # Chocolate-specific utility bump (cooling tunnel, humidity)
+    # Chocolate-specific utility bump
     is_chocolate = ("chocolate" in (inp.product_category or "").lower() or "combo" in (inp.product_category or "").lower())
     is_biscuit = any(t in (inp.product_category or "").lower() for t in ["biscuit", "wafer", "cookie", "combo"])
     if is_chocolate:
-        # Cooling tunnel + humidity adds cost
-        choco_bump = 1.0 + (inp.cooling_tunnel_load_tr / 1000.0) + (inp.humidity_controlled_pct / 500.0)
+        # Cooling tunnel + humidity + tempering demand + storage temp (colder -> more chiller)
+        storage_bump = max(1.0, (18.0 - inp.chocolate_storage_temp_c) * 0.02 + 1.0)
+        hot_water_bump = 1.0 + (inp.process_hot_water_lph / 50000.0)
+        temper_bump = TEMPERING_M.get(inp.tempering_utility_demand, 1.0)
+        choco_bump = (
+            1.0 + (inp.cooling_tunnel_load_tr / 1000.0)
+            + (inp.humidity_controlled_pct / 500.0)
+        ) * storage_bump * hot_water_bump * temper_bump
         utilities_total *= choco_bump
         for u in utilities_rows:
             u["amount"] = round(u["amount"] * choco_bump, 2)
     if is_biscuit:
-        # Oven + baking lines add cost (fuel type applied via utility_m)
-        biscuit_bump = 1.0 + (inp.oven_capacity_kg_hr / 20000.0) + (inp.baking_line_qty * 0.02)
+        # Oven + baking lines + conveyor load + dust collection
+        conveyor_bump = CONVEYOR_M.get(inp.cooling_conveyor_load, 1.0)
+        dust_bump = 1.04 if inp.dust_collection_required else 1.0
+        biscuit_bump = (
+            1.0 + (inp.oven_capacity_kg_hr / 20000.0)
+            + (inp.baking_line_qty * 0.02)
+        ) * conveyor_bump * dust_bump
         utilities_total *= biscuit_bump
         for u in utilities_rows:
             u["amount"] = round(u["amount"] * biscuit_bump, 2)
