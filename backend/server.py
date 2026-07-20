@@ -152,35 +152,49 @@ async def get_fx_rates() -> Dict[str, float]:
 _rate_index_cache: Dict[str, Any] = {"ts": 0, "data": None}
 
 async def get_live_rate_index() -> Dict[str, Any]:
-    """Fetch live copper price (USD/oz) as a proxy for construction material cost index.
-    Copper is a well-established leading indicator for steel + electrical + HVAC costs.
-    Free, keyless endpoint: api.gold-api.com. Cache 30 min. Fallback to baseline."""
+    """Fetch live copper price (USD/lb) from api.gold-api.com as a proxy for
+    construction material cost index. Copper is a well-established leading
+    indicator for steel + electrical + HVAC costs. Free, keyless endpoint.
+    Cache 30 min. Fallback to gold, then to baseline."""
     import time
     now = time.time()
     if _rate_index_cache["data"] and now - _rate_index_cache["ts"] < 1800:
         return _rate_index_cache["data"]
 
-    # Baseline copper price (USD/oz) as of Q1 2026 - anchors the index at 1.00
-    BASELINE_COPPER_USD_OZ = 0.32
-    data = {"source": "fallback", "copper_usd_oz": BASELINE_COPPER_USD_OZ,
+    # Baseline copper price (USD/lb, COMEX HG) - anchors the index at 1.00
+    BASELINE_COPPER_USD_LB = 4.50
+    BASELINE_GOLD_USD_OZ   = 2100.0
+    data = {"source": "fallback", "commodity": "copper",
+            "price": BASELINE_COPPER_USD_LB, "price_unit": "USD/lb",
             "material_index": 1.00, "delta_pct": 0.0,
             "fetched_at": datetime.now(timezone.utc).isoformat()}
-    try:
+
+    async def _try(url: str, symbol: str, baseline: float, unit: str):
         async with httpx.AsyncClient(timeout=6.0) as c:
-            r = await c.get("https://api.gold-api.com/price/copper")
+            r = await c.get(url)
+            if r.status_code != 200:
+                return None
             j = r.json()
             price = float(j.get("price") or 0)
-            if price > 0:
-                idx = price / BASELINE_COPPER_USD_OZ
-                # Cap swings between 0.80 and 1.35 to avoid runaway
-                idx = max(0.80, min(1.35, idx))
-                data = {
-                    "source": "api.gold-api.com",
-                    "copper_usd_oz": round(price, 4),
-                    "material_index": round(idx, 4),
-                    "delta_pct": round((idx - 1.0) * 100, 2),
-                    "fetched_at": datetime.now(timezone.utc).isoformat(),
-                }
+            if price <= 0:
+                return None
+            idx = max(0.80, min(1.35, price / baseline))
+            return {
+                "source": "api.gold-api.com",
+                "commodity": symbol,
+                "price": round(price, 4),
+                "price_unit": unit,
+                "material_index": round(idx, 4),
+                "delta_pct": round((idx - 1.0) * 100, 2),
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
+            }
+
+    try:
+        d = await _try("https://api.gold-api.com/price/HG", "copper", BASELINE_COPPER_USD_LB, "USD/lb")
+        if not d:
+            d = await _try("https://api.gold-api.com/price/XAU", "gold", BASELINE_GOLD_USD_OZ, "USD/oz")
+        if d:
+            data = d
     except Exception as e:
         logging.warning(f"Rate-index API failed, using fallback: {e}")
 

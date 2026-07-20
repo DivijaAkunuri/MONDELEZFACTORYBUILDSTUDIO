@@ -89,7 +89,9 @@ export default function Sidebar({ activeProject, fxRates, currency, liveRateInde
               <span className={`font-bold ${idxColor}`}>{idx.material_index?.toFixed(3)} ({idxPct >= 0 ? "+" : ""}{idxPct}%)</span>
             </div>
             <div className="text-[9px] text-slate-500 mt-0.5">
-              {idx.source === "fallback" ? "Fallback (baseline)" : `Live · Cu ${idx.copper_usd_oz}/oz`}
+              {idx.source === "fallback"
+                ? "Fallback (baseline)"
+                : `Live · ${idx.commodity ?? "commodity"} ${idx.price ?? ""} ${idx.price_unit ?? ""}`}
             </div>
           </div>
         )}

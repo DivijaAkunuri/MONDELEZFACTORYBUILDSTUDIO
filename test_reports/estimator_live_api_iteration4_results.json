@@ -1,0 +1,323 @@
+{
+  "base_url": "https://predict-calc-1.preview.emergentagent.com/api",
+  "external_hg": {
+    "status_code": 200,
+    "json": {
+      "currency": "USD",
+      "currencySymbol": "$",
+      "exchangeRate": 1.0,
+      "name": "Copper",
+      "price": 6.135442,
+      "symbol": "HG",
+      "updatedAt": "2026-07-20T17:29:02Z",
+      "updatedAtReadable": "a few seconds ago"
+    }
+  },
+  "rate_index": {
+    "source": "api.gold-api.com",
+    "commodity": "copper",
+    "price": 6.1361,
+    "price_unit": "USD/lb",
+    "material_index": 1.35,
+    "delta_pct": 35.0,
+    "fetched_at": "2026-07-20T17:26:45.735842+00:00"
+  },
+  "calculate": {
+    "total_project_cost": 47532524.7,
+    "utilities_total": 26094536.71,
+    "live_rate_index": {
+      "source": "api.gold-api.com",
+      "commodity": "copper",
+      "price": 6.1361,
+      "price_unit": "USD/lb",
+      "material_index": 1.35,
+      "delta_pct": 35.0,
+      "fetched_at": "2026-07-20T17:26:45.735842+00:00"
+    },
+    "multipliers": {
+      "region": 1.15,
+      "tier": 1.0,
+      "complexity": 1.2099,
+      "building": 0.9658,
+      "utility": 1.02,
+      "project_type": 1.0,
+      "live_material_index": 1.35,
+      "combined": 1.8896
+    }
+  },
+  "calculate_fast": {
+    "total_project_cost": 47532524.7,
+    "utilities_total": 26094536.71,
+    "live_rate_index": {
+      "source": "api.gold-api.com",
+      "commodity": "copper",
+      "price": 6.1361,
+      "price_unit": "USD/lb",
+      "material_index": 1.35,
+      "delta_pct": 35.0,
+      "fetched_at": "2026-07-20T17:26:45.735842+00:00"
+    },
+    "multipliers": {
+      "region": 1.15,
+      "tier": 1.0,
+      "complexity": 1.2099,
+      "building": 0.9658,
+      "utility": 1.02,
+      "project_type": 1.0,
+      "live_material_index": 1.35,
+      "combined": 1.8896
+    }
+  },
+  "local_static_baseline": {
+    "total_project_cost": 35209245.7,
+    "multipliers": {
+      "region": 1.15,
+      "tier": 1.0,
+      "complexity": 1.2099,
+      "building": 0.9658,
+      "utility": 1.02,
+      "project_type": 1.0,
+      "live_material_index": 1.0,
+      "combined": 1.3997
+    }
+  },
+  "live_scaling_check": {
+    "static_total": 35209245.7,
+    "live_index": 1.35,
+    "expected_live_total_static_x_index": 47532481.7,
+    "api_calculate_total": 47532524.7,
+    "absolute_delta": 43.0,
+    "passed": true
+  },
+  "field_impact_tests": [
+    {
+      "name": "industry_type Warehouse lowers total",
+      "patch": {
+        "industry_type": "Warehouse / Logistics"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 37074947.12,
+      "delta_total": -10457577.58,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 20353738.64,
+      "delta_utilities_total": -5740798.07,
+      "passed": true
+    },
+    {
+      "name": "industry_type Process changes total",
+      "patch": {
+        "industry_type": "Process Building"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 54662237.51,
+      "delta_total": 7129712.81,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 30008717.22,
+      "delta_utilities_total": 3914180.51,
+      "passed": true
+    },
+    {
+      "name": "continent North America changes total",
+      "patch": {
+        "continent": "North America"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 47947627.66,
+      "delta_total": 415102.96,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26322451.18,
+      "delta_utilities_total": 227914.47,
+      "passed": true
+    },
+    {
+      "name": "continent Africa lowers total",
+      "patch": {
+        "continent": "Africa"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 46083533.89,
+      "delta_total": -1448990.81,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 25299147.52,
+      "delta_utilities_total": -795389.19,
+      "passed": true
+    },
+    {
+      "name": "bay_spacing_m changes total",
+      "patch": {
+        "bay_spacing_m": 4
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 48168187.6,
+      "delta_total": 635662.9,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26094536.71,
+      "delta_utilities_total": 0.0,
+      "passed": true
+    },
+    {
+      "name": "soil_type changes total",
+      "patch": {
+        "soil_type": "Clayey"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 47827481.3,
+      "delta_total": 294956.6,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26094536.71,
+      "delta_utilities_total": 0.0,
+      "passed": true
+    },
+    {
+      "name": "wind_speed_ms changes total",
+      "patch": {
+        "wind_speed_ms": 40
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 48271276.97,
+      "delta_total": 738752.27,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26094536.71,
+      "delta_utilities_total": 0.0,
+      "passed": true
+    },
+    {
+      "name": "annual_output_mt changes utilities_total",
+      "patch": {
+        "annual_output_mt": 80000
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 54696076.23,
+      "delta_total": 7163551.53,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 31835334.79,
+      "delta_utilities_total": 5740798.08,
+      "passed": true
+    },
+    {
+      "name": "tempering_utility_demand changes utilities_total",
+      "patch": {
+        "tempering_utility_demand": "Very High"
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 54696076.24,
+      "delta_total": 7163551.54,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 31835334.79,
+      "delta_utilities_total": 5740798.08,
+      "passed": true
+    },
+    {
+      "name": "chocolate_storage_temp_c changes utilities_total",
+      "patch": {
+        "chocolate_storage_temp_c": 8
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 52542001.3,
+      "delta_total": 5009476.6,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 30109080.82,
+      "delta_utilities_total": 4014544.11,
+      "passed": true
+    },
+    {
+      "name": "process_hot_water_lph changes utilities_total",
+      "patch": {
+        "process_hot_water_lph": 10000
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 52184181.55,
+      "delta_total": 4651656.85,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 29822327.67,
+      "delta_utilities_total": 3727790.96,
+      "passed": true
+    },
+    {
+      "name": "dust_collection_required changes biscuit utilities_total",
+      "patch": {
+        "dust_collection_required": false,
+        "product_category": "Biscuit Plant"
+      },
+      "compare_total": 42044061.84,
+      "variant_total": 41002787.42,
+      "delta_total": -1041274.42,
+      "compare_utilities_total": 21696137.86,
+      "variant_utilities_total": 20861671.02,
+      "delta_utilities_total": -834466.84,
+      "passed": true
+    },
+    {
+      "name": "cooling_conveyor_load changes biscuit utilities_total",
+      "patch": {
+        "cooling_conveyor_load": "Heavy Duty",
+        "product_category": "Biscuit Plant"
+      },
+      "compare_total": 42044061.84,
+      "variant_total": 46105032.11,
+      "delta_total": 4060970.27,
+      "compare_utilities_total": 21696137.86,
+      "variant_utilities_total": 24950558.54,
+      "delta_utilities_total": 3254420.68,
+      "passed": true
+    },
+    {
+      "name": "land_area_sqm changes total",
+      "patch": {
+        "land_area_sqm": 80000
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 50058632.18,
+      "delta_total": 2526107.48,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26094536.71,
+      "delta_utilities_total": 0.0,
+      "passed": true
+    },
+    {
+      "name": "far_fsi changes total",
+      "patch": {
+        "far_fsi": 2.5
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 47885184.82,
+      "delta_total": 352660.12,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 26094536.71,
+      "delta_utilities_total": 0.0,
+      "passed": true
+    },
+    {
+      "name": "relative_humidity_pct changes utilities_total",
+      "patch": {
+        "relative_humidity_pct": 90
+      },
+      "compare_total": 47532524.7,
+      "variant_total": 50788684.48,
+      "delta_total": 3256159.78,
+      "compare_utilities_total": 26094536.71,
+      "variant_utilities_total": 28703990.38,
+      "delta_utilities_total": 2609453.67,
+      "passed": true
+    }
+  ],
+  "utility_scope_tests": [
+    {
+      "name": "reduced utility_scope lowers utilities_total",
+      "baseline_utilities_total": 26094536.71,
+      "variant_utilities_total": 10660572.93,
+      "baseline_total": 47532524.7,
+      "variant_total": 28273530.8,
+      "passed": true
+    },
+    {
+      "name": "empty utility_scope has zero utilities_total",
+      "baseline_utilities_total": 26094536.71,
+      "variant_utilities_total": 0.0,
+      "baseline_total": 47532524.7,
+      "variant_total": 14970926.76,
+      "passed": true
+    }
+  ],
+  "failures": []
+}
