@@ -251,7 +251,10 @@ UTILITY_SCOPE_MAP = {
 
 # ---------- Core estimator ----------
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    built_up = inp.length_m * inp.width_m * inp.num_floors  # m² gross floor
+    if inp.plot_area_sqm and inp.plot_area_sqm > 0:
+        built_up = inp.plot_area_sqm
+    else:
+        built_up = inp.length_m * inp.width_m * inp.num_floors
     # Prefer land_area_sqm (framework) if it differs from legacy plot_area_sqm
     plot_area = max(inp.plot_area_sqm or 0, inp.land_area_sqm or 0) or inp.plot_area_sqm
 
@@ -487,15 +490,33 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     duration = round(8 + built_up / 6000 + (0.15 * inp.num_floors), 1)
 
     cap = inp.production_capacity_tpd
+
     utility_demand = {
-        "water_kld": round(0.35 * cap * 10 + 20, 0),
-        "steam_kg_hr": round(35 * cap + 400 + (inp.oven_capacity_kg_hr * 0.15 if is_biscuit else 0), 0),
-        "chiller_tr": round(3.5 * cap + (inp.cooling_tunnel_load_tr if is_chocolate else 0), 0),
-        "power_kva": round(23 * cap + 300, 0),
-        "compressed_air_cfm": round(12 * cap + 300 + (inp.compressed_air_demand_cfm * 0.3 if is_biscuit else 0), 0),
-        "etp_kld": round(1.5 * cap, 0),
-        "fire_water_m3": 600,
-    }
+    # Water Requirement
+    "water_kld": round(max(20, 0.30 * cap * 10), 0),
+
+    # Steam Requirement
+    "steam_kg_hr": round(
+        1800 if is_chocolate else
+        2200 if is_biscuit else
+        max(1200, cap * 15),
+        0
+    ),
+
+    # Use USER INPUT instead of auto-sizing
+    "chiller_tr": round(inp.cooling_tunnel_load_tr, 0),
+
+    # Electrical Load
+    "power_kva": round(max(500, cap * 12), 0),
+
+    # Compressed Air
+    "compressed_air_cfm": round(inp.compressed_air_demand_cfm, 0),
+
+    # ETP
+    "etp_kld": round(max(30, cap * 1.2), 0),
+
+    "fire_water_m3": 600,
+}
 
     # Cost trend S-curve
     n = int(round(duration))
