@@ -32,7 +32,7 @@ const DEFAULT_INPUTS = {
   plot_area_sqm: 32000,
   building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
   soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium",
-  foundation_type: "Raft Foundation",
+  foundation_type: ["Raft Foundation"],
   floor_load_kn: 5.0, column_type: "Steel", roof_type: "PEB + Insulated Panel",
   seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
   gwt_depth: "Medium (3-8 m)",
@@ -275,17 +275,20 @@ export default function Estimator() {
                       <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Category-wise Breakdown</h3>
                       <table className="w-full text-sm">
                         <thead className="text-xs text-slate-500 uppercase font-semibold">
-                          <tr><th className="text-left py-2">Category</th><th className="text-right">Amount</th><th className="text-right">%</th></tr>
+                          <tr><th className="text-left py-2">Category</th><th className="text-right">Amount</th><th className="text-right">Cost / m²</th><th className="text-right">%</th></tr>
                         </thead>
                         <tbody>
                           {result.breakdown.map((b) => (
                             <tr key={b.name} className="border-t border-slate-100">
                               <td className="py-2 text-slate-800">{b.name}</td>
-                              <td className="py-2 text-right font-semibold">{fmtMoney(b.value, currency, fxRates)}</td>
-                              <td className="py-2 text-right text-slate-600">{b.pct}%</td>
-                            </tr>
-                          ))}
-                        </tbody>
+                              <td className="py-2 text-right font-semibold">
+                                {fmtMoney(b.value, currency, fxRates)}
+                                </td>
+                                  <td className="py-2 text-right text-slate-600">{fmtMoney(b.cost_per_sqm, currency, fxRates)} / m²</td>
+                                  <td className="py-2 text-right text-slate-600">{b.pct}%</td>
+                                  </tr>
+                                ))}
+                                </tbody>
                       </table>
                     </div>
                   </div>

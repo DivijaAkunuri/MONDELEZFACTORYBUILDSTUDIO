@@ -19,8 +19,24 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
   const [draft, setDraft] = React.useState(inputs);
 
   React.useEffect(() => {
-    if (open) setDraft(inputs);
-  }, [open, inputs]);
+  if (!open) return;
+
+  const regions = reference?.regions || {};
+  const validIndustries = reference?.industries || [];
+  const validTiers = reference?.tiers || [];
+
+  const country = inputs.location_country || "";
+  const matchedRegion = Object.entries(regions).find(([, countries]) => countries.includes(country))?.[0] || "";
+
+  setDraft({
+    ...inputs,
+    industry_type: validIndustries.includes(inputs.industry_type) ? inputs.industry_type : "FMCG",
+    region: Object.keys(regions).includes(inputs.region) ? inputs.region : matchedRegion,
+    location_country: country,
+    location_tier: validTiers.includes(inputs.location_tier) ? inputs.location_tier : "Metro",
+    sbc_soil_type: inputs.sbc_soil_type === "Hard Stone" ? "Hard" : (inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard"),
+  });
+}, [open, inputs, reference]);
 
   const patch = (k, v) => setDraft((s) => ({ ...s, [k]: v }));
   const patchCx = (k, v) => setDraft((s) => ({ ...s, complexity: { ...s.complexity, [k]: v } }));
@@ -61,13 +77,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
           </Section>
 
           {/* ---- Location ---- */}
+          {/* ---- Location ---- */}
           <Section title="Location">
             <Field label="City"><InputF id="location_city" value={draft.location_city} onChange={(v) => patch("location_city", v)} /></Field>
-            <Field label="Country"><InputF id="location_country" value={draft.location_country} onChange={(v) => patch("location_country", v)} /></Field>
+            <Field label="Region"><SelectF id="region" value={draft.region} onChange={(v) => { patch("region", v); patch("location_country", ""); }} options={Object.keys(reference?.regions || {})} /></Field>
+            <Field label="Country"><SelectF id="location_country" value={draft.location_country} onChange={(v) => patch("location_country", v)} options={reference?.regions?.[draft.region] || []} /></Field>
             <Field label="Currency"><SelectF id="currency" value={draft.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} /></Field>
-            <Field label="Region (Stage 2)"><SelectF id="region" value={draft.region} onChange={(v) => patch("region", v)} options={reference?.regions} /></Field>
-            <Field label="Continent (Stage 3)"><SelectF id="continent" value={draft.continent} onChange={(v) => patch("continent", v)} options={reference?.continents} /></Field>
-            <Field label="Location Tier (Stage 1)"><SelectF id="location_tier" value={draft.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} /></Field>
+            <Field label="Location Tier"><SelectF id="location_tier" value={draft.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} /></Field>
           </Section>
 
           {/* ---- Building Geometry ---- */}
@@ -90,9 +106,8 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
           {/* ---- Structural & Site ---- */}
           <Section title="Structural & Design">
-            <Field label="Foundation Type"><SelectF id="foundation_type" value={draft.foundation_type} onChange={(v) => patch("foundation_type", v)} options={reference?.foundation_types} /></Field>
+            <div className="sm:col-span-2"><MultiField title="Foundation Type" list={reference?.foundation_types || []} selected={draft.foundation_type || []} onToggle={(x) => toggleList("foundation_type", x)} idPrefix="foundation" /></div>
             <Field label="SBC / Soil Type"><SelectF id="sbc_soil_type" value={draft.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} /></Field>
-            <Field label="Soil Hardness"><SelectF id="soil_hardness" value={draft.soil_hardness} onChange={(v) => patch("soil_hardness", v)} options={reference?.soil_hardness} /></Field>
             <Field label="Column Type"><SelectF id="column_type" value={draft.column_type} onChange={(v) => patch("column_type", v)} options={reference?.column_types} /></Field>
             <Field label="Roof Type"><SelectF id="roof_type" value={draft.roof_type} onChange={(v) => patch("roof_type", v)} options={reference?.roof_types} /></Field>
             <Field label="Floor Load (kN/m²)"><InputF id="floor_load_kn" type="number" value={draft.floor_load_kn} onChange={(v) => patch("floor_load_kn", v)} /></Field>
@@ -102,7 +117,6 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Wind Zone"><SelectF id="wind_zone" value={draft.wind_zone} onChange={(v) => patch("wind_zone", v)} options={reference?.wind_zones} /></Field>
             <Field label="Wind Speed (m/s)"><InputF id="wind_speed_ms" type="number" value={draft.wind_speed_ms} onChange={(v) => patch("wind_speed_ms", v)} /></Field>
             <Field label="GWT Depth"><SelectF id="gwt_depth" value={draft.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} /></Field>
-            <Field label="Detailed Soil Type" span={2}><SelectF id="soil_type" value={draft.soil_type} onChange={(v) => patch("soil_type", v)} options={reference?.soil_types} /></Field>
           </Section>
 
           {/* ---- Utilities & Process ---- */}
@@ -257,7 +271,7 @@ function MultiField({ title, list, selected, onToggle, idPrefix }) {
   return (
     <div>
       <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">{title}</div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {(list || []).map((s) => {
           const key = typeof s === "string" ? s : s.key;
           const label = typeof s === "string" ? s : s.label;

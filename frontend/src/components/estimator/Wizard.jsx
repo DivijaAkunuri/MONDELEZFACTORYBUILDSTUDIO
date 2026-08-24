@@ -131,10 +131,10 @@ function Step1({ inputs, patch, reference }) {
           <InputF id="project_name" value={inputs.project_name} onChange={(v) => patch("project_name", v)} />
         </Field>
         <Field label="Project Type">
-          <SelectF id="project_type" value={inputs.project_type} onChange={(v) => patch("project_type", v)} options={reference?.project_types} />
+          <InputF id="project_type" value={inputs.project_type} onChange={(v) => patch("project_type", v)} options={reference?.project_types} />
         </Field>
         <Field label="Industry Type">
-          <SelectF id="industry_type" value={inputs.industry_type} onChange={(v) => patch("industry_type", v)} options={reference?.industries} />
+          <InputF id="industry_type" value={inputs.industry_type} onChange={(v) => patch("industry_type", v)} options={reference?.industries} />
         </Field>
         <Field label="Product Category">
           <SelectF id="product_category" value={inputs.product_category} onChange={(v) => patch("product_category", v)} options={reference?.product_categories} />
@@ -145,16 +145,13 @@ function Step1({ inputs, patch, reference }) {
           <InputF id="location_city" value={inputs.location_city} onChange={(v) => patch("location_city", v)} />
         </Field>
         <Field label="Country">
-          <InputF id="location_country" value={inputs.location_country} onChange={(v) => patch("location_country", v)} />
+          <SelectF id="location_country" value={inputs.location_country} onChange={(v) => patch("location_country", v)} options={reference?.regions?.[inputs.region] || []}/>
         </Field>
         <Field label="Currency">
           <SelectF id="currency" value={inputs.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
         </Field>
-        <Field label="Region (Stage 2)">
-          <SelectF id="region" value={inputs.region} onChange={(v) => patch("region", v)} options={reference?.regions} />
-        </Field>
-        <Field label="Continent (Stage 3)">
-          <SelectF id="continent" value={inputs.continent} onChange={(v) => patch("continent", v)} options={reference?.continents} />
+        <Field label="Region">
+          <SelectF id="region" value={inputs.region} onChange={(v) => { patch("region", v);patch("location_country", "");}} options={Object.keys(reference?.regions || {})}/>
         </Field>
         <Field label="Location Tier (Stage 1)">
           <SelectF id="location_tier" value={inputs.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} />
@@ -198,9 +195,8 @@ function Step3({ inputs, patch, reference }) {
   return (
     <>
       <Section title="Structural & Design">
-        <Field label="Foundation Type"><SelectF id="foundation_type" value={inputs.foundation_type} onChange={(v) => patch("foundation_type", v)} options={reference?.foundation_types} /></Field>
+        <div className="md:col-span-3"><div className="text-xs font-semibold text-slate-600 mb-1">Foundation Type</div><CheckboxGrid list={reference?.foundation_types || []} selected={inputs.foundation_type || []} onToggle={(item) => { const has = (inputs.foundation_type || []).includes(item); patch("foundation_type", has ? inputs.foundation_type.filter((s) => s !== item) : [...(inputs.foundation_type || []), item]); }} idPrefix="foundation" /></div>
         <Field label="SBC / Soil Type"><SelectF id="sbc_soil_type" value={inputs.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} /></Field>
-        <Field label="Soil Hardness"><SelectF id="soil_hardness" value={inputs.soil_hardness} onChange={(v) => patch("soil_hardness", v)} options={reference?.soil_hardness} /></Field>
         <Field label="Column Type"><SelectF id="column_type" value={inputs.column_type} onChange={(v) => patch("column_type", v)} options={reference?.column_types} /></Field>
         <Field label="Roof Type"><SelectF id="roof_type" value={inputs.roof_type} onChange={(v) => patch("roof_type", v)} options={reference?.roof_types} /></Field>
         <Field label="Floor Load (kN/m²)"><InputF id="floor_load_kn" type="number" value={inputs.floor_load_kn} onChange={(v) => patch("floor_load_kn", v)} /></Field>
@@ -210,7 +206,6 @@ function Step3({ inputs, patch, reference }) {
         <Field label="Wind Zone"><SelectF id="wind_zone" value={inputs.wind_zone} onChange={(v) => patch("wind_zone", v)} options={reference?.wind_zones} /></Field>
         <Field label="Wind Speed (m/s)"><InputF id="wind_speed_ms" type="number" value={inputs.wind_speed_ms} onChange={(v) => patch("wind_speed_ms", v)} /></Field>
         <Field label="Ground Water Table Depth"><SelectF id="gwt_depth" value={inputs.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} /></Field>
-        <Field label="Detailed Soil Type" span={2}><SelectF id="soil_type" value={inputs.soil_type} onChange={(v) => patch("soil_type", v)} options={reference?.soil_types} /></Field>
       </Section>
     </>
   );
