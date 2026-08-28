@@ -284,7 +284,7 @@ export default function Estimator() {
                               <td className="py-2 text-right font-semibold">
                                 {fmtMoney(b.value, currency, fxRates)}
                                 </td>
-                                  <td className="py-2 text-right text-slate-600">{fmtMoney(b.cost_per_sqm, currency, fxRates)} / m²</td>
+                                 <td className="py-2 text-right text-slate-600">{fmtMoney(b.cost_per_sqm, "USD", fxRates)} / m²<br />{fmtMoney(b.cost_per_sqm, currency, fxRates)} / m²</td>
                                   <td className="py-2 text-right text-slate-600">{b.pct}%</td>
                                   </tr>
                                 ))}

@@ -15,8 +15,8 @@ export default function KpiCards({ totals, currency, fxRates }) {
     },
     {
       key: "cost-per-sqm", label: "COST / m² (BUILT-UP)",
-      value: `${fmtMoney(t.cost_per_sqm, currency, fxRates)} /m²`,
-      sub: `Built-up Area : ${fmtNumber(t.built_up_area_sqm)} m²`,
+      value: `${fmtMoney(t.cost_per_sqm, "USD", fxRates)} /m²`,
+      sub: `${fmtMoney(t.cost_per_sqm, currency, fxRates)} /m² • Built-up Area : ${fmtNumber(t.built_up_area_sqm)} m²`,
       icon: Grid3x3, iconBg: "bg-purple-100", iconClr: "text-purple-700",
     },
     {

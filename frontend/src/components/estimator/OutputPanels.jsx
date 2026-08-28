@@ -40,7 +40,7 @@ export function BoqTable({ rows, currency, fxRates, testid }) {
               <th className="text-left px-4 py-2">Activity</th>
               <th className="text-right px-4 py-2">Quantity</th>
               <th className="text-left px-4 py-2 w-16">Unit</th>
-              <th className="text-right px-4 py-2">Rate ({currency})</th>
+              <th className="text-right px-4 py-2">Rate (USD / {currency})</th>
               <th className="text-right px-4 py-2">Amount ({currency})</th>
               <th className="text-right px-4 py-2 w-24">% of Total</th>
             </tr>
@@ -52,7 +52,7 @@ export function BoqTable({ rows, currency, fxRates, testid }) {
                 <td className="px-4 py-2 text-slate-800 font-medium">{r.activity}</td>
                 <td className="px-4 py-2 text-right text-slate-700">{fmtNumber(r.quantity, 2)}</td>
                 <td className="px-4 py-2 text-slate-500">{r.unit}</td>
-                <td className="px-4 py-2 text-right text-slate-700">{fmtMoney(r.rate, currency, fxRates)}</td>
+                <td className="px-4 py-2 text-right text-slate-700">{fmtMoney(r.rate, "USD", fxRates)}<br />{fmtMoney(r.rate, currency, fxRates)}</td>
                 <td className="px-4 py-2 text-right text-slate-900 font-semibold">{fmtMoney(r.amount, currency, fxRates)}</td>
                 <td className="px-4 py-2 text-right text-slate-600">{r.pct_of_total ?? "—"}%</td>
               </tr>
