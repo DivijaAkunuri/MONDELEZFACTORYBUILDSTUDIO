@@ -193,7 +193,7 @@ CITY_FACTORS = {
     "lagos":       {"civil": 0.80, "mechanical": 0.88, "electrical": 0.90, "labour": 0.50},
     "sao paulo":   {"civil": 0.92, "mechanical": 0.98, "electrical": 1.00, "labour": 0.72},
     "rio de janeiro":{"civil": 0.90, "mechanical": 0.96, "electrical": 0.98, "labour": 0.70},
-    "buenos aires":{"civil": 0.72, "mechanical": 0.80, "electrical": 0.82, "labour": 0.55},
+    "buenos aires":{"civil": 0.72, "mechanical": 0.80, "electrical": 0.82, "labour":# K: E 0.55},
 }
 
 # Neutral fallback profile when the entered city is not in the table
@@ -221,49 +221,20 @@ def city_factor_lookup(city_name: str) -> Dict[str, float]:
     
 from typing import Dict
 
-# ============================================================================
-# MDLZ / Bilfinger Tebodin cost benchmark (Czech Republic, rev 00, 01/2026)
-# ----------------------------------------------------------------------------
-# Source: "MDLZ_Cost_evaluation_250120_to_be_completed.xlsx"
-#   TOTAL CONSTRUCTION COSTS ....... 650,131,904 CZK =  30,056,954 USD (100%)
-#   A  Production building (frozen). 221,085,337 CZK =  10,221,236 USD ( 34%)
-#   B  Final good storage ...........  28,951,646 CZK =   1,338,495 USD (  4%)
-#   C  Social annex .................   5,158,530 CZK =     238,490 USD (  1%)
-#   D  Maintenance ..................  32,341,249 CZK =   1,495,203 USD (  5%)
-#   E  Waste yard ...................  22,328,394 CZK =   1,032,288 USD (  3%)
-#   F  Lockers + corridor ...........  49,452,285 CZK =   2,286,282 USD (  8%)
-#   G  Office building ..............  35,608,325 CZK =   1,646,247 USD (  5%)
-#   H  Energocentre (chiller) .......  27,423,058 CZK =   1,267,825 USD (  4%)
-#   I  Small / utility buildings ....  51,680,077 CZK =   2,389,278 USD (  8%)
-#   J  Other (CCTV/BMS) .............  23,944,445 CZK =   1,107,002 USD (  4%)
-#   K  External works ...............  78,823,700 CZK =   3,644,184 USD ( 12%)
-#   P  Preliminaries ................  52,884,729 CZK =   2,444,971 USD (  8%)
-#   TM Temporary measures ...........  20,450,130 CZK =     945,452 USD (  3%)
-#   TECH Technology & utilities ..... 108,449,492 CZK =   5,013,846 USD
-#   FURNITURE .......................   6,996,732 CZK =     323,474 USD
-# Contract FX: CZK/USD = 21.630  (live CZK ~ 21.1 is fetched at runtime)
-# ----------------------------------------------------------------------------
-# Base rates below are the Excel unit prices converted to USD. They feed the
-# existing server.py unchanged (same variable names -> same response schema,
-# so the UI/frontend does not need any modification).
-# ============================================================================
-
-# Base activity rates (USD) - Civil + Utilities BOQ items
-# Calibrated against the MDLZ benchmark (Europe / Czech Republic level).
 CIVIL_ACTIVITIES = [
     # (activity, unit, base_rate_usd, category)
-    ("Excavation", "m³", 28.00, "Earthwork"),                    # K: Earthworks 15,239,482 CZK = 704,553 USD
-    ("PCC (M10)", "m³", 120.00, "Foundation"),                   # B: floor sublayers ~1,190 CZK/m² of slab
-    ("RCC Foundation (Raft)", "m³", 185.00, "Foundation"),        # B: foundations 2,655 CZK/m² (incl. gravel piles 1,660)
-    ("Structural Steel (PEB)", "MT", 1300.00, "Superstructure"),  # B: columns 2,611 + roof struct. 1,009 CZK/m² ~ 3,040 USD/MT
-    ("RCC Superstructure", "m³", 315.00, "Superstructure"),       # EU RCC columns/beams benchmark
-    ("Roofing (Insulated Panel)", "m²", 39.00, "Roofing"),       # B: roof 3,273 CZK/m² = 151 USD/m² (trapez. + TI + foil)
-    ("Flooring (Epoxy + PU)", "m²", 29.00, "Finishing"),          # B: floor slab 1,999 + finishes 793 CZK/m²
-    ("Walls (Block + Plaster + Tile)", "m²", 82.00, "Finishing"), # B/F: vertical structures + vertical surfaces
-    ("Plumbing & Sanitary", "LS",  240200.00, "MEP"),              # A: water + sanitary 333,706 USD (9,829 m²) + plant-wide
-    ("External Works & Roads", "m²", 48.00, "Infra"),            # K: roads 32,846,351 CZK = 1,518,555 USD / ~14,246 m² paving
-    ("Compound Wall / Fence", "m", 145.00, "Infra"),              # K: fence 2,678 CZK/m = 124 USD/m + gates/barriers
-    ("Landscaping", "m²", 4.74, "Infra"),                         # K: greenery 757,624 CZK = 35,027 USD / 7,390 m²
+    ("Excavation", "m³", 28.00, "Earthwork"),                    
+    ("PCC (M10)", "m³", 120.00, "Foundation"),                  
+    ("RCC Foundation (Raft)", "m³", 185.00, "Foundation"),        
+    ("Structural Steel (PEB)", "MT", 1300.00, "Superstructure"),  
+    ("RCC Superstructure", "m³", 315.00, "Superstructure"),      
+    ("Roofing (Insulated Panel)", "m²", 39.00, "Roofing"),       
+    ("Flooring (Epoxy + PU)", "m²", 29.00, "Finishing"),          
+    ("Walls (Block + Plaster + Tile)", "m²", 82.00, "Finishing"), 
+    ("Plumbing & Sanitary", "LS",  240200.00, "MEP"),              
+    ("External Works & Roads", "m²", 48.00, "Infra"),            
+    ("Compound Wall / Fence", "m", 145.00, "Infra"),              
+    ("Landscaping", "m²", 4.74, "Infra"),                         
 ]
 
 # Utilities systems - typed by discipline for city-specific pricing

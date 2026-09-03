@@ -165,6 +165,8 @@ export default function Estimator() {
       <Sidebar
         currency={currency}
         fxRates={fxRates}
+        result={result}
+        inputs={inputs}
         liveRateIndex={result?.live_rate_index}
         activeProject={{
           name: inputs.project_name,
