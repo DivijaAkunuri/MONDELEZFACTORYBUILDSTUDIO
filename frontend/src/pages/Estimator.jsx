@@ -13,72 +13,76 @@ import Wizard from "@/components/estimator/Wizard";
 import EditProjectDialog from "@/components/estimator/EditProjectDialog";
 import CityFactorsCard from "@/components/estimator/CityFactorsCard";
 import { TabsBar, BoqTable, UtilitiesSummary, ProjectOverview, AssumptionsBox, RisksBox, OptimizationsBox } from "@/components/estimator/OutputPanels";
-import { getReference, getFxRates, calculate, calculateFast, getInsights, saveEstimate } from "@/lib/api";
+import { getReference, getFxRates, calculateFast, getInsights, saveEstimate } from "@/lib/api";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import { TID } from "@/constants/testIds";
 
 const DEFAULT_INPUTS = {
-  project_name: "Chocolate & Bakery Manufacturing Plant",
-  project_type: "Greenfield",
-  industry_type: "Food",
-  product_category: "Chocolate Plant",
-  location_city: "Hamburg",
-  location_country: "Germany",
-  region: "Europe",
-  continent: "Europe",
-  location_tier: "Metro",
-  building_type: "Industrial Building (RCC + PEB)",
-  length_m: 185, width_m: 100, height_m: 10.5, num_floors: 1, bay_spacing_m: 8,
-  plot_area_sqm: 32000,
-  building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
-  soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium",
-  foundation_type: ["Raft Foundation"],
-  floor_load_kn: 5.0, column_type: "Steel", roof_type: "PEB + Insulated Panel",
-  seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
-  gwt_depth: "Medium (3-8 m)",
-  utility_scope: ["Boiler House", "Chiller Plant", "HVAC System", "Air Compressors", "Water Treatment Plant", "Fire Fighting System", "Electrical Substation"],
-  production_capacity_tpd: 120, annual_output_mt: 36000,
-  cooling_tunnel_load_tr: 180, tempering_utility_demand: "Medium",
-  humidity_controlled_pct: 40, chocolate_storage_temp_c: 16, process_hot_water_lph: 2500,
-  oven_capacity_kg_hr: 1200, fuel_type: "PNG", baking_line_qty: 2,
-  compressed_air_demand_cfm: 1500, dust_collection_required: true, cooling_conveyor_load: "Standard",
-  include_roads: true, include_landscaping: true, include_fence: true,
-  land_area_sqm: 32000, ground_coverage_pct: 58, far_fsi: 1.2,
-  water_availability: "Municipal + Borewell", grid_reliability: "Good",
+  project_name: "Chocolate & Bakery Manufacturing Plant", project_type: "Greenfield", industry_type: "Food", product_category: "Chocolate Plant",
+  location_city: "Hamburg", location_country: "Germany", region: "Europe", continent: "Europe", location_tier: "Metro",
+  building_type: "Industrial Building (RCC + PEB)", length_m: 185, width_m: 100, height_m: 10.5, num_floors: 1, bay_spacing_m: 8,
+  plot_area_sqm: 32000, building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
+  soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium", foundation_type: ["Raft Foundation"],
+  floor_load_kn: 5.0, column_type: "Steel", roof_type: "PEB + Insulated Panel", seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
+  gwt_depth: "Medium (3-8 m)", utility_scope: ["Boiler House", "Chiller Plant", "HVAC System", "Air Compressors", "Water Treatment Plant", "Fire Fighting System", "Electrical Substation"],
+  production_capacity_tpd: 120, annual_output_mt: 36000, cooling_tunnel_load_tr: 180, tempering_utility_demand: "Medium",
+  humidity_controlled_pct: 40, chocolate_storage_temp_c: 16, process_hot_water_lph: 2500, oven_capacity_kg_hr: 1200, fuel_type: "PNG", baking_line_qty: 2,
+  compressed_air_demand_cfm: 1500, dust_collection_required: true, cooling_conveyor_load: "Standard", include_roads: true, include_landscaping: true, include_fence: true,
+  land_area_sqm: 32000, ground_coverage_pct: 58, far_fsi: 1.2, water_availability: "Municipal + Borewell", grid_reliability: "Good",
   ambient_temp_range: "Temperate (5°C - 30°C)", relative_humidity_pct: 70,
-  complexity: {
-    seismic_zone_high: false, high_humidity: false, cold_region: false,
-    brownfield: false, gmp_hygienic: true, explosion_risk: false,
-    utility_redundancy: true, high_floor_load: false, remote_site: false,
-  },
+  complexity: { seismic_zone_high: false, high_humidity: false, cold_region: false, brownfield: false, gmp_hygienic: true, explosion_risk: false, utility_redundancy: true, high_floor_load: false, remote_site: false },
   currency: "USD", base_unit: "mm", contingency_pct: 8.0,
 };
 
 const TABS = [
-  { key: "summary", label: "Summary" },
-  { key: "breakdown", label: "Cost Breakdown" },
-  { key: "boq", label: "BOQ" },
-  { key: "utilities", label: "Utilities Summary" },
-  { key: "process", label: "Process Data" },
-  { key: "infra", label: "Infra Summary" },
-  { key: "cashflow", label: "Cash Flow" },
-  { key: "sensitivity", label: "Sensitivity" },
-  { key: "assumptions", label: "Assumptions" },
+  { key: "summary", label: "Summary" }, { key: "breakdown", label: "Cost Breakdown" }, { key: "boq", label: "BOQ" },
+  { key: "utilities", label: "Utilities Summary" }, { key: "process", label: "Process Data" }, { key: "infra", label: "Infra Summary" },
+  { key: "cashflow", label: "Cash Flow" }, { key: "sensitivity", label: "Sensitivity" }, { key: "assumptions", label: "Assumptions" },
 ];
 
 export default function Estimator() {
   const [reference, setReference] = React.useState(null);
   const [fxRates, setFxRates] = React.useState({});
-  const [inputs, setInputs] = React.useState(DEFAULT_INPUTS);
-  const [result, setResult] = React.useState(null);
+
+  const [inputs, setInputs] = React.useState(() => {
+    try {
+      const saved = sessionStorage.getItem("estimator_inputs");
+      return saved ? JSON.parse(saved) : DEFAULT_INPUTS;
+    } catch (e) {
+      console.warn("Could not restore estimator inputs:", e);
+      return DEFAULT_INPUTS;
+    }
+  });
+
+  const [result, setResult] = React.useState(() => {
+    try {
+      const saved = sessionStorage.getItem("estimator_result");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.warn("Could not restore estimator result:", e);
+      return null;
+    }
+  });
+
   const [loading, setLoading] = React.useState(false);
-  const [step, setStep] = React.useState(5);      // start on Output & Review
+  const [step, setStep] = React.useState(5);
   const [activeTab, setActiveTab] = React.useState("summary");
   const [editOpen, setEditOpen] = React.useState(false);
   const isFirstInputsChange = React.useRef(true);
   const recalcTimer = React.useRef(null);
 
-  // Load reference + FX, then compute default estimate
+  React.useEffect(() => {
+    try { sessionStorage.setItem("estimator_inputs", JSON.stringify(inputs)); }
+    catch (e) { console.warn("Could not save estimator inputs:", e); }
+  }, [inputs]);
+
+  React.useEffect(() => {
+    if (result) {
+      try { sessionStorage.setItem("estimator_result", JSON.stringify(result)); }
+      catch (e) { console.warn("Could not save estimator result:", e); }
+    }
+  }, [result]);
+
   React.useEffect(() => {
     (async () => {
       try {
@@ -86,59 +90,39 @@ export default function Estimator() {
         setReference(ref);
         setFxRates(fx.rates || {});
       } catch (e) { toast.error("Failed to load reference data"); }
-      recalc(DEFAULT_INPUTS);
-    })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-recalculate whenever `inputs` changes (debounced 400ms). This makes
-  // every edit — wizard field, edit dialog Save, stepper jump — refresh the
-  // dashboard automatically without needing a manual Recalculate press.
+      const savedResult = sessionStorage.getItem("estimator_result");
+      if (!savedResult) recalc(inputs);
+    })();
+  }, []);
+
   React.useEffect(() => {
     if (isFirstInputsChange.current) {
       isFirstInputsChange.current = false;
       return;
     }
     if (recalcTimer.current) clearTimeout(recalcTimer.current);
-    recalcTimer.current = setTimeout(() => {
-      recalc(inputs);
-    }, 400);
+    recalcTimer.current = setTimeout(() => { recalc(inputs); }, 400);
     return () => { if (recalcTimer.current) clearTimeout(recalcTimer.current); };
-  }, [inputs]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inputs]);
 
   async function recalc(inp = inputs) {
     setLoading(true);
     try {
-      // Fast path: instant numeric recalculation (KPIs, breakdown, BOQ,
-      // confidence, utilities, cost_trend) — no AI, sub-second response.
       const fast = await calculateFast(inp);
-      setResult((prev) => ({
-        ...fast,
-        insights: prev?.insights,      // keep any existing insights on-screen
-        fx_rates: prev?.fx_rates,
-      }));
-      if (fast.live_rate_index) {
-        // no-op: already inside fast
-      }
+      setResult((prev) => ({ ...fast, insights: prev?.insights, fx_rates: prev?.fx_rates }));
       setLoading(false);
       toast.success("Estimate recalculated");
 
-      // Background: refresh FX + AI insights without blocking UI
       (async () => {
         try {
-          const [fx, ins] = await Promise.all([
-            getFxRates().catch(() => null),
-            getInsights(inp, fast).catch(() => null),
-          ]);
+          const [fx, ins] = await Promise.all([getFxRates().catch(() => null), getInsights(inp, fast).catch(() => null)]);
           setResult((prev) => {
             if (!prev) return prev;
-            return {
-              ...prev,
-              insights: ins ?? prev.insights,
-              fx_rates: fx?.rates ?? prev.fx_rates,
-            };
+            return { ...prev, insights: ins ?? prev.insights, fx_rates: fx?.rates ?? prev.fx_rates };
           });
           if (fx?.rates) setFxRates(fx.rates);
-        } catch (_) { /* silent */ }
+        } catch (_) {}
       })();
     } catch (e) {
       setLoading(false);
@@ -154,31 +138,21 @@ export default function Estimator() {
     } catch (e) { toast.error("Save failed"); }
   }
 
-  async function onFinish() {
-    setStep(5);   // auto-recalc effect will pick up any pending input changes
-  }
+  async function onFinish() { setStep(5); }
 
   const currency = inputs.currency;
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-      <Sidebar
-        currency={currency}
-        fxRates={fxRates}
-        result={result}
-        inputs={inputs}
-        liveRateIndex={result?.live_rate_index}
+      <Sidebar currency={currency} fxRates={fxRates} result={result} inputs={inputs} liveRateIndex={result?.live_rate_index}
         activeProject={{
-          name: inputs.project_name,
-          location: `${inputs.location_city}, ${inputs.location_country}`,
-          builtUp: `${fmtNumber((inputs.length_m * inputs.width_m * inputs.num_floors))} m²`,
-          plot: `${fmtNumber(inputs.plot_area_sqm)} m²`,
+          name: inputs.project_name, location: `${inputs.location_city}, ${inputs.location_country}`,
+          builtUp: `${fmtNumber(inputs.length_m * inputs.width_m * inputs.num_floors)} m²`, plot: `${fmtNumber(inputs.plot_area_sqm)} m²`,
           lastSaved: new Date().toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
         }}
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
         <header data-testid={TID.header} className="h-16 flex-shrink-0 flex items-center justify-between px-5 bg-white border-b border-slate-200 gap-4">
           <div className="flex items-center gap-6 min-w-0 flex-1">
             <div className="min-w-0">
@@ -190,24 +164,25 @@ export default function Estimator() {
               </div>
             </div>
           </div>
+
           <div className="flex items-center gap-2 flex-shrink-0">
             <Select value={inputs.base_unit} onValueChange={(v) => setInputs((s) => ({ ...s, base_unit: v }))}>
               <SelectTrigger data-testid={TID.unitSelect} className="h-9 w-[130px] bg-white text-xs"><SelectValue placeholder="Base Unit" /></SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {["mm", "cm", "m", "ft", "in"].map((u) => <SelectItem key={u} value={u}>Base Unit : {u}</SelectItem>)}
-              </SelectContent>
+              <SelectContent className="bg-white z-50">{["mm", "cm", "m", "ft", "in"].map((u) => <SelectItem key={u} value={u}>Base Unit : {u}</SelectItem>)}</SelectContent>
             </Select>
+
             <Select value={inputs.currency} onValueChange={(v) => setInputs((s) => ({ ...s, currency: v }))}>
               <SelectTrigger data-testid={TID.currencySelect} className="h-9 w-[130px] bg-white text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {(reference?.currencies || ["USD"]).map((c) => <SelectItem key={c} value={c}>Currency : {c}</SelectItem>)}
-              </SelectContent>
+              <SelectContent className="bg-white z-50">{(reference?.currencies || ["USD"]).map((c) => <SelectItem key={c} value={c}>Currency : {c}</SelectItem>)}</SelectContent>
             </Select>
+
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-4 h-4 text-slate-600" />
               <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">6</span>
             </Button>
+
             <Button variant="ghost" size="icon"><HelpCircle className="w-4 h-4 text-slate-600" /></Button>
+
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">AV</div>
               <div className="hidden md:block leading-tight">
@@ -217,7 +192,7 @@ export default function Estimator() {
             </div>
           </div>
         </header>
-        {/* Sub-header actions */}
+
         <div className="flex items-center justify-end gap-2 px-5 py-2 border-b border-slate-200 bg-white">
           <Button data-testid={TID.saveBtn} variant="outline" size="sm" onClick={onSave}><Save className="w-3.5 h-3.5 mr-1.5" />Save</Button>
           <Button data-testid={TID.recalcBtn} size="sm" onClick={() => recalc()} disabled={loading}>
@@ -228,34 +203,23 @@ export default function Estimator() {
           <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <Stepper current={step} onJump={setStep} />
 
           {step < 5 ? (
-            <Wizard step={step} setStep={setStep} inputs={inputs} setInputs={setInputs}
-              reference={reference} onFinish={onFinish} />
+            <Wizard step={step} setStep={setStep} inputs={inputs} setInputs={setInputs} reference={reference} onFinish={onFinish} />
           ) : (
             <>
               <KpiCards totals={result?.totals} currency={currency} fxRates={fxRates} />
-
               <TabsBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
 
-              {result && (activeTab === "summary") && (
+              {result && activeTab === "summary" && (
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-                  <div className="xl:col-span-4">
-                    <DonutChart data={result.breakdown} currency={currency} fxRates={fxRates}
-                      total={result.totals.total_project_cost} />
-                  </div>
-                  <div className="xl:col-span-5">
-                    <TrendChart data={result.cost_trend} currency={currency} fxRates={fxRates} />
-                  </div>
-                  <div className="xl:col-span-3">
-                    <UtilitiesSummary utilities={result.utilities} total={result.utilities_total} currency={currency} fxRates={fxRates} />
-                  </div>
-                  <div className="xl:col-span-8">
-                    <BoqTable rows={result.top_cost_items} currency={currency} fxRates={fxRates} testid={TID.boqTable} />
-                  </div>
+                  <div className="xl:col-span-4"><DonutChart data={result.breakdown} currency={currency} fxRates={fxRates} total={result.totals.total_project_cost} /></div>
+                  <div className="xl:col-span-5"><TrendChart data={result.cost_trend} currency={currency} fxRates={fxRates} /></div>
+                  <div className="xl:col-span-3"><UtilitiesSummary utilities={result.utilities} total={result.utilities_total} currency={currency} fxRates={fxRates} /></div>
+                  <div className="xl:col-span-8"><BoqTable rows={result.top_cost_items} currency={currency} fxRates={fxRates} testid={TID.boqTable} /></div>
+
                   <div className="xl:col-span-4 space-y-4">
                     <ProjectOverview inputs={inputs} totals={result.totals} onEdit={() => setEditOpen(true)} />
                     <CityFactorsCard cityFactors={result.city_factors} requestedCity={inputs.location_city} />
@@ -263,9 +227,8 @@ export default function Estimator() {
                     <RisksBox items={result.insights?.risks || []} />
                     <OptimizationsBox items={result.insights?.optimizations || []} />
                   </div>
-                  <div className="xl:col-span-12">
-                    <UtilityCards demand={result.utility_demand} />
-                  </div>
+
+                  <div className="xl:col-span-12"><UtilityCards demand={result.utility_demand} /></div>
                 </div>
               )}
 
@@ -283,14 +246,12 @@ export default function Estimator() {
                           {result.breakdown.map((b) => (
                             <tr key={b.name} className="border-t border-slate-100">
                               <td className="py-2 text-slate-800">{b.name}</td>
-                              <td className="py-2 text-right font-semibold">
-                                {fmtMoney(b.value, currency, fxRates)}
-                                </td>
-                                 <td className="py-2 text-right text-slate-600">{fmtMoney(b.cost_per_sqm, "USD", fxRates)} / m²<br />{fmtMoney(b.cost_per_sqm, currency, fxRates)} / m²</td>
-                                  <td className="py-2 text-right text-slate-600">{b.pct}%</td>
-                                  </tr>
-                                ))}
-                                </tbody>
+                              <td className="py-2 text-right font-semibold">{fmtMoney(b.value, currency, fxRates)}</td>
+                              <td className="py-2 text-right text-slate-600">{fmtMoney(b.cost_per_sqm, "USD", fxRates)} / m²<br />{fmtMoney(b.cost_per_sqm, currency, fxRates)} / m²</td>
+                              <td className="py-2 text-right text-slate-600">{b.pct}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
                       </table>
                     </div>
                   </div>
@@ -298,16 +259,18 @@ export default function Estimator() {
               )}
 
               {result && activeTab === "boq" && (
-                <BoqTable rows={result.boq.map((r, i) => ({ ...r, rank: i + 1, pct_of_total: +(r.amount / result.totals.total_project_cost * 100).toFixed(2) }))}
-                  currency={currency} fxRates={fxRates} testid={TID.boqTable} />
+                <BoqTable rows={result.boq.map((r, i) => ({ ...r, rank: i + 1, pct_of_total: +(r.amount / result.totals.total_project_cost * 100).toFixed(2) }))} currency={currency} fxRates={fxRates} testid={TID.boqTable} />
               )}
+
               {result && activeTab === "utilities" && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                   <UtilitiesSummary utilities={result.utilities} total={result.utilities_total} currency={currency} fxRates={fxRates} />
                   <UtilityCards demand={result.utility_demand} />
                 </div>
               )}
+
               {result && activeTab === "process" && <ProjectOverview inputs={inputs} totals={result.totals} onEdit={() => setEditOpen(true)} />}
+
               {result && activeTab === "infra" && (
                 <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Infra Summary</h3>
@@ -323,7 +286,9 @@ export default function Estimator() {
                   </table>
                 </div>
               )}
+
               {result && activeTab === "cashflow" && <TrendChart data={result.cost_trend} currency={currency} fxRates={fxRates} />}
+
               {result && activeTab === "sensitivity" && (
                 <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                   <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Sensitivity Analysis</h3>
@@ -343,11 +308,13 @@ export default function Estimator() {
                   </table>
                 </div>
               )}
+
               {result && activeTab === "assumptions" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <AssumptionsBox items={result.insights?.assumptions || []} />
                   <RisksBox items={result.insights?.risks || []} />
                   <OptimizationsBox items={result.insights?.optimizations || []} />
+
                   {result.insights?.executive_summary && (
                     <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                       <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Executive Summary</h3>
@@ -372,9 +339,7 @@ export default function Estimator() {
         onOpenChange={setEditOpen}
         inputs={inputs}
         reference={reference}
-        onSave={async (updated) => {
-          setInputs(updated);   // auto-recalc effect will trigger recalc
-        }}
+        onSave={async (updated) => { setInputs(updated); }}
       />
     </div>
   );
