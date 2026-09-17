@@ -907,6 +907,7 @@ class ProjectInputs(BaseModel):
     floor_load_kn: float = 5.0
     column_type: str = "Steel"
     roof_type: str = "PEB + Insulated Panel"
+    roof_types_by_floor: List[List[str]] = Field(default_factory=lambda: [["PEB + Insulated Panel"]])
     seismic_zone: str = "Zone 0 (Very Low)"
     wind_zone: str = "Zone 2"
     wind_speed_ms: float = 24.0
@@ -1144,6 +1145,12 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     wind_speed_m = 1.0 + max(0.0, (inp.wind_speed_ms - 24) * 0.008)
     # FAR/FSI > 1.5 requires more structural depth
     far_m = 1.0 + max(0.0, (inp.far_fsi - 1.5) * 0.06)
+    roof_floor_m = []
+    for floor in range(max(1, inp.num_floors)):
+       roofs = inp.roof_types_by_floor[floor] if floor < len(inp.roof_types_by_floor) else [inp.roof_type]
+       roofs = roofs or [inp.roof_type]
+       roof_floor_m.append(sum(ROOF_M.get(r, 1.0) for r in roofs) / len(roofs))
+    roof_m = sum(roof_floor_m) / len(roof_floor_m)
 
     building_m = (
         max([FOUNDATION_M.get(f, 1.0) for f in inp.foundation_type] or [1.0])
@@ -1152,7 +1159,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         * WIND_ZONE_M.get(inp.wind_zone, 1.0)
         * SEISMIC_ZONE_M.get(inp.seismic_zone, 1.0)
         * COLUMN_M.get(inp.column_type, 1.0)
-        * ROOF_M.get(inp.roof_type, 1.0)
+        * roof_m
         * BUILDING_TYPE_M.get(inp.building_type, 1.0)
         * bay_m
         * wind_speed_m
@@ -1191,7 +1198,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "RCC Foundation (Raft)":          a * 0.42,
         "Structural Steel (PEB)":         a * 0.055,
         "RCC Superstructure":             a * 0.24 * (inp.num_floors - 1 if inp.num_floors > 1 else 0.15),
-        "Roofing (Insulated Panel)":      a,
+        "Roofing (Insulated Panel)":      inp.length_m * inp.width_m * inp.num_floors,
         "Flooring (Epoxy + PU)":          a,
         "Walls (Block + Plaster + Tile)": perimeter * inp.height_m * inp.num_floors,
         "Plumbing & Sanitary":            1,
@@ -1422,6 +1429,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "project_type": project_type_m,
             "live_material_index": live_m,
             "combined": round(global_m, 4),
+            "roof_types_by_floor": inp.roof_types_by_floor,
         },
         "active_complexity": active_complexity,
         "live_rate_index": live_index or {},

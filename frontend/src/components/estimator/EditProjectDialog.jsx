@@ -19,24 +19,24 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
   const [draft, setDraft] = React.useState(inputs);
 
   React.useEffect(() => {
-  if (!open) return;
+    if (!open) return;
 
-  const regions = reference?.regions || {};
-  const validIndustries = reference?.industries || [];
-  const validTiers = reference?.tiers || [];
+    const regions = reference?.regions || {};
+    const validIndustries = reference?.industries || [];
+    const validTiers = reference?.tiers || [];
 
-  const country = inputs.location_country || "";
-  const matchedRegion = Object.entries(regions).find(([, countries]) => countries.includes(country))?.[0] || "";
+    const country = inputs.location_country || "";
+    const matchedRegion = Object.entries(regions).find(([, countries]) => countries.includes(country))?.[0] || "";
 
-  setDraft({
-    ...inputs,
-    industry_type: validIndustries.includes(inputs.industry_type) ? inputs.industry_type : "FMCG",
-    region: Object.keys(regions).includes(inputs.region) ? inputs.region : matchedRegion,
-    location_country: country,
-    location_tier: validTiers.includes(inputs.location_tier) ? inputs.location_tier : "Metro",
-    sbc_soil_type: inputs.sbc_soil_type === "Hard Stone" ? "Hard" : (inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard"),
-  });
-}, [open, inputs, reference]);
+    setDraft({
+      ...inputs,
+      industry_type: validIndustries.includes(inputs.industry_type) ? inputs.industry_type : "FMCG",
+      region: Object.keys(regions).includes(inputs.region) ? inputs.region : matchedRegion,
+      location_country: country,
+      location_tier: validTiers.includes(inputs.location_tier) ? inputs.location_tier : "Metro",
+      sbc_soil_type: inputs.sbc_soil_type === "Hard Stone" ? "Hard" : (inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard"),
+    });
+  }, [open, inputs, reference]);
 
   const patch = (k, v) => setDraft((s) => ({ ...s, [k]: v }));
   const patchCx = (k, v) => setDraft((s) => ({ ...s, complexity: { ...s.complexity, [k]: v } }));
@@ -92,7 +92,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Length (m)"><InputF id="length_m" type="number" value={draft.length_m} onChange={(v) => patch("length_m", v)} /></Field>
             <Field label="Width (m)"><InputF id="width_m" type="number" value={draft.width_m} onChange={(v) => patch("width_m", v)} /></Field>
             <Field label="Clear Height (m)"><InputF id="height_m" type="number" value={draft.height_m} onChange={(v) => patch("height_m", v)} /></Field>
-            <Field label="No. of Floors"><InputF id="num_floors" type="number" value={draft.num_floors} onChange={(v) => patch("num_floors", v)} /></Field>
+            <Field label="No. of Floors"><SelectF id="num_floors" value={String(draft.num_floors || 1)} onChange={(v) => patch("num_floors", Number(v))} options={["1", "2", "3", "4"]} /></Field>
             <Field label="Bay Spacing (m)"><InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} /></Field>
             <Field label="Plot Area (m²)"><InputF id="plot_area_sqm" type="number" value={draft.plot_area_sqm} onChange={(v) => patch("plot_area_sqm", v)} /></Field>
           </Section>
@@ -109,7 +109,36 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <div className="sm:col-span-2"><MultiField title="Foundation Type" list={reference?.foundation_types || []} selected={draft.foundation_type || []} onToggle={(x) => toggleList("foundation_type", x)} idPrefix="foundation" /></div>
             <Field label="SBC / Soil Type"><SelectF id="sbc_soil_type" value={draft.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} /></Field>
             <Field label="Column Type"><SelectF id="column_type" value={draft.column_type} onChange={(v) => patch("column_type", v)} options={reference?.column_types} /></Field>
-            <Field label="Roof Type"><SelectF id="roof_type" value={draft.roof_type} onChange={(v) => patch("roof_type", v)} options={reference?.roof_types} /></Field>
+            <div className="sm:col-span-2">
+              <div className="text-xs font-semibold text-slate-600 mb-2">Roof Type by Floor</div>
+              <div className="space-y-2">
+                {Array.from({ length: Math.min(4, Math.max(1, Number(draft.num_floors) || 1)) }, (_, i) => {
+                  const floor = i + 1;
+                  const selected = draft.roof_types_by_floor?.[i] || [];
+                  return (
+                    <div key={floor} className="grid grid-cols-[80px_1fr] items-center gap-2">
+                      <div className="h-9 flex items-center px-3 border border-slate-200 rounded bg-slate-50 text-xs font-semibold text-slate-700">Floor {floor}</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(reference?.roof_types || []).slice(0, 3).map((roof) => (
+                          <label key={roof} className="flex items-center gap-2 min-w-0 border border-slate-200 rounded px-2 py-2 bg-white cursor-pointer hover:bg-slate-50">
+                            <Checkbox
+                              checked={selected.includes(roof)}
+                              onCheckedChange={(checked) => {
+                                const floors = [...(draft.roof_types_by_floor || [])];
+                                const current = floors[i] || [];
+                                floors[i] = checked ? [...current, roof] : current.filter((x) => x !== roof);
+                                patch("roof_types_by_floor", floors);
+                              }}
+                            />
+                            <span className="text-xs truncate">{roof}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
             <Field label="Floor Load (kN/m²)"><InputF id="floor_load_kn" type="number" value={draft.floor_load_kn} onChange={(v) => patch("floor_load_kn", v)} /></Field>
           </Section>
           <Section title="Site Conditions">
