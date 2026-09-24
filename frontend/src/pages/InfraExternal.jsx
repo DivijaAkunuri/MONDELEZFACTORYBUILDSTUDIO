@@ -4,11 +4,7 @@ import { Wrench } from "lucide-react";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import Sidebar from "@/components/estimator/Sidebar";
 
-const INFRA_ACTIVITIES = [
-  "External Works & Roads",
-  "Compound Wall / Fence",
-  "Landscaping",
-];
+const INFRA_ACTIVITIES = null;
 
 export default function InfraExternal() {
   const location = useLocation();
@@ -36,14 +32,9 @@ export default function InfraExternal() {
     );
   }
 
-  const infraRows = (result.boq || []).filter((row) =>
-    INFRA_ACTIVITIES.includes(row.activity)
-  );
+  const infraRows = (result.boq || []).filter((row) => row.category === "Infra");
+  const infraTotal = infraRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
-  const infraTotal = infraRows.reduce(
-    (sum, row) => sum + Number(row.amount || 0),
-    0
-  );
 
   const builtUpArea = Number(
     result.totals?.built_up_area_sqm || 0

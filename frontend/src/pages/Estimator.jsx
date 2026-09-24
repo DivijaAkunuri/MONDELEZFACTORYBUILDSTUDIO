@@ -122,7 +122,7 @@ export default function Estimator() {
             return { ...prev, insights: ins ?? prev.insights, fx_rates: fx?.rates ?? prev.fx_rates };
           });
           if (fx?.rates) setFxRates(fx.rates);
-        } catch (_) {}
+        } catch (_) { }
       })();
     } catch (e) {
       setLoading(false);
@@ -130,12 +130,9 @@ export default function Estimator() {
     }
   }
 
-  async function onSave() {
+  function onSave() {
     if (!result) return;
-    try {
-      const { id } = await saveEstimate(inputs, result);
-      toast.success(`Saved (${id.slice(0, 8)}…)`);
-    } catch (e) { toast.error("Save failed"); }
+    navigate("/reports", { state: { result, inputs, currency, fxRates, autoPrint: true } });
   }
 
   async function onFinish() { setStep(5); }
@@ -273,15 +270,22 @@ export default function Estimator() {
 
               {result && activeTab === "infra" && (
                 <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                  <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Infra Summary</h3>
+                  <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">Infra & External</h3>
                   <table className="w-full text-sm">
                     <thead className="text-xs text-slate-500 uppercase font-semibold">
-                      <tr><th className="text-left py-2">Item</th><th className="text-left">Included</th></tr>
+                      <tr><th className="text-left py-2">Item</th><th className="text-right">Amount</th></tr>
                     </thead>
                     <tbody>
-                      {[["Roads & Pathways", inputs.include_roads], ["Landscaping", inputs.include_landscaping], ["Compound Wall / Fence", inputs.include_fence]].map(([k, v]) => (
-                        <tr key={k} className="border-t border-slate-100"><td className="py-2">{k}</td><td className={v ? "text-emerald-600 font-semibold" : "text-slate-400"}>{v ? "Yes" : "No"}</td></tr>
+                      {(result.boq || []).filter((r) => r.category === "Infra").map((r) => (
+                        <tr key={r.activity} className="border-t border-slate-100">
+                          <td className="py-2">{r.activity}</td>
+                          <td className="py-2 text-right font-semibold">{fmtMoney(r.amount, currency, fxRates)}</td>
+                        </tr>
                       ))}
+                      <tr className="border-t-2 border-slate-200">
+                        <td className="py-3 font-semibold">Total Infra & External</td>
+                        <td className="py-3 text-right font-bold">{fmtMoney(result.breakdown.find((b) => b.name === "Infra & External")?.value || 0, currency, fxRates)}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>

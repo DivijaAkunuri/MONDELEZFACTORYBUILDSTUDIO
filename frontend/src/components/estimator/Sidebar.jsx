@@ -50,6 +50,16 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
       return;
     }
 
+    if (key === "utilities-process") {
+      navigate("/utilities-process", { state: { result, inputs, currency, fxRates } });
+      return;
+    }
+
+    if (key === "reports") {
+      navigate("/reports", { state: { result, inputs, currency, fxRates } });
+      return;
+    }
+
     const item = items.find((i) => i.key === key);
     if (item?.path) navigate(item.path);
   };
@@ -81,11 +91,10 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
               key={key}
               data-testid={TID.navItem(key)}
               onClick={() => handleNavigation(key)}
-              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${
-                isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
-              }`}
+              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${isActive
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+                }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{label}</span>

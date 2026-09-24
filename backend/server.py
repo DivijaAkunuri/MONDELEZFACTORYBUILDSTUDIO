@@ -1208,6 +1208,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     }
 
     building_total = 0.0
+    infra_total = 0.0
     for activity, unit, base_rate, category in CIVIL_ACTIVITIES:
         qty = round(qty_map.get(activity, 0), 2)
         rate = round(base_rate * global_m * building_m * civil_city_m, 2)
@@ -1217,9 +1218,14 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 "activity": activity, "unit": unit, "quantity": qty,
                 "rate": rate, "amount": amount, "category": category,
             })
-            building_total += amount
 
-    building_total *= comp_scope_adder
+        if category == "Infra":
+            infra_total += amount
+        elif category in ("Earthwork", "Foundation", "Superstructure", "Roofing", "Finishing", "MEP"):
+            building_total += amount
+    building_total = round(building_total, 2)
+    infra_total = round(infra_total, 2)
+
 
     # Product category preset shifts utilities share
     preset = INDUSTRY_PRESETS.get(inp.product_category, INDUSTRY_PRESETS.get("Chocolate Plant", {"utilities_pct": 0.35}))
@@ -1282,12 +1288,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "category": "Utilities",
         })
 
-    infra_pct_of_bldg = 0.14
-    infra_total = round(building_total * infra_pct_of_bldg, 2)
-    boq_rows.append({
-        "activity": "Infra Works & External", "unit": "LS", "quantity": 1,
-        "rate": infra_total, "amount": infra_total, "category": "Infra",
-    })
+    infra_total = round(infra_total, 2)
+    infra_rows = [r for r in boq_rows if r.get("category") == "Infra"]
 
     compliance_total = round((building_total + utilities_total) * COMPLIANCE_ADDER_PCT, 2)
     boq_rows.append({

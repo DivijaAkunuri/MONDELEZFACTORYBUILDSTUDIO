@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import Estimator from "@/pages/Estimator";
 import CivilScope from "@/pages/CivilScope";
 import InfraExternal from "@/pages/InfraExternal";
+import UtilitiesProcess from "@/pages/UtilitiesProcess";
+import ReportsExport from "@/pages/ReportsExport";
 
 function App() {
   return (
@@ -29,6 +31,16 @@ function App() {
           <Route
             path="/infra-external"
             element={<InfraExternal />}
+          />
+
+          <Route
+            path="/utilities-process"
+            element={<UtilitiesProcess />}
+          />
+
+          <Route
+            path="/reports"
+            element={<ReportsExport />}
           />
         </Routes>
       </BrowserRouter>
