@@ -124,7 +124,7 @@ export default function ReportsExport() {
                                 <img
                                     src="/mondelez-logo.png"
                                     alt="Mondelez International"
-                                    className="h-20 w-auto object-contain"
+                                    className="w-40 h-auto object-contain"
                                 />
                             </div>
                             <div className="flex justify-between gap-6">
