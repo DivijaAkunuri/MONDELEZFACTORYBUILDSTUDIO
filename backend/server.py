@@ -854,10 +854,11 @@ import json
 import re
 import uuid
 import asyncio
+import math
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 import httpx
 
 from rate_data import (
@@ -943,7 +944,22 @@ class ProjectInputs(BaseModel):
     grid_reliability: str = "Good"
     ambient_temp_range: str = "Temperate (5°C - 30°C)"
     relative_humidity_pct: float = 70.0
-    # Complexity toggles
+    # Employee & Staff Facilities
+    num_employees: int = 0
+    male_employees: int = 0
+    female_employees: int = 0
+    special_work_clothing: str = "Yes"
+    work_shoes_required: str = "Yes"      
+    @model_validator(mode="after")
+    def validate_employee_counts(self):
+        if min(self.num_employees, self.male_employees, self.female_employees) < 0:
+            raise ValueError("Employee counts cannot be negative.")
+        if self.male_employees + self.female_employees != self.num_employees:
+            raise ValueError("Male Employees + Female Employees must equal Total Employees.")
+        return self
+    
+
+# Complexity toggles
     complexity: Dict[str, bool] = Field(default_factory=lambda: {
         "seismic_zone_high": False, "high_humidity": False, "cold_region": False,
         "brownfield": False, "gmp_hygienic": True, "explosion_risk": False,
@@ -1069,6 +1085,190 @@ INDUSTRY_TYPE_M= { "FMCG": 0.92}
 TEMPERING_M    = {"Low": 0.94, "Medium": 1.00, "High": 1.10, "Very High": 1.22}
 CONVEYOR_M     = {"Light": 0.94, "Standard": 1.00, "Heavy Duty": 1.15}
 
+# ---------- Employee & Staff Facilities ----------
+# ---------- Employee & Staff Facilities ----------
+# ---------- Employee & Staff Facilities ----------
+def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
+    employees = max(0, int(inp.num_employees or 0))
+    male = max(0, int(inp.male_employees or 0))
+    female = max(0, int(inp.female_employees or 0))
+    clothing = str(inp.special_work_clothing or "Yes").strip().lower() == "yes"
+    shoes = str(inp.work_shoes_required or "Yes").strip().lower() == "yes"
+    country = str(inp.location_country or "").strip()
+
+    if employees <= 0:
+        return {
+            "employees": 0, "male": 0, "female": 0, "lockers": 0,
+            "changing_area_sqm": 0, "locker_area_sqm": 0,
+            "shoe_storage_area_sqm": 0, "total_area_sqm": 0,
+            "seating": 0, "street_shoe_storage_positions": 0,
+            "work_shoe_storage_positions": 0, "items": [],
+            "design_basis": "No employees entered",
+            "facility_location": "Admin Building",
+            "locker_dimension_m": {"width": 0.30, "depth": 0.50},
+            "locker_dimension_basis": "Germany ASR A4.1 reference module; verify local requirement",
+            "shoe_storage_dimension_m": None, "shoe_storage_modules": 0,
+            "shoe_storage_basis": "Not required", "changing_room_zones": 0,
+            "changing_room_doors": 0, "privacy_partitions": 0,
+            "facility_scope_status": "No employee facility scope generated",
+            "wet_area_scope": "Not automatically assumed; no shower/wet-area input is provided",
+            "fire_safety_scope": "Not applicable",
+            "hvac_scope": "Not applicable",
+        }
+
+    lockers = employees
+
+    # Individual locker module. Germany ASR A4.1 provides a 0.30 m x 0.50 m
+    # reference locker footprint; other countries are treated as planning basis
+    # unless a verified local dimensional requirement is available.
+    locker_width_m = 0.30
+    locker_depth_m = 0.50
+    locker_area = lockers * locker_width_m * locker_depth_m
+    locker_dimension_basis = (
+        "Germany ASR A4.1 reference module"
+        if country == "Germany"
+        else "Planning module; verify local requirement"
+    )
+
+    # Changing-room movement area.
+    # The rate is deliberately initialized before any country branching so
+    # movement_area can never be undefined.
+    movement_rate = 0.50
+    rule_basis = "0.50 m²/user planning basis"
+
+    if country == "Canada":
+        movement_rate = 0.40
+        rule_basis = "Canada regulatory benchmark: 0.40 m²/user"
+    elif country == "Germany":
+        movement_rate = 0.50
+        rule_basis = "Germany ASR A4.1: 0.50 m²/user"
+
+    movement_area = employees * movement_rate if clothing else 0.0
+    changing_area = movement_area
+
+    # Seating is required only when a dedicated changing room is provided.
+    seating = math.ceil(employees / 4) if clothing else 0
+
+    # Separate storage positions for street shoes and work shoes/boots.
+    shoe_width_m = 0.30 if shoes else 0.0
+    shoe_depth_m = 0.35 if shoes else 0.0
+    shoe_storage_modules = 2 if shoes else 0
+    shoe_storage_area = (
+        employees * shoe_width_m * shoe_depth_m * shoe_storage_modules
+    )
+    shoe_storage_basis = (
+        "Planning module; verify local requirement" if shoes else "Not required"
+    )
+
+    street_shoe_positions = employees if shoes else 0
+    work_shoe_positions = employees if shoes else 0
+
+    # The total facility area represents clear changing movement plus
+    # locker and shoe-storage footprints. It does NOT enlarge the plant
+    # footprint automatically; the facilities are located within the
+    # Admin Building.
+    total_area = changing_area + locker_area + shoe_storage_area
+
+    items = [
+        {"item": "Individual Employee Lockers", "quantity": lockers, "unit": "No."},
+        {"item": "Male Employee Lockers", "quantity": male, "unit": "No."},
+        {"item": "Female Employee Lockers", "quantity": female, "unit": "No."},
+        {"item": "Locker Storage Area", "quantity": round(locker_area, 2), "unit": "m²"},
+        {"item": "Employee Facility Floor Finish", "quantity": round(total_area, 2), "unit": "m²"},
+        {"item": "Employee Facility Ceiling Finish", "quantity": round(total_area, 2), "unit": "m²"},
+        {"item": "Employee Facility Lighting", "quantity": round(total_area, 2), "unit": "m² planning area"},
+        {"item": "Employee Facility Electrical", "quantity": round(total_area, 2), "unit": "m² planning area"},
+    ]
+
+    if shoes:
+        items.extend([
+            {"item": "Outside / Street Shoe Storage", "quantity": street_shoe_positions, "unit": "Employee positions"},
+            {"item": "Non-Marking Work Shoe / Boot Storage", "quantity": work_shoe_positions, "unit": "Employee positions"},
+            {"item": "Shoe Storage Planning Area", "quantity": round(shoe_storage_area, 2), "unit": "m²"},
+        ])
+
+    if clothing:
+        male_room = 1 if male > 0 else 0
+        female_room = 1 if female > 0 else 0
+        changing_rooms = male_room + female_room
+        doors = changing_rooms
+        privacy_partitions = max(0, changing_rooms - 1)
+
+        items.extend([
+            {"item": "Changing Room Zones", "quantity": changing_rooms, "unit": "No."},
+            {"item": "Changing Room Doors", "quantity": doors, "unit": "No."},
+        ])
+
+        if privacy_partitions:
+            items.append({
+                "item": "Privacy / Gender Separation Partition",
+                "quantity": privacy_partitions,
+                "unit": "No."
+            })
+
+        items.extend([
+            {"item": "Mechanical / Natural Ventilation Scope", "quantity": round(total_area, 2), "unit": "m² served area"},
+            {"item": "Emergency / General Lighting Scope", "quantity": round(total_area, 2), "unit": "m² served area"},
+            {"item": "Electrical Power / Small-Power Scope", "quantity": round(total_area, 2), "unit": "m² served area"},
+            {"item": "Fire & Life Safety Coordination", "quantity": 1, "unit": "LS"},
+            {"item": "Emergency Egress / Access Coordination", "quantity": 1, "unit": "LS"},
+            {"item": "Room Construction / Finishes Coordination", "quantity": 1, "unit": "LS"},
+        ])
+
+    return {
+        "employees": employees,
+        "male": male,
+        "female": female,
+        "lockers": lockers,
+        "changing_area_sqm": round(changing_area, 2),
+        "locker_area_sqm": round(locker_area, 2),
+        "shoe_storage_area_sqm": round(shoe_storage_area, 2),
+        "total_area_sqm": round(total_area, 2),
+        "seating": seating,
+        "street_shoe_storage_positions": street_shoe_positions,
+        "work_shoe_storage_positions": work_shoe_positions,
+        "locker_sections": 2 if clothing else 1,
+        "locker_dimension_m": {
+            "width": locker_width_m,
+            "depth": locker_depth_m,
+        },
+        "locker_dimension_basis": locker_dimension_basis,
+        "shoe_storage_dimension_m": (
+            {"width": shoe_width_m, "depth": shoe_depth_m} if shoes else None
+        ),
+        "shoe_storage_modules": shoe_storage_modules,
+        "shoe_storage_basis": shoe_storage_basis,
+        "changing_room_zones": (
+            (1 if male > 0 else 0) + (1 if female > 0 else 0)
+            if clothing else 0
+        ),
+        "changing_room_doors": (
+            (1 if male > 0 else 0) + (1 if female > 0 else 0)
+            if clothing else 0
+        ),
+        "privacy_partitions": (
+            max(
+                0,
+                ((1 if male > 0 else 0) + (1 if female > 0 else 0)) - 1
+            )
+            if clothing else 0
+        ),
+        "facility_location": "Admin Building",
+        "design_basis": rule_basis,
+        "facility_scope_status": (
+            "Calculated planning scope; statutory requirements and detailed engineering govern final design"
+        ),
+        "wet_area_scope": (
+            "Not automatically assumed; no shower/wet-area input is provided"
+        ),
+        "fire_safety_scope": (
+            "Included as coordination scope; final equipment quantities require building/fire-code design"
+        ),
+        "hvac_scope": (
+            "Area served reported; equipment capacity requires engineering design inputs"
+        ),
+        "items": items,
+    }
 # Explicit map: UI utility_scope label -> canonical UTILITY_SYSTEMS row name
 UTILITY_SCOPE_MAP = {
     "Boiler House":              "Steam & Boiler System",
@@ -1095,11 +1295,9 @@ UTILITY_SCOPE_MAP = {
 
 # ---------- Core estimator ----------
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    built_up = (
-        inp.length_m
-        * inp.width_m
-        * inp.num_floors
-    )
+    built_up = inp.length_m * inp.width_m * inp.num_floors
+    employee_facilities = calculate_employee_facilities(inp)
+        # Employee & staff facilities
 
     # Prefer the larger framework land/plot value for external works.
     plot_area = (
@@ -1287,6 +1485,27 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "rate": round(utilities_total, 2), "amount": round(utilities_total, 2),
             "category": "Utilities",
         })
+            # Employee & staff facilities — scope only; cost is added separately
+    # after verified facility rates are available.
+        # Employee & staff facilities — construction scope priced from existing civil rates.
+        # Employee & staff facilities — scope is reported separately.
+    # Construction cost is carried through the building area calculation;
+    # do not add a second civil charge here.
+    if employee_facilities["employees"] > 0:
+        boq_rows.append({
+            "activity": "Employee & Staff Facilities",
+            "unit": "LS",
+            "quantity": 1,
+            "rate": 0,
+            "amount": 0,
+            "category": "Employee Facilities",
+            "scope": employee_facilities["items"],
+            "employees": employee_facilities["employees"],
+            "lockers": employee_facilities["lockers"],
+            "area_sqm": employee_facilities["total_area_sqm"],
+            "cost_status": "Scope only - included within Admin Building; no separate cost added",
+            "cost_basis": "No verified employee-locker procurement rate in source rate database",
+        })
 
     infra_total = round(infra_total, 2)
     infra_rows = [r for r in boq_rows if r.get("category") == "Infra"]
@@ -1403,6 +1622,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     region_benchmark_delta = round((global_m - 1.0) * 100, 1)
 
     return {
+        "employee_facilities": employee_facilities,
         "totals": {
             "total_project_cost": round(total, 2),
             "cost_per_sqm": round(total / built_up, 2) if built_up else 0,
@@ -1414,9 +1634,14 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "contingency_pct": inp.contingency_pct,
             "region_benchmark_delta_pct": region_benchmark_delta,
             "built_up_area_sqm": round(built_up, 2),
+            "employee_facility_area_sqm": round(employee_facilities["total_area_sqm"], 2),
+            "employee_lockers": employee_facilities["lockers"],
+            "employee_seating": employee_facilities["seating"],
+            "employee_shoe_storage_positions": employee_facilities["street_shoe_storage_positions"] + employee_facilities["work_shoe_storage_positions"],
             "plot_area_sqm": plot_area,
         },
         "breakdown": breakdown,
+        "employee_facilities": employee_facilities,
         "boq": sorted_boq,
         "top_cost_items": top12,
         "utilities": utilities_rows,
@@ -1696,4 +1921,5 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    client.close()
+    client.close() 
+    

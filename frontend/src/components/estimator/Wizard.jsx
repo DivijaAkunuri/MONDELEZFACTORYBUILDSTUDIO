@@ -145,13 +145,13 @@ function Step1({ inputs, patch, reference }) {
           <InputF id="location_city" value={inputs.location_city} onChange={(v) => patch("location_city", v)} />
         </Field>
         <Field label="Country">
-          <SelectF id="location_country" value={inputs.location_country} onChange={(v) => patch("location_country", v)} options={reference?.regions?.[inputs.region] || []}/>
+          <SelectF id="location_country" value={inputs.location_country} onChange={(v) => patch("location_country", v)} options={reference?.regions?.[inputs.region] || []} />
         </Field>
         <Field label="Currency">
           <SelectF id="currency" value={inputs.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
         </Field>
         <Field label="Region">
-          <SelectF id="region" value={inputs.region} onChange={(v) => { patch("region", v);patch("location_country", "");}} options={Object.keys(reference?.regions || {})}/>
+          <SelectF id="region" value={inputs.region} onChange={(v) => { patch("region", v); patch("location_country", ""); }} options={Object.keys(reference?.regions || {})} />
         </Field>
         <Field label="Location Tier (Stage 1)">
           <SelectF id="location_tier" value={inputs.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} />
@@ -284,58 +284,76 @@ function Step5({ inputs, patch, patchComplexity, reference }) {
 
   return (
     <>
-      <Section title="External Works Scope">
-        <Field label="Roads & Pathways">
-          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-            <Checkbox data-testid={TID.wizardField("include_roads")} checked={inputs.include_roads} onCheckedChange={(v) => patch("include_roads", !!v)} />
-            <span>Include</span>
-          </label>
-        </Field>
-        <Field label="Landscaping">
-          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-            <Checkbox data-testid={TID.wizardField("include_landscaping")} checked={inputs.include_landscaping} onCheckedChange={(v) => patch("include_landscaping", !!v)} />
-            <span>Include</span>
-          </label>
-        </Field>
-        <Field label="Compound Wall / Fence">
-          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-            <Checkbox data-testid={TID.wizardField("include_fence")} checked={inputs.include_fence} onCheckedChange={(v) => patch("include_fence", !!v)} />
-            <span>Include</span>
-          </label>
-        </Field>
-      </Section>
+        <Section title="Employee & Staff Facilities">
+          <Field label="Total Employees">
+            <InputF id="num_employees" type="number" value={inputs.num_employees ?? 0} onChange={(v) => patch("num_employees", v)} />
+          </Field>
+          <Field label="Male Employees">
+            <InputF id="male_employees" type="number" value={inputs.male_employees ?? 0} onChange={(v) => patch("male_employees", v)} />
+          </Field>
+          <Field label="Female Employees">
+            <InputF id="female_employees" type="number" value={inputs.female_employees ?? 0} onChange={(v) => patch("female_employees", v)} />
+          </Field>
+          <Field label="Special / Work Clothing Required?">
+            <SelectF id="special_work_clothing" value={inputs.special_work_clothing ?? "Yes"} onChange={(v) => patch("special_work_clothing", v)} options={["Yes", "No"]} />
+          </Field>
+          <Field label="Work Shoes / Boots Required?">
+            <SelectF id="work_shoes_required" value={inputs.work_shoes_required ?? "Yes"} onChange={(v) => patch("work_shoes_required", v)} options={["Yes", "No"]} />
+          </Field>
+        </Section>
 
-      <Section title="Site Inputs">
-        <Field label="Land Area (m²)"><InputF id="land_area_sqm" type="number" value={inputs.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} /></Field>
-        <Field label="Ground Coverage (%)"><InputF id="ground_coverage_pct" type="number" value={inputs.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} /></Field>
-        <Field label="FAR / FSI"><InputF id="far_fsi" type="number" value={inputs.far_fsi} onChange={(v) => patch("far_fsi", v)} /></Field>
-        <Field label="Water Availability"><SelectF id="water_availability" value={inputs.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} /></Field>
-        <Field label="Electrical Grid Reliability"><SelectF id="grid_reliability" value={inputs.grid_reliability} onChange={(v) => patch("grid_reliability", v)} options={reference?.grid_reliability} /></Field>
-        <Field label="Ambient Temperature Range"><SelectF id="ambient_temp_range" value={inputs.ambient_temp_range} onChange={(v) => patch("ambient_temp_range", v)} options={reference?.ambient_temp_ranges} /></Field>
-        <Field label="Relative Humidity (%)"><InputF id="relative_humidity_pct" type="number" value={inputs.relative_humidity_pct} onChange={(v) => patch("relative_humidity_pct", v)} /></Field>
-      </Section>
+        <Section title="External Works Scope">
+          <Field label="Roads & Pathways">
+            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+              <Checkbox data-testid={TID.wizardField("include_roads")} checked={inputs.include_roads} onCheckedChange={(v) => patch("include_roads", !!v)} />
+              <span>Include</span>
+            </label>
+          </Field>
+          <Field label="Landscaping">
+            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+              <Checkbox data-testid={TID.wizardField("include_landscaping")} checked={inputs.include_landscaping} onCheckedChange={(v) => patch("include_landscaping", !!v)} />
+              <span>Include</span>
+            </label>
+          </Field>
+          <Field label="Compound Wall / Fence">
+            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+              <Checkbox data-testid={TID.wizardField("include_fence")} checked={inputs.include_fence} onCheckedChange={(v) => patch("include_fence", !!v)} />
+              <span>Include</span>
+            </label>
+          </Field>
+        </Section>
 
-      <div className="mb-5">
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">Site Complexity</div>
-        <CheckboxGrid
-          list={siteComplexity}
-          selected={Object.keys(inputs.complexity).filter((k) => inputs.complexity[k])}
-          onToggle={(k) => patchComplexity(k, !inputs.complexity[k])}
-          idPrefix="complexity"
-        />
-      </div>
+        <Section title="Site Inputs">
+          <Field label="Land Area (m²)"><InputF id="land_area_sqm" type="number" value={inputs.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} /></Field>
+          <Field label="Ground Coverage (%)"><InputF id="ground_coverage_pct" type="number" value={inputs.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} /></Field>
+          <Field label="FAR / FSI"><InputF id="far_fsi" type="number" value={inputs.far_fsi} onChange={(v) => patch("far_fsi", v)} /></Field>
+          <Field label="Water Availability"><SelectF id="water_availability" value={inputs.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} /></Field>
+          <Field label="Electrical Grid Reliability"><SelectF id="grid_reliability" value={inputs.grid_reliability} onChange={(v) => patch("grid_reliability", v)} options={reference?.grid_reliability} /></Field>
+          <Field label="Ambient Temperature Range"><SelectF id="ambient_temp_range" value={inputs.ambient_temp_range} onChange={(v) => patch("ambient_temp_range", v)} options={reference?.ambient_temp_ranges} /></Field>
+          <Field label="Relative Humidity (%)"><InputF id="relative_humidity_pct" type="number" value={inputs.relative_humidity_pct} onChange={(v) => patch("relative_humidity_pct", v)} /></Field>
+        </Section>
 
-      <Section title="Contingency">
-        <Field label={`Contingency (%): ${inputs.contingency_pct}%`} span={3}>
-          <input
-            type="range" min="4" max="20" step="0.5"
-            value={inputs.contingency_pct}
-            onChange={(e) => patch("contingency_pct", +e.target.value)}
-            data-testid={TID.wizardField("contingency_pct")}
-            className="w-full accent-blue-600"
+        <div className="mb-5">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">Site Complexity</div>
+          <CheckboxGrid
+            list={siteComplexity}
+            selected={Object.keys(inputs.complexity).filter((k) => inputs.complexity[k])}
+            onToggle={(k) => patchComplexity(k, !inputs.complexity[k])}
+            idPrefix="complexity"
           />
-        </Field>
-      </Section>
-    </>
-  );
+        </div>
+
+        <Section title="Contingency">
+          <Field label={`Contingency (%): ${inputs.contingency_pct}%`} span={3}>
+            <input
+              type="range" min="4" max="20" step="0.5"
+              value={inputs.contingency_pct}
+              onChange={(e) => patch("contingency_pct", +e.target.value)}
+              data-testid={TID.wizardField("contingency_pct")}
+              className="w-full accent-blue-600"
+            />
+          </Field>
+        </Section>
+      </>
+      );
 }

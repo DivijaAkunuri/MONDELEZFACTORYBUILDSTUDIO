@@ -19,7 +19,7 @@ import { TID } from "@/constants/testIds";
 
 const DEFAULT_INPUTS = {
   project_name: "Chocolate & Bakery Manufacturing Plant", project_type: "Greenfield", industry_type: "Food", product_category: "Chocolate Plant",
-  location_city: "Hamburg", location_country: "Germany", region: "Europe", continent: "Europe", location_tier: "Metro",
+  location_city: "Hamburg", location_country: "Germany", region: "MEU", continent: "Europe", location_tier: "Metro",
   building_type: "Industrial Building (RCC + PEB)", length_m: 185, width_m: 100, height_m: 10.5, num_floors: 1, bay_spacing_m: 8,
   plot_area_sqm: 32000, building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
   soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium", foundation_type: ["Raft Foundation"],
@@ -31,7 +31,7 @@ const DEFAULT_INPUTS = {
   land_area_sqm: 32000, ground_coverage_pct: 58, far_fsi: 1.2, water_availability: "Municipal + Borewell", grid_reliability: "Good",
   ambient_temp_range: "Temperate (5°C - 30°C)", relative_humidity_pct: 70,
   complexity: { seismic_zone_high: false, high_humidity: false, cold_region: false, brownfield: false, gmp_hygienic: true, explosion_risk: false, utility_redundancy: true, high_floor_load: false, remote_site: false },
-  currency: "USD", base_unit: "mm", contingency_pct: 8.0,
+  currency: "USD", base_unit: "mm", contingency_pct: 8.0, num_employees: 0,male_employees: 0,female_employees: 0,special_work_clothing: "Yes",work_shoes_required: "Yes",
 };
 
 const TABS = [
