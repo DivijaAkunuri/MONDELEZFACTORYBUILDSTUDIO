@@ -18,12 +18,12 @@ import { fmtMoney, fmtNumber } from "@/lib/format";
 import { TID } from "@/constants/testIds";
 
 const DEFAULT_INPUTS = {
-  project_name: "Chocolate & Bakery Manufacturing Plant", project_type: "Greenfield", industry_type: "Food", product_category: "Chocolate Plant",
+  project_name: "Chocolate & Bakery Manufacturing Plant", user_name: "", project_type: "Greenfield", industry_type: "Food", product_category: "Chocolate Plant",
   location_city: "Hamburg", location_country: "Germany", region: "MEU", continent: "Europe", location_tier: "Metro",
   building_type: "Industrial Building (RCC + PEB)", length_m: 185, width_m: 100, height_m: 10.5, num_floors: 1, bay_spacing_m: 8,
   plot_area_sqm: 32000, building_components: ["Production Block", "Warehouse", "Cold Store", "Utilities Block", "Admin Building"],
   soil_type: "Medium Dense Sand", sbc_soil_type: "Hard Stone", soil_hardness: "Medium", foundation_type: ["Raft Foundation"],
-  floor_load_kn: 5.0, column_type: "Steel", roof_type: "PEB + Insulated Panel", seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
+  column_type: "Steel", roof_type: "PEB + Insulated Panel", seismic_zone: "Zone 0 (Very Low)", wind_zone: "Zone 2", wind_speed_ms: 24,
   gwt_depth: "Medium (3-8 m)", utility_scope: ["Boiler House", "Chiller Plant", "HVAC System", "Air Compressors", "Water Treatment Plant", "Fire Fighting System", "Electrical Substation"],
   production_capacity_tpd: 120, annual_output_mt: 36000, cooling_tunnel_load_tr: 180, tempering_utility_demand: "Medium",
   humidity_controlled_pct: 40, chocolate_storage_temp_c: 16, process_hot_water_lph: 2500, oven_capacity_kg_hr: 1200, fuel_type: "PNG", baking_line_qty: 2,
@@ -31,7 +31,7 @@ const DEFAULT_INPUTS = {
   land_area_sqm: 32000, ground_coverage_pct: 58, far_fsi: 1.2, water_availability: "Municipal + Borewell", grid_reliability: "Good",
   ambient_temp_range: "Temperate (5°C - 30°C)", relative_humidity_pct: 70,
   complexity: { seismic_zone_high: false, high_humidity: false, cold_region: false, brownfield: false, gmp_hygienic: true, explosion_risk: false, utility_redundancy: true, high_floor_load: false, remote_site: false },
-  currency: "USD", base_unit: "mm", contingency_pct: 8.0, num_employees: 0,male_employees: 0,female_employees: 0,special_work_clothing: "Yes",work_shoes_required: "Yes",
+  currency: "USD", base_unit: "mm", contingency_pct: 8.0, num_employees: 0, male_employees: 0, female_employees: 0, special_work_clothing: "Yes", work_shoes_required: "Yes",
 };
 
 const TABS = [
@@ -181,13 +181,26 @@ export default function Estimator() {
             <Button variant="ghost" size="icon"><HelpCircle className="w-4 h-4 text-slate-600" /></Button>
 
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">AV</div>
+              <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
+                {(inputs.user_name || "User")
+                  .trim()
+                  .split(/\s+/)
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+
               <div className="hidden md:block leading-tight">
-                <div className="text-xs font-semibold text-slate-800">Amit Verma</div>
-                <div className="text-[10px] text-slate-500">Estimator</div>
+                <div className="text-xs font-semibold text-slate-800">
+                  {inputs.user_name || "User"}
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  Estimator
+                </div>
               </div>
             </div>
-          </div>
+            </div>
         </header>
 
         <div className="flex items-center justify-end gap-2 px-5 py-2 border-b border-slate-200 bg-white">
