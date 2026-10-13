@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import html2pdf from "html2pdf.js";
 import { FileOutput, Download, Printer } from "lucide-react";
@@ -14,11 +14,14 @@ export default function ReportsExport() {
     const fxRates = location.state?.fxRates ?? {};
 
     useEffect(() => {
-        if (location.state?.autoPrint && result) {
-            const timer = setTimeout(() => printReport(), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [location.state?.autoPrint, result]);
+    if (location.state?.autoPrint && result) {
+        const timer = setTimeout(() => {
+            printReport();
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }
+}, [location.state?.autoPrint, result, printReport]);
 
     if (!result) {
         return (
@@ -53,24 +56,27 @@ export default function ReportsExport() {
         lastSaved: "—",
     };
 
-    const printReport = async () => {
-        const element = document.getElementById("estimate-report");
-        if (!element) return;
+   const printReport = useCallback(async () => {
+    const element = document.getElementById("estimate-report");
+    if (!element) return;
 
-        const projectName = inputs?.project_name || "Project Estimate";
-        const filename = `${projectName.replace(/[^a-z0-9]/gi, "_")}_Estimate.pdf`;
+    const projectName = inputs?.project_name || "Project Estimate";
+    const filename = `${projectName.replace(/[^a-z0-9]/gi, "_")}_Estimate.pdf`;
 
-        const options = {
-            margin: 8,
-            filename,
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-            pagebreak: { mode: ["css", "legacy"] },
-        };
-
-        await html2pdf().set(options).from(element).save();
+    const options = {
+        margin: 8,
+        filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] },
     };
+
+    await html2pdf().set(options).from(element).save();}, [inputs]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex">
