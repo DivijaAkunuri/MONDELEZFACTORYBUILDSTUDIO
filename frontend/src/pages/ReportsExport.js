@@ -13,6 +13,10 @@ export default function ReportsExport() {
     const currency = location.state?.currency ?? "USD";
     const fxRates = location.state?.fxRates ?? {};
 
+    const printReport = useCallback(async () => {
+    const element = document.getElementById("estimate-report");
+    if (!element) return;
+
     useEffect(() => {
     if (location.state?.autoPrint && result) {
         const timer = setTimeout(() => {
@@ -56,9 +60,7 @@ export default function ReportsExport() {
         lastSaved: "—",
     };
 
-   const printReport = useCallback(async () => {
-    const element = document.getElementById("estimate-report");
-    if (!element) return;
+   
 
     const projectName = inputs?.project_name || "Project Estimate";
     const filename = `${projectName.replace(/[^a-z0-9]/gi, "_")}_Estimate.pdf`;
