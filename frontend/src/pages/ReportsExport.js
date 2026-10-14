@@ -573,3 +573,154 @@ return (
 );
 
 }
+function SectionTitle({ title }) {
+return (
+<h2 className="text-lg font-bold text-slate-900">
+{title}
+</h2>
+);
+}
+
+function ReportCard({ label, value }) {
+return (
+<div className="border border-slate-200 rounded-lg p-4">
+<div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+{label}
+</div>
+<div className="text-lg font-bold text-slate-900 mt-1">
+{value}
+</div>
+</div>
+);
+}
+
+function CategoryCard({ title, data, currency, fxRates }) {
+return (
+<div className="border border-slate-200 rounded-lg p-5">
+<div className="text-xs font-semibold text-slate-500 uppercase">
+{title}
+</div>
+<div className="text-xl font-bold text-slate-900 mt-2">
+{fmtMoney(data?.value || 0, currency, fxRates)}
+</div>
+<div className="text-xs text-slate-500 mt-1">
+{data?.pct || 0}% of total project cost
+</div>
+</div>
+);
+}
+
+function Info({ label, value }) {
+return (
+<div>
+<div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+{label}
+</div>
+<div className="text-sm text-slate-800 font-medium mt-1">
+{value ?? "—"}
+</div>
+</div>
+);
+}
+
+function InsightBox({ title, items }) {
+return (
+<div className="border border-slate-200 rounded-lg p-4">
+<h3 className="text-sm font-semibold text-slate-800">
+{title}
+</h3>
+
+        <ul className="mt-3 space-y-2">
+            {items.length ? (
+                items.map((item, index) => (
+                    <li
+                        key={index}
+                        className="text-xs text-slate-600 leading-relaxed"
+                    >
+                        •{" "}
+                        {typeof item === "string"
+                            ? item
+                            : JSON.stringify(item)}
+                    </li>
+                ))
+            ) : (
+                <li className="text-xs text-slate-400">
+                    None available
+                </li>
+            )}
+        </ul>
+    </div>
+);
+
+}
+
+function ReportTable({ headers, rows }) {
+return (
+<div className="overflow-x-auto mt-5">
+<table className="w-full text-sm border-collapse">
+<thead className="bg-slate-50">
+<tr>
+{headers.map((header, index) => (
+<th
+key={index}
+className="text-left px-3 py-3 border-b border-slate-200 text-[10px] uppercase tracking-wider text-slate-500 font-semibold"
+>
+{header}
+</th>
+))}
+</tr>
+</thead>
+
+            <tbody>
+                {rows.length ? (
+                    rows.map((row, rowIndex) => (
+                        <tr
+                            key={rowIndex}
+                            className="border-b border-slate-100"
+                            style={{
+                                breakInside: "avoid",
+                                pageBreakInside: "avoid",
+                            }}
+                        >
+                            {row.map((cell, cellIndex) => (
+                                <td
+                                    key={cellIndex}
+                                    className="px-3 py-3 text-slate-700"
+                                >
+                                    {cell}
+                                </td>
+                            ))}
+                        </tr>
+                    ))
+                ) : (
+                    <tr>
+                        <td
+                            colSpan={headers.length}
+                            className="px-3 py-8 text-center text-slate-400"
+                        >
+                            No data available.
+                        </td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    </div>
+);
+
+}
+
+function formatLabel(key) {
+return String(key)
+.replace(/_/g, " ")
+.replace(/\b\w/g, (character) =>
+character.toUpperCase()
+);
+}
+
+function formatValue(value) {
+if (value == null) return "—";
+if (typeof value === "object") {
+return JSON.stringify(value);
+}
+return String(value);
+}
