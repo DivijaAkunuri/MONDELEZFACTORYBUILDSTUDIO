@@ -37,21 +37,6 @@ export default function ReportsExport() {
             return () => clearTimeout(timer);
         }
     }, [location.state?.autoPrint, result, printReport]);
-    if (!result) {
-            return (
-                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <FileOutput className="w-10 h-10 mx-auto mb-3 text-slate-400" />
-                        <h2 className="text-lg font-semibold text-slate-800">
-                            No estimate loaded
-                        </h2>
-                        <p className="text-sm text-slate-500 mt-1">
-                            Please calculate an estimate first.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
 const totals = result.totals || {};
     const breakdown = result.breakdown || [];
     const boq = result.boq || [];
