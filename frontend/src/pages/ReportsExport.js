@@ -1,56 +1,64 @@
 import React, { useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import html2pdf from "html2pdf.js";
-import { FileOutput, Download, Printer } from "lucide-react";
+import { FileOutput, Download } from "lucide-react";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import Sidebar from "@/components/estimator/Sidebar";
-
 export default function ReportsExport() {
     const location = useLocation();
-
     const result = location.state?.result;
     const inputs = location.state?.inputs;
     const currency = location.state?.currency ?? "USD";
     const fxRates = location.state?.fxRates ?? {};
-
     const printReport = useCallback(async () => {
-    const element = document.getElementById("estimate-report");
-    if (!element) return;
-
+        const element = document.getElementById("estimate-report");
+            if (!element) return;
+        const projectName = inputs?.project_name || "Project Estimate";
+            const filename = `${projectName.replace(/[^a-z0-9]/gi, "_")}_Estimate.pdf`;
+            const options = {
+                margin: 8,
+                filename,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                },
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                pagebreak: { mode: ["css", "legacy"] },
+            };
+            await html2pdf().set(options).from(element).save();
+    }, [inputs]);
     useEffect(() => {
-    if (location.state?.autoPrint && result) {
-        const timer = setTimeout(() => {
-            printReport();
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }
-}, [location.state?.autoPrint, result, printReport]);
-
+        if (location.state?.autoPrint && result) {
+            const timer = setTimeout(() => {
+                printReport();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [location.state?.autoPrint, result, printReport]);
     if (!result) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <FileOutput className="w-10 h-10 mx-auto mb-3 text-slate-400" />
-                    <h2 className="text-lg font-semibold text-slate-800">
-                        No estimate loaded
-                    </h2>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Please calculate an estimate first.
-                    </p>
+            return (
+                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <FileOutput className="w-10 h-10 mx-auto mb-3 text-slate-400" />
+                        <h2 className="text-lg font-semibold text-slate-800">
+                            No estimate loaded
+                        </h2>
+                        <p className="text-sm text-slate-500 mt-1">
+                            Please calculate an estimate first.
+                        </p>
+                    </div>
                 </div>
-            </div>
-        );
-    }
-
-    const totals = result.totals || {};
+            );
+        }
+const totals = result.totals || {};
     const breakdown = result.breakdown || [];
     const boq = result.boq || [];
     const utilities = result.utilities || [];
     const insights = result.insights || {};
     const cityFactors = result.city_factors || {};
     const multipliers = result.multipliers || {};
-
     const activeProject = {
         name: inputs?.project_name ?? "—",
         location: `${inputs?.location_city ?? ""}${inputs?.location_country ? `, ${inputs.location_country}` : ""
@@ -59,27 +67,6 @@ export default function ReportsExport() {
         plot: `${fmtNumber(totals.plot_area_sqm || 0)} m²`,
         lastSaved: "—",
     };
-
-   
-
-    const projectName = inputs?.project_name || "Project Estimate";
-    const filename = `${projectName.replace(/[^a-z0-9]/gi, "_")}_Estimate.pdf`;
-
-    const options = {
-        margin: 8,
-        filename,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["css", "legacy"] },
-    };
-
-    await html2pdf().set(options).from(element).save();}, [inputs]);
-
     return (
         <div className="min-h-screen bg-slate-50 flex">
             <div>
@@ -93,7 +80,6 @@ export default function ReportsExport() {
                     activeProject={activeProject}
                 />
             </div>
-
             <div className="flex-1 min-w-0 overflow-y-auto">
                 {/* Header */}
                 <div className="bg-white border-b border-slate-200 px-6 py-4">
@@ -102,7 +88,6 @@ export default function ReportsExport() {
                             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <FileOutput className="w-5 h-5 text-blue-700" />
                             </div>
-
                             <div>
                                 <h1 className="text-xl font-bold text-slate-900 font-['Manrope']">
                                     Reports & Export
@@ -112,7 +97,6 @@ export default function ReportsExport() {
                                 </p>
                             </div>
                         </div>
-
                         <button
                             onClick={printReport}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
@@ -122,7 +106,6 @@ export default function ReportsExport() {
                         </button>
                     </div>
                 </div>
-
                 {/* Report */}
                 <main className="p-6 print:p-0">
                     <div id="estimate-report" className="max-w-6xl mx-auto bg-white border border-slate-200 rounded-lg shadow-sm print:border-0 print:shadow-none">
@@ -140,11 +123,9 @@ export default function ReportsExport() {
                                     <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
                                         Construction Cost Estimate
                                     </div>
-
                                     <h1 className="text-2xl font-bold text-slate-900 mt-2">
                                         {inputs?.project_name || "Project Estimate"}
                                     </h1>
-
                                     <p className="text-sm text-slate-500 mt-1">
                                         {inputs?.location_city || "—"}
                                         {inputs?.location_country
@@ -152,18 +133,15 @@ export default function ReportsExport() {
                                             : ""}
                                     </p>
                                 </div>
-
                                 <div className="text-right text-sm">
                                     <div className="text-slate-500">Project Type</div>
                                     <div className="font-semibold text-slate-800">
                                         {inputs?.project_type || "—"}
                                     </div>
-
                                     <div className="text-slate-500 mt-2">Industry</div>
                                     <div className="font-semibold text-slate-800">
                                         {inputs?.industry_type || "—"}
                                     </div>
-
                                     <div className="text-slate-500 mt-2">Generated On</div>
                                     <div className="font-semibold text-slate-800">
                                         {new Date().toLocaleString()}
@@ -171,13 +149,11 @@ export default function ReportsExport() {
                                 </div>
                             </div>
                         </div>
-
                         {/* Executive Summary */}
                         <section className="p-8 border-b border-slate-200">
                             <h2 className="text-lg font-bold text-slate-900">
                                 Executive Summary
                             </h2>
-
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
                                 <ReportCard
                                     label="Total Project Cost"
@@ -187,7 +163,6 @@ export default function ReportsExport() {
                                         fxRates
                                     )}
                                 />
-
                                 <ReportCard
                                     label="Cost / m²"
                                     value={`${fmtMoney(
@@ -196,25 +171,21 @@ export default function ReportsExport() {
                                         fxRates
                                     )} / m²`}
                                 />
-
                                 <ReportCard
                                     label="Built-up Area"
                                     value={`${fmtNumber(
                                         totals.built_up_area_sqm || 0
                                     )} m²`}
                                 />
-
                                 <ReportCard
                                     label="Duration"
                                     value={`${totals.duration_months || 0} months`}
                                 />
                             </div>
                         </section>
-
                         {/* Project Information */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Project Information" />
-
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-4 mt-5">
                                 <Info label="Project Name" value={inputs?.project_name} />
                                 <Info label="Project Type" value={inputs?.project_type} />
@@ -234,11 +205,9 @@ export default function ReportsExport() {
                                 <Info label="FAR / FSI" value={inputs?.far_fsi} />
                             </div>
                         </section>
-
                         {/* Cost Breakdown */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Cost Breakdown" />
-
                             <ReportTable
                                 headers={["Category", "Amount", "% of Total"]}
                                 rows={breakdown.map((b) => [
@@ -247,7 +216,6 @@ export default function ReportsExport() {
                                     `${b.pct || 0}%`,
                                 ])}
                             />
-
                             <div className="flex justify-end mt-4">
                                 <div className="text-right">
                                     <div className="text-xs text-slate-500 uppercase">
@@ -263,11 +231,9 @@ export default function ReportsExport() {
                                 </div>
                             </div>
                         </section>
-
                         {/* Civil / Infra / Utilities Summary */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Major Cost Categories" />
-
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
                                 <CategoryCard
                                     title="Civil Building"
@@ -277,7 +243,6 @@ export default function ReportsExport() {
                                     currency={currency}
                                     fxRates={fxRates}
                                 />
-
                                 <CategoryCard
                                     title="Utilities & Process"
                                     data={breakdown.find(
@@ -286,7 +251,6 @@ export default function ReportsExport() {
                                     currency={currency}
                                     fxRates={fxRates}
                                 />
-
                                 <CategoryCard
                                     title="Infra & External"
                                     data={breakdown.find(
@@ -297,11 +261,9 @@ export default function ReportsExport() {
                                 />
                             </div>
                         </section>
-
                         {/* BOQ */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Complete Bill of Quantities" />
-
                             <ReportTable
                                 headers={[
                                     "#",
@@ -323,11 +285,9 @@ export default function ReportsExport() {
                                 ])}
                             />
                         </section>
-
                         {/* Utilities */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Utilities & Process Details" />
-
                             <ReportTable
                                 headers={[
                                     "System",
@@ -339,7 +299,6 @@ export default function ReportsExport() {
                                     const utilityTotal = Number(
                                         result.utilities_total || 0
                                     );
-
                                     const pct = utilityTotal
                                         ? (
                                             (Number(u.amount || 0) /
@@ -347,7 +306,6 @@ export default function ReportsExport() {
                                             100
                                         ).toFixed(2)
                                         : "0.00";
-
                                     return [
                                         u.name,
                                         u.discipline,
@@ -356,7 +314,6 @@ export default function ReportsExport() {
                                     ];
                                 })}
                             />
-
                             <div className="text-right mt-4 font-bold">
                                 Total Utilities & Process:{" "}
                                 {fmtMoney(
@@ -366,11 +323,9 @@ export default function ReportsExport() {
                                 )}
                             </div>
                         </section>
-
                         {/* Infrastructure */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Infra & External Details" />
-
                             <ReportTable
                                 headers={[
                                     "Activity",
@@ -390,12 +345,10 @@ export default function ReportsExport() {
                                     ])}
                             />
                         </section>
-
                         {/* Utilities Demand */}
                         {result.utility_demand && (
                             <section className="p-8 border-b border-slate-200">
                                 <SectionTitle title="Utility Demand" />
-
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
                                     {Object.entries(result.utility_demand).map(
                                         ([key, value]) => (
@@ -409,11 +362,9 @@ export default function ReportsExport() {
                                 </div>
                             </section>
                         )}
-
                         {/* Design / Cost Factors */}
                         <section className="p-8 border-b border-slate-200">
                             <SectionTitle title="Cost & Design Factors" />
-
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-4 mt-5">
                                 <Info label="Region Multiplier" value={multipliers.region} />
                                 <Info label="Location Tier Multiplier" value={multipliers.tier} />
@@ -427,25 +378,21 @@ export default function ReportsExport() {
                                 <Info label="Requested City" value={cityFactors.requested} />
                             </div>
                         </section>
-
                         {/* Assumptions / Risks / Optimizations */}
                         {(insights.assumptions?.length ||
                             insights.risks?.length ||
                             insights.optimizations?.length) ? (
                             <section className="p-8 border-b border-slate-200">
                                 <SectionTitle title="Assumptions, Risks & Optimizations" />
-
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
                                     <InsightBox
                                         title="Key Assumptions"
                                         items={insights.assumptions || []}
                                     />
-
                                     <InsightBox
                                         title="Risk Drivers"
                                         items={insights.risks || []}
                                     />
-
                                     <InsightBox
                                         title="Optimizations"
                                         items={insights.optimizations || []}
@@ -453,14 +400,12 @@ export default function ReportsExport() {
                                 </div>
                             </section>
                         ) : null}
-
                         {/* Final Summary */}
                         <section className="p-8">
                             <div className="bg-slate-900 text-white rounded-lg p-6">
                                 <div className="text-xs uppercase tracking-wider text-slate-400">
                                     Total Project Cost
                                 </div>
-
                                 <div className="text-3xl font-bold mt-2">
                                     {fmtMoney(
                                         totals.total_project_cost || 0,
@@ -468,7 +413,6 @@ export default function ReportsExport() {
                                         fxRates
                                     )}
                                 </div>
-
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-6 text-sm">
                                     <div>
                                         <div className="text-slate-400">Contingency</div>
@@ -480,14 +424,12 @@ export default function ReportsExport() {
                                             )}
                                         </div>
                                     </div>
-
                                     <div>
                                         <div className="text-slate-400">Contingency %</div>
                                         <div className="font-semibold">
                                             {totals.contingency_pct || 0}%
                                         </div>
                                     </div>
-
                                     <div>
                                         <div className="text-slate-400">Confidence</div>
                                         <div className="font-semibold">
@@ -495,7 +437,6 @@ export default function ReportsExport() {
                                             ({totals.confidence_label || "—"})
                                         </div>
                                     </div>
-
                                     <div>
                                         <div className="text-slate-400">Duration</div>
                                         <div className="font-semibold">
@@ -504,19 +445,16 @@ export default function ReportsExport() {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="text-center text-xs text-slate-400 mt-6">
                                 Generated from the current project estimate.
                             </div>
                         </section>
-
                     </div>
                 </main>
             </div>
         </div>
     );
 }
-
 function SectionTitle({ title }) {
     return (
         <h2 className="text-lg font-bold text-slate-900">
@@ -524,7 +462,6 @@ function SectionTitle({ title }) {
         </h2>
     );
 }
-
 function ReportCard({ label, value }) {
     return (
         <div className="border border-slate-200 rounded-lg p-4">
@@ -537,25 +474,21 @@ function ReportCard({ label, value }) {
         </div>
     );
 }
-
 function CategoryCard({ title, data, currency, fxRates }) {
     return (
         <div className="border border-slate-200 rounded-lg p-5">
             <div className="text-xs font-semibold text-slate-500 uppercase">
                 {title}
             </div>
-
             <div className="text-xl font-bold text-slate-900 mt-2">
                 {fmtMoney(data?.value || 0, currency, fxRates)}
             </div>
-
             <div className="text-xs text-slate-500 mt-1">
                 {data?.pct || 0}% of total project cost
             </div>
         </div>
     );
 }
-
 function Info({ label, value }) {
     return (
         <div>
@@ -568,14 +501,12 @@ function Info({ label, value }) {
         </div>
     );
 }
-
 function InsightBox({ title, items }) {
     return (
         <div className="border border-slate-200 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-slate-800">
                 {title}
             </h3>
-
             <ul className="mt-3 space-y-2">
                 {items.length ? (
                     items.map((item, index) => (
@@ -595,7 +526,6 @@ function InsightBox({ title, items }) {
         </div>
     );
 }
-
 function ReportTable({ headers, rows }) {
     return (
         <div className="overflow-x-auto mt-5">
@@ -612,7 +542,6 @@ function ReportTable({ headers, rows }) {
                         ))}
                     </tr>
                 </thead>
-
                 <tbody>
                     {rows.length ? (
                         rows.map((row, rowIndex) => (
@@ -646,13 +575,11 @@ function ReportTable({ headers, rows }) {
         </div>
     );
 }
-
 function formatLabel(key) {
     return String(key)
         .replace(/_/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
 }
-
 function formatValue(value) {
     if (value == null) return "—";
     if (typeof value === "object") return JSON.stringify(value);
