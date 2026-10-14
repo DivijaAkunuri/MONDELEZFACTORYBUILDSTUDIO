@@ -163,9 +163,6 @@ export default function Estimator() {
         toast.error("Failed to load reference data");
       }
 
-      const savedResult = sessionStorage.getItem("estimator_result");
-      if (!savedResult) recalc(inputs);
-
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -175,24 +172,34 @@ export default function Estimator() {
   React.useEffect(() => {
     if (isFirstInputsChange.current) {
       isFirstInputsChange.current = false;
+
+      const savedResult = sessionStorage.getItem("estimator_result");
+
+      if (!savedResult) {
+        recalc(inputs);
+      }
+
       return;
     }
 
-    if (recalcTimer.current) clearTimeout(recalcTimer.current);
+    if (recalcTimer.current) {
+      clearTimeout(recalcTimer.current);
+    }
 
     recalcTimer.current = setTimeout(() => {
       recalc(inputs);
     }, 400);
 
     return () => {
-      if (recalcTimer.current) clearTimeout(recalcTimer.current);
+      if (recalcTimer.current) {
+        clearTimeout(recalcTimer.current);
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputs]);
+  }, [inputs, recalc]);
 
 
 
-  async function recalc(inp = inputs) {
+  const recalc = React.useCallback(async (inp = inputs) => {
 
     setLoading(true);
 
@@ -236,7 +243,7 @@ export default function Estimator() {
 
     }
 
-  }
+  }, [inputs]);
 
 
 
@@ -390,7 +397,7 @@ export default function Estimator() {
 
           <Button data-testid={TID.saveBtn} variant="outline" size="sm" onClick={onSave}><Save className="w-3.5 h-3.5 mr-1.5" />Save</Button>
 
-          <Button data-testid={TID.recalcBtn} size="sm" onClick={() => recalc()} disabled={loading}>
+          <Button data-testid={TID.recalcBtn} size="sm" onClick={() => recalc(inputs)} disabled={loading}>
 
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />{loading ? "Calculating..." : "Recalculate"}
 
