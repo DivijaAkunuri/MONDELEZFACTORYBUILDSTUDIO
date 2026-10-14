@@ -9,7 +9,10 @@ export default function ReportsExport() {
 const location = useLocation();
 
 const result = location.state?.result ?? null;
-const inputs = location.state?.inputs ?? {};
+const inputs = React.useMemo(
+  () => location.state?.inputs || {},
+  [location.state?.inputs]
+);
 const currency = location.state?.currency ?? "USD";
 const fxRates = location.state?.fxRates ?? {};
 
