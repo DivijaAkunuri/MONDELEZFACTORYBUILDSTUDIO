@@ -1120,9 +1120,8 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 origins = [
     "http://localhost:3000",
-    "https://constructionestimator-virid.vercel.app/estimator",
+    "https://constructionestimator-virid.vercel.app",
 ]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
