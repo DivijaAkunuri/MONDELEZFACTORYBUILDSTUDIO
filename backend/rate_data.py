@@ -69,7 +69,6 @@ COMPLEXITY_FACTORS = {
 # Industry preset (share of total cost between building & utilities)
 INDUSTRY_PRESETS = {
     "Chocolate Plant": {"utilities_pct": 0.42, "cold_chain_pct": 0.20, "hvac_pct": 0.14},
-    "Biscuit Plant": {"utilities_pct": 0.35, "cold_chain_pct": 0.05, "hvac_pct": 0.10},
     "Wafer / Cookies": {"utilities_pct": 0.33, "cold_chain_pct": 0.06, "hvac_pct": 0.09},
     "Confectionery Mixed Plant": {"utilities_pct": 0.40, "cold_chain_pct": 0.15, "hvac_pct": 0.12},
     "Bakery + Chocolate Combo": {"utilities_pct": 0.44, "cold_chain_pct": 0.18, "hvac_pct": 0.13},
@@ -323,7 +322,6 @@ COMPLEXITY_FACTORS = {
 # Industry preset (share of total cost between building & utilities)
 INDUSTRY_PRESETS = {
     "Chocolate Plant": {"utilities_pct": 0.63, "cold_chain_pct": 0.18, "hvac_pct": 0.11},
-    "Biscuit Plant": {"utilities_pct": 0.50, "cold_chain_pct": 0.05, "hvac_pct": 0.09},
     "Bakery + Chocolate Combo": {"utilities_pct": 0.60, "cold_chain_pct": 0.16, "hvac_pct": 0.11},
     "Warehouse": {"utilities_pct": 0.25, "cold_chain_pct": 0.02, "hvac_pct": 0.04},
 }
@@ -674,7 +672,6 @@ BENCHMARK_STRUCTURAL_M = 0.9440
 # ───────────────────────────────────────────────────────────────
 PRODUCT_CATEGORY_LOAD = {
     "Chocolate Plant":          1500,
-    "Biscuit Plant":            1000,
     "Bakery + Chocolate Combo": 1500,
     "Warehouse":                 750,
     "_default":                 1000,
@@ -789,7 +786,6 @@ def get_employee_facility_rates(country: str) -> Dict[str, float]:
 # ───────────────────────────────────────────────────────────────
 INDUSTRY_PRESETS = {
     "Chocolate Plant":          {"utilities_pct": 0.63, "cold_chain_pct": 0.18, "hvac_pct": 0.11},
-    "Biscuit Plant":            {"utilities_pct": 0.50, "cold_chain_pct": 0.05, "hvac_pct": 0.09},
     "Bakery + Chocolate Combo": {"utilities_pct": 0.60, "cold_chain_pct": 0.16, "hvac_pct": 0.11},
     "Warehouse":                {"utilities_pct": 0.25, "cold_chain_pct": 0.02, "hvac_pct": 0.04},
 }
@@ -1109,7 +1105,6 @@ BENCHMARK_STRUCTURAL_M = 0.9440
 # ───────────────────────────────────────────────────────────────
 PRODUCT_CATEGORY_LOAD = {
     "Chocolate Plant":          1500,
-    "Biscuit Plant":            1000,
     "Bakery + Chocolate Combo": 1500,
     "Bakery":                    1000,
     "Warehouse":                 750,
@@ -1225,7 +1220,6 @@ def get_employee_facility_rates(country: str) -> Dict[str, float]:
 # ───────────────────────────────────────────────────────────────
 INDUSTRY_PRESETS = {
     "Chocolate Plant":          {"utilities_pct": 0.63, "cold_chain_pct": 0.18, "hvac_pct": 0.11},
-    "Biscuit Plant":            {"utilities_pct": 0.50, "cold_chain_pct": 0.05, "hvac_pct": 0.09},
     "Bakery + Chocolate Combo": {"utilities_pct": 0.60, "cold_chain_pct": 0.16, "hvac_pct": 0.11},
     "Bakery":                   {"utilities_pct": 0.50, "cold_chain_pct": 0.05, "hvac_pct": 0.09},
     "Warehouse":                {"utilities_pct": 0.25, "cold_chain_pct": 0.02, "hvac_pct": 0.04},

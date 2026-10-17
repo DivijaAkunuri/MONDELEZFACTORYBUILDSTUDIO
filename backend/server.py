@@ -1602,12 +1602,6 @@ PRODUCT_UTILITY_INTENSITY = {
         "Utility Piping": 1.08,
         "Steam & Boiler System": 1.08,
     },
-    "Biscuit Plant": {
-        "Steam & Boiler System": 1.18,
-        "Compressed Air System": 1.08,
-        "HVAC": 1.08,
-        "Refrigeration / Cold Chain": 0.90,
-    },
     "Bakery": {
         "Steam & Boiler System": 1.16,
         "Compressed Air System": 1.06,
@@ -1770,7 +1764,7 @@ def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
     # Food manufacturing baseline: the benchmark basket includes the core
     # utility/process systems. The UI selection can add optional systems,
     # but it must not silently remove core scope from a food plant.
-    if product in {"chocolate plant", "biscuit plant", "bakery", "bakery + chocolate combo"}:
+    if product in {"chocolate plant","bakery", "bakery + chocolate combo"}:
         return True
     if product == "warehouse":
         core = {
@@ -1896,7 +1890,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     product_key = str(inp.product_category or "")
     preset = INDUSTRY_PRESETS.get(
         product_key,
-        INDUSTRY_PRESETS.get("Biscuit Plant", {"utilities_pct": 0.50})
+        INDUSTRY_PRESETS.get({"utilities_pct": 0.50})
     )
     # Chocolate is the reference food-process utility intensity (0.63).
     # Other categories therefore scale the complete utility basket without
