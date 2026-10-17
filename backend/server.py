@@ -1888,10 +1888,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     utilities_total = 0.0
 
     product_key = str(inp.product_category or "")
-    preset = INDUSTRY_PRESETS.get(
-        product_key,
-        INDUSTRY_PRESETS.get({"utilities_pct": 0.50})
-    )
+    preset = INDUSTRY_PRESETS.get(product_key,{"utilities_pct": 0.50})
     # Chocolate is the reference food-process utility intensity (0.63).
     # Other categories therefore scale the complete utility basket without
     # changing the country/city market basis.
