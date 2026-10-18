@@ -1152,7 +1152,7 @@ class ProjectInputs(BaseModel):
     bay_spacing_m: float = 8.0
     plot_area_sqm: float = 32000.0
     building_components: List[str] = Field(default_factory=lambda: [
-    "Production Block","Warehouse","Warehouse-Chocolate","Utilities Block","Admin Building","WWTP","R&D Lab","Packaging Hall",
+    "Production Block","Warehouse","Warehouse-Chocolate","Utilities Block","Admin Building","R&D Lab","Packaging Hall",
     ])
     # Step 3 - structural & site
     
