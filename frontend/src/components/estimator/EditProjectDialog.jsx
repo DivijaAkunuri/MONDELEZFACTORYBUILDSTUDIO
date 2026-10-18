@@ -287,65 +287,68 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
           </Section>
 
           {/* ---- Employee & Staff Facilities ---- */}
-          <Section title="Employee & Staff Facilities">
-            <Field label="Total Employees">
-              <InputF
-                id="num_employees"
-                type="number"
-                value={draft.num_employees ?? 0}
-                onChange={(v) => patch("num_employees", Math.max(0, v))}
-              />
-            </Field>
+          {(draft.building_components ?? []).includes("Admin Building") && (
+            <Section title="Employee & Staff Facilities">
+              <Field label="Total Employees">
+                <InputF
+                  id="num_employees"
+                  type="number"
+                  value={draft.num_employees ?? 0}
+                  onChange={(v) => patch("num_employees", Math.max(0, v))}
+                />
+              </Field>
 
-            <Field label="Male Employees">
-              <InputF
-                id="male_employees"
-                type="number"
-                value={draft.male_employees ?? 0}
-                onChange={(v) => patch("male_employees", Math.max(0, v))}
-              />
-            </Field>
+              <Field label="Male Employees">
+                <InputF
+                  id="male_employees"
+                  type="number"
+                  value={draft.male_employees ?? 0}
+                  onChange={(v) => patch("male_employees", Math.max(0, v))}
+                />
+              </Field>
 
-            <Field label="Female Employees">
-              <InputF
-                id="female_employees"
-                type="number"
-                value={draft.female_employees ?? 0}
-                onChange={(v) => patch("female_employees", Math.max(0, v))}
-              />
-            </Field>
+              <Field label="Female Employees">
+                <InputF
+                  id="female_employees"
+                  type="number"
+                  value={draft.female_employees ?? 0}
+                  onChange={(v) => patch("female_employees", Math.max(0, v))}
+                />
+              </Field>
 
-            <Field label="Special / Work Clothing Required?">
-              <SelectF
-                id="special_work_clothing"
-                value={draft.special_work_clothing ?? "Yes"}
-                onChange={(v) => patch("special_work_clothing", v)}
-                options={["Yes", "No"]}
-              />
-            </Field>
+              <Field label="Special / Work Clothing Required?">
+                <SelectF
+                  id="special_work_clothing"
+                  value={draft.special_work_clothing ?? "Yes"}
+                  onChange={(v) => patch("special_work_clothing", v)}
+                  options={["Yes", "No"]}
+                />
+              </Field>
 
-            <Field label="Work Shoes / Boots Required?">
-              <SelectF
-                id="work_shoes_required"
-                value={draft.work_shoes_required ?? "Yes"}
-                onChange={(v) => patch("work_shoes_required", v)}
-                options={["Yes", "No"]}
-              />
-            </Field>
+              <Field label="Work Shoes / Boots Required?">
+                <SelectF
+                  id="work_shoes_required"
+                  value={draft.work_shoes_required ?? "Yes"}
+                  onChange={(v) => patch("work_shoes_required", v)}
+                  options={["Yes", "No"]}
+                />
+              </Field>
 
-            <div className="sm:col-span-2">
-              <div
-                className={`rounded border px-3 py-2 text-xs ${employeeCountValid
-                  ? "border-slate-200 bg-slate-50 text-slate-600"
-                  : "border-red-300 bg-red-50 text-red-600"
-                  }`}
-              >
-                {employeeCountValid
-                  ? `Individual lockers: ${employeeTotal} — one locker per employee. Facilities are located in the Admin Building.`
-                  : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
+              <div className="sm:col-span-2">
+                <div
+                  className={`rounded border px-3 py-2 text-xs ${employeeCountValid
+                      ? "border-slate-200 bg-slate-50 text-slate-600"
+                      : "border-red-300 bg-red-50 text-red-600"
+                    }`}
+                >
+                  {employeeCountValid
+                    ? `Individual lockers: ${employeeTotal} — one locker per employee. Facilities are located in the Admin Building.`
+                    : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
+                </div>
               </div>
-            </div>
-          </Section>
+            </Section>
+          )}
+
 
           <MultiField
             title="Utility Scope"

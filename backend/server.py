@@ -1146,7 +1146,7 @@ class ProjectInputs(BaseModel):
     # Step 2 - geometry
     building_type: str = "Industrial Building (RCC + PEB)"
     length_m: float = 185.0
-    width_m: float = 100.0
+    width_m: float = 20.0
     height_m: float = 10.5
     num_floors: int = 1
     bay_spacing_m: float = 8.0
@@ -1340,13 +1340,18 @@ CONVEYOR_M     = {"Light": 0.94, "Standard": 1.00, "Heavy Duty": 1.15}
 # ---------- Employee & Staff Facilities ----------
 # ---------- Employee & Staff Facilities ----------
 # ---------- Employee & Staff Facilities ----------
+
 def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
-    employees = max(0, int(inp.num_employees or 0))
-    male = max(0, int(inp.male_employees or 0))
-    female = max(0, int(inp.female_employees or 0))
+    admin_building_selected = "Admin Building" in (inp.building_components or [])
+
+    employees = max(0, int(inp.num_employees or 0)) if admin_building_selected else 0
+    male = max(0, int(inp.male_employees or 0)) if admin_building_selected else 0
+    female = max(0, int(inp.female_employees or 0)) if admin_building_selected else 0
+
     clothing = str(inp.special_work_clothing or "Yes").strip().lower() == "yes"
     shoes = str(inp.work_shoes_required or "Yes").strip().lower() == "yes"
     country = str(inp.location_country or "").strip()
+
 
     if employees <= 0:
         return {
@@ -1356,8 +1361,15 @@ def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
             "seating": 0, "street_shoe_storage_positions": 0,
             "work_shoe_storage_positions": 0, "items": [],
             "estimated_cost": 0, "cost_breakdown": {},
-            "design_basis": "No employees entered",
-            "facility_location": "Admin Building",
+            "design_basis": ("Admin Building not selected"
+                             if not admin_building_selected
+                             else "No employees entered"
+                             ),
+            "facility_scope_status": (
+                "Employee facilities excluded because Admin Building is not selected"
+                if not admin_building_selected
+                else "No employee facility scope generated"
+                ),
             "locker_dimension_m": {"width": 0.30, "depth": 0.50},
             "locker_dimension_basis": "Germany ASR A4.1 reference module; verify local requirement",
             "shoe_storage_dimension_m": None, "shoe_storage_modules": 0,
