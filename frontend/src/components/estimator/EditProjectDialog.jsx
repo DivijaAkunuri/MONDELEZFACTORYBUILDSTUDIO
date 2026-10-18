@@ -110,14 +110,17 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               />
             </Field>
 
+
             <Field label="Industry Type">
-              <SelectF
+              <input
                 id="industry_type"
-                value={draft.industry_type}
-                onChange={(v) => patch("industry_type", v)}
-                options={reference?.industries}
+                type="text"
+                value="FMCG"
+                readOnly
+                className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-700"
               />
             </Field>
+
 
             <Field label="Product Category" span={2}>
               <SelectF
@@ -129,357 +132,357 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             </Field>
           </Section>
 
-        {/* ---- Location ---- */}
-        <Section title="Location">
-          <Field label="City">
-            <InputF id="location_city" value={draft.location_city} onChange={(v) => patch("location_city", v)} />
-          </Field>
-          <Field label="Region">
-            <SelectF
-              id="region"
-              value={draft.region}
-              onChange={(v) => {
-                patch("region", v);
-                patch("location_country", "");
-              }}
-              options={Object.keys(reference?.regions || {})}
-            />
-          </Field>
-          <Field label="Country">
-            <SelectF
-              id="location_country"
-              value={draft.location_country}
-              onChange={(v) => patch("location_country", v)}
-              options={reference?.regions?.[draft.region] || []}
-            />
-          </Field>
-          <Field label="Currency">
-            <SelectF id="currency" value={draft.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
-          </Field>
-          <Field label="Location Tier">
-            <SelectF id="location_tier" value={draft.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} />
-          </Field>
-        </Section>
+          {/* ---- Location ---- */}
+          <Section title="Location">
+            <Field label="City">
+              <InputF id="location_city" value={draft.location_city} onChange={(v) => patch("location_city", v)} />
+            </Field>
+            <Field label="Region">
+              <SelectF
+                id="region"
+                value={draft.region}
+                onChange={(v) => {
+                  patch("region", v);
+                  patch("location_country", "");
+                }}
+                options={Object.keys(reference?.regions || {})}
+              />
+            </Field>
+            <Field label="Country">
+              <SelectF
+                id="location_country"
+                value={draft.location_country}
+                onChange={(v) => patch("location_country", v)}
+                options={reference?.regions?.[draft.region] || []}
+              />
+            </Field>
+            <Field label="Currency">
+              <SelectF id="currency" value={draft.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
+            </Field>
+            <Field label="Location Tier">
+              <SelectF id="location_tier" value={draft.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} />
+            </Field>
+          </Section>
 
-        {/* ---- Building Geometry ---- */}
-        <Section title="Building Geometry">
-          <Field label="Building Type" span={2}>
-            <SelectF id="building_type" value={draft.building_type} onChange={(v) => patch("building_type", v)} options={reference?.building_types} />
-          </Field>
-          <Field label="Length (m)">
-            <InputF id="length_m" type="number" value={draft.length_m} onChange={(v) => patch("length_m", v)} />
-          </Field>
-          <Field label="Width (m)">
-            <InputF id="width_m" type="number" value={draft.width_m} onChange={(v) => patch("width_m", v)} />
-          </Field>
-          <Field label="Clear Height (m)">
-            <InputF id="height_m" type="number" value={draft.height_m} onChange={(v) => patch("height_m", v)} />
-          </Field>
-          <Field label="No. of Floors">
-            <SelectF
-              id="num_floors"
-              value={String(draft.num_floors || 1)}
-              onChange={(v) => patch("num_floors", Number(v))}
-              options={["1", "2", "3", "4"]}
-            />
-          </Field>
-          <Field label="Bay Spacing (m)">
-            <InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} />
-          </Field>
-          <Field label="Plot Area (m²)">
-            <InputF id="plot_area_sqm" type="number" value={draft.plot_area_sqm} onChange={(v) => patch("plot_area_sqm", v)} />
-          </Field>
-        </Section>
+          {/* ---- Building Geometry ---- */}
+          <Section title="Building Geometry">
+            <Field label="Building Type" span={2}>
+              <SelectF id="building_type" value={draft.building_type} onChange={(v) => patch("building_type", v)} options={reference?.building_types} />
+            </Field>
+            <Field label="Length (m)">
+              <InputF id="length_m" type="number" value={draft.length_m} onChange={(v) => patch("length_m", v)} />
+            </Field>
+            <Field label="Width (m)">
+              <InputF id="width_m" type="number" value={draft.width_m} onChange={(v) => patch("width_m", v)} />
+            </Field>
+            <Field label="Clear Height (m)">
+              <InputF id="height_m" type="number" value={draft.height_m} onChange={(v) => patch("height_m", v)} />
+            </Field>
+            <Field label="No. of Floors">
+              <SelectF
+                id="num_floors"
+                value={String(draft.num_floors || 1)}
+                onChange={(v) => patch("num_floors", Number(v))}
+                options={["1", "2", "3", "4"]}
+              />
+            </Field>
+            <Field label="Bay Spacing (m)">
+              <InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} />
+            </Field>
+            <Field label="Plot Area (m²)">
+              <InputF id="plot_area_sqm" type="number" value={draft.plot_area_sqm} onChange={(v) => patch("plot_area_sqm", v)} />
+            </Field>
+          </Section>
 
-        <MultiField
-          title="Building Components"
-          list={reference?.building_components || []}
-          selected={draft.building_components || []}
-          onToggle={(x) => toggleList("building_components", x)}
-          idPrefix="comp"
-        />
+          <MultiField
+            title="Building Components"
+            list={reference?.building_components || []}
+            selected={draft.building_components || []}
+            onToggle={(x) => toggleList("building_components", x)}
+            idPrefix="comp"
+          />
 
-        {/* ---- Structural & Site ---- */}
-        <Section title="Structural & Design">
-          <div className="sm:col-span-2">
-            <MultiField
-              title="Foundation Type"
-              list={reference?.foundation_types || []}
-              selected={draft.foundation_type || []}
-              onToggle={(x) => toggleList("foundation_type", x)}
-              idPrefix="foundation"
-            />
-          </div>
-
-          <Field label="SBC / Soil Type">
-            <SelectF id="sbc_soil_type" value={draft.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} />
-          </Field>
-
-          <Field label="Column Type">
-            <SelectF id="column_type" value={draft.column_type} onChange={(v) => patch("column_type", v)} options={reference?.column_types} />
-          </Field>
-
-          <div className="sm:col-span-2">
-            <div className="text-xs font-semibold text-slate-600 mb-2">Roof Type by Floor</div>
-            <div className="space-y-2">
-              {Array.from({ length: Math.min(4, Math.max(1, Number(draft.num_floors) || 1)) }, (_, i) => {
-                const floor = i + 1;
-                const selected = draft.roof_types_by_floor?.[i] || [];
-
-                return (
-                  <div key={floor} className="grid grid-cols-[80px_1fr] items-center gap-2">
-                    <div className="h-9 flex items-center px-3 border border-slate-200 rounded bg-slate-50 text-xs font-semibold text-slate-700">
-                      Floor {floor}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      {(reference?.roof_types || []).slice(0, 3).map((roof) => (
-                        <label
-                          key={roof}
-                          className="flex items-center gap-2 min-w-0 border border-slate-200 rounded px-2 py-2 bg-white cursor-pointer hover:bg-slate-50"
-                        >
-                          <Checkbox
-                            checked={selected.includes(roof)}
-                            onCheckedChange={(checked) => {
-                              const floors = [...(draft.roof_types_by_floor || [])];
-                              const current = floors[i] || [];
-                              floors[i] = checked ? [...current, roof] : current.filter((x) => x !== roof);
-                              patch("roof_types_by_floor", floors);
-                            }}
-                          />
-                          <span className="text-xs truncate">{roof}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* ---- Structural & Site ---- */}
+          <Section title="Structural & Design">
+            <div className="sm:col-span-2">
+              <MultiField
+                title="Foundation Type"
+                list={reference?.foundation_types || []}
+                selected={draft.foundation_type || []}
+                onToggle={(x) => toggleList("foundation_type", x)}
+                idPrefix="foundation"
+              />
             </div>
-          </div>
-        </Section>
 
-        <Section title="Site Conditions">
-          <Field label="Seismic Zone">
-            <SelectF id="seismic_zone" value={draft.seismic_zone} onChange={(v) => patch("seismic_zone", v)} options={reference?.seismic_zones} />
-          </Field>
-          <Field label="Wind Zone">
-            <SelectF id="wind_zone" value={draft.wind_zone} onChange={(v) => patch("wind_zone", v)} options={reference?.wind_zones} />
-          </Field>
-          <Field label="Wind Speed (m/s)">
-            <InputF id="wind_speed_ms" type="number" value={draft.wind_speed_ms} onChange={(v) => patch("wind_speed_ms", v)} />
-          </Field>
-          <Field label="GWT Depth">
-            <SelectF id="gwt_depth" value={draft.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} />
-          </Field>
-        </Section>
+            <Field label="SBC / Soil Type">
+              <SelectF id="sbc_soil_type" value={draft.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} />
+            </Field>
 
-        {/* ---- Utilities & Process ---- */}
-        <Section title="Production Capacity">
-          <Field label="Production Capacity (TPD)">
-            <InputF id="production_capacity_tpd" type="number" value={draft.production_capacity_tpd} onChange={(v) => patch("production_capacity_tpd", v)} />
-          </Field>
-          <Field label="Annual Output (MT)">
-            <InputF id="annual_output_mt" type="number" value={draft.annual_output_mt} onChange={(v) => patch("annual_output_mt", v)} />
-          </Field>
-        </Section>
+            <Field label="Column Type">
+              <SelectF id="column_type" value={draft.column_type} onChange={(v) => patch("column_type", v)} options={reference?.column_types} />
+            </Field>
 
-        {/* ---- Employee & Staff Facilities ---- */}
-        <Section title="Employee & Staff Facilities">
-          <Field label="Total Employees">
-            <InputF
-              id="num_employees"
-              type="number"
-              value={draft.num_employees ?? 0}
-              onChange={(v) => patch("num_employees", Math.max(0, v))}
-            />
-          </Field>
+            <div className="sm:col-span-2">
+              <div className="text-xs font-semibold text-slate-600 mb-2">Roof Type by Floor</div>
+              <div className="space-y-2">
+                {Array.from({ length: Math.min(4, Math.max(1, Number(draft.num_floors) || 1)) }, (_, i) => {
+                  const floor = i + 1;
+                  const selected = draft.roof_types_by_floor?.[i] || [];
 
-          <Field label="Male Employees">
-            <InputF
-              id="male_employees"
-              type="number"
-              value={draft.male_employees ?? 0}
-              onChange={(v) => patch("male_employees", Math.max(0, v))}
-            />
-          </Field>
+                  return (
+                    <div key={floor} className="grid grid-cols-[80px_1fr] items-center gap-2">
+                      <div className="h-9 flex items-center px-3 border border-slate-200 rounded bg-slate-50 text-xs font-semibold text-slate-700">
+                        Floor {floor}
+                      </div>
 
-          <Field label="Female Employees">
-            <InputF
-              id="female_employees"
-              type="number"
-              value={draft.female_employees ?? 0}
-              onChange={(v) => patch("female_employees", Math.max(0, v))}
-            />
-          </Field>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(reference?.roof_types || []).slice(0, 3).map((roof) => (
+                          <label
+                            key={roof}
+                            className="flex items-center gap-2 min-w-0 border border-slate-200 rounded px-2 py-2 bg-white cursor-pointer hover:bg-slate-50"
+                          >
+                            <Checkbox
+                              checked={selected.includes(roof)}
+                              onCheckedChange={(checked) => {
+                                const floors = [...(draft.roof_types_by_floor || [])];
+                                const current = floors[i] || [];
+                                floors[i] = checked ? [...current, roof] : current.filter((x) => x !== roof);
+                                patch("roof_types_by_floor", floors);
+                              }}
+                            />
+                            <span className="text-xs truncate">{roof}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Section>
 
-          <Field label="Special / Work Clothing Required?">
-            <SelectF
-              id="special_work_clothing"
-              value={draft.special_work_clothing ?? "Yes"}
-              onChange={(v) => patch("special_work_clothing", v)}
-              options={["Yes", "No"]}
-            />
-          </Field>
+          <Section title="Site Conditions">
+            <Field label="Seismic Zone">
+              <SelectF id="seismic_zone" value={draft.seismic_zone} onChange={(v) => patch("seismic_zone", v)} options={reference?.seismic_zones} />
+            </Field>
+            <Field label="Wind Zone">
+              <SelectF id="wind_zone" value={draft.wind_zone} onChange={(v) => patch("wind_zone", v)} options={reference?.wind_zones} />
+            </Field>
+            <Field label="Wind Speed (m/s)">
+              <InputF id="wind_speed_ms" type="number" value={draft.wind_speed_ms} onChange={(v) => patch("wind_speed_ms", v)} />
+            </Field>
+            <Field label="GWT Depth">
+              <SelectF id="gwt_depth" value={draft.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} />
+            </Field>
+          </Section>
 
-          <Field label="Work Shoes / Boots Required?">
-            <SelectF
-              id="work_shoes_required"
-              value={draft.work_shoes_required ?? "Yes"}
-              onChange={(v) => patch("work_shoes_required", v)}
-              options={["Yes", "No"]}
-            />
-          </Field>
+          {/* ---- Utilities & Process ---- */}
+          <Section title="Production Capacity">
+            <Field label="Production Capacity (TPD)">
+              <InputF id="production_capacity_tpd" type="number" value={draft.production_capacity_tpd} onChange={(v) => patch("production_capacity_tpd", v)} />
+            </Field>
+            <Field label="Annual Output (MT)">
+              <InputF id="annual_output_mt" type="number" value={draft.annual_output_mt} onChange={(v) => patch("annual_output_mt", v)} />
+            </Field>
+          </Section>
 
-          <div className="sm:col-span-2">
-            <div
-              className={`rounded border px-3 py-2 text-xs ${employeeCountValid
+          {/* ---- Employee & Staff Facilities ---- */}
+          <Section title="Employee & Staff Facilities">
+            <Field label="Total Employees">
+              <InputF
+                id="num_employees"
+                type="number"
+                value={draft.num_employees ?? 0}
+                onChange={(v) => patch("num_employees", Math.max(0, v))}
+              />
+            </Field>
+
+            <Field label="Male Employees">
+              <InputF
+                id="male_employees"
+                type="number"
+                value={draft.male_employees ?? 0}
+                onChange={(v) => patch("male_employees", Math.max(0, v))}
+              />
+            </Field>
+
+            <Field label="Female Employees">
+              <InputF
+                id="female_employees"
+                type="number"
+                value={draft.female_employees ?? 0}
+                onChange={(v) => patch("female_employees", Math.max(0, v))}
+              />
+            </Field>
+
+            <Field label="Special / Work Clothing Required?">
+              <SelectF
+                id="special_work_clothing"
+                value={draft.special_work_clothing ?? "Yes"}
+                onChange={(v) => patch("special_work_clothing", v)}
+                options={["Yes", "No"]}
+              />
+            </Field>
+
+            <Field label="Work Shoes / Boots Required?">
+              <SelectF
+                id="work_shoes_required"
+                value={draft.work_shoes_required ?? "Yes"}
+                onChange={(v) => patch("work_shoes_required", v)}
+                options={["Yes", "No"]}
+              />
+            </Field>
+
+            <div className="sm:col-span-2">
+              <div
+                className={`rounded border px-3 py-2 text-xs ${employeeCountValid
                   ? "border-slate-200 bg-slate-50 text-slate-600"
                   : "border-red-300 bg-red-50 text-red-600"
-                }`}
-            >
-              {employeeCountValid
-                ? `Individual lockers: ${employeeTotal} — one locker per employee. Facilities are located in the Admin Building.`
-                : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
+                  }`}
+              >
+                {employeeCountValid
+                  ? `Individual lockers: ${employeeTotal} — one locker per employee. Facilities are located in the Admin Building.`
+                  : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
+              </div>
             </div>
-          </div>
-        </Section>
+          </Section>
 
-        <MultiField
-          title="Utility Scope"
-          list={reference?.utility_scope || []}
-          selected={draft.utility_scope || []}
-          onToggle={(x) => toggleList("utility_scope", x)}
-          idPrefix="scope"
-        />
+          <MultiField
+            title="Utility Scope"
+            list={reference?.utility_scope || []}
+            selected={draft.utility_scope || []}
+            onToggle={(x) => toggleList("utility_scope", x)}
+            idPrefix="scope"
+          />
 
-        {isChocolate && (
-          <Section title="Chocolate Process Utilities">
-            <Field label="Cooling Tunnel Load (TR)">
-              <InputF id="cooling_tunnel_load_tr" type="number" value={draft.cooling_tunnel_load_tr} onChange={(v) => patch("cooling_tunnel_load_tr", v)} />
+          {isChocolate && (
+            <Section title="Chocolate Process Utilities">
+              <Field label="Cooling Tunnel Load (TR)">
+                <InputF id="cooling_tunnel_load_tr" type="number" value={draft.cooling_tunnel_load_tr} onChange={(v) => patch("cooling_tunnel_load_tr", v)} />
+              </Field>
+              <Field label="Tempering Utility Demand">
+                <SelectF id="tempering_utility_demand" value={draft.tempering_utility_demand} onChange={(v) => patch("tempering_utility_demand", v)} options={reference?.tempering_utility_demand} />
+              </Field>
+              <Field label="Humidity Controlled (%)">
+                <InputF id="humidity_controlled_pct" type="number" value={draft.humidity_controlled_pct} onChange={(v) => patch("humidity_controlled_pct", v)} />
+              </Field>
+              <Field label="Chocolate Storage Temp (°C)">
+                <InputF id="chocolate_storage_temp_c" type="number" value={draft.chocolate_storage_temp_c} onChange={(v) => patch("chocolate_storage_temp_c", v)} />
+              </Field>
+              <Field label="Process Hot Water (L/hr)">
+                <InputF id="process_hot_water_lph" type="number" value={draft.process_hot_water_lph} onChange={(v) => patch("process_hot_water_lph", v)} />
+              </Field>
+            </Section>
+          )}
+
+          {isBiscuit && (
+            <Section title="Biscuit Process Utilities">
+              <Field label="Oven Capacity (kg/hr)">
+                <InputF id="oven_capacity_kg_hr" type="number" value={draft.oven_capacity_kg_hr} onChange={(v) => patch("oven_capacity_kg_hr", v)} />
+              </Field>
+              <Field label="Fuel Type">
+                <SelectF id="fuel_type" value={draft.fuel_type} onChange={(v) => patch("fuel_type", v)} options={reference?.fuel_types} />
+              </Field>
+              <Field label="Baking Line Qty">
+                <InputF id="baking_line_qty" type="number" value={draft.baking_line_qty} onChange={(v) => patch("baking_line_qty", v)} />
+              </Field>
+              <Field label="Compressed Air (CFM)">
+                <InputF id="compressed_air_demand_cfm" type="number" value={draft.compressed_air_demand_cfm} onChange={(v) => patch("compressed_air_demand_cfm", v)} />
+              </Field>
+              <Field label="Cooling Conveyor Load">
+                <SelectF id="cooling_conveyor_load" value={draft.cooling_conveyor_load} onChange={(v) => patch("cooling_conveyor_load", v)} options={reference?.cooling_conveyor_load} />
+              </Field>
+              <Field label="Dust Collection Required">
+                <BoolBox id="dust_collection_required" checked={draft.dust_collection_required} onChange={(v) => patch("dust_collection_required", v)} />
+              </Field>
+            </Section>
+          )}
+
+          {/* ---- Infra & Site ---- */}
+          <Section title="External Works Scope">
+            <Field label="Roads & Pathways">
+              <BoolBox id="include_roads" checked={draft.include_roads} onChange={(v) => patch("include_roads", v)} />
             </Field>
-            <Field label="Tempering Utility Demand">
-              <SelectF id="tempering_utility_demand" value={draft.tempering_utility_demand} onChange={(v) => patch("tempering_utility_demand", v)} options={reference?.tempering_utility_demand} />
+            <Field label="Landscaping">
+              <BoolBox id="include_landscaping" checked={draft.include_landscaping} onChange={(v) => patch("include_landscaping", v)} />
             </Field>
-            <Field label="Humidity Controlled (%)">
-              <InputF id="humidity_controlled_pct" type="number" value={draft.humidity_controlled_pct} onChange={(v) => patch("humidity_controlled_pct", v)} />
-            </Field>
-            <Field label="Chocolate Storage Temp (°C)">
-              <InputF id="chocolate_storage_temp_c" type="number" value={draft.chocolate_storage_temp_c} onChange={(v) => patch("chocolate_storage_temp_c", v)} />
-            </Field>
-            <Field label="Process Hot Water (L/hr)">
-              <InputF id="process_hot_water_lph" type="number" value={draft.process_hot_water_lph} onChange={(v) => patch("process_hot_water_lph", v)} />
+            <Field label="Compound Wall / Fence">
+              <BoolBox id="include_fence" checked={draft.include_fence} onChange={(v) => patch("include_fence", v)} />
             </Field>
           </Section>
-        )}
 
-        {isBiscuit && (
-          <Section title="Biscuit Process Utilities">
-            <Field label="Oven Capacity (kg/hr)">
-              <InputF id="oven_capacity_kg_hr" type="number" value={draft.oven_capacity_kg_hr} onChange={(v) => patch("oven_capacity_kg_hr", v)} />
+          <Section title="Site Inputs">
+            <Field label="Land Area (m²)">
+              <InputF id="land_area_sqm" type="number" value={draft.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} />
             </Field>
-            <Field label="Fuel Type">
-              <SelectF id="fuel_type" value={draft.fuel_type} onChange={(v) => patch("fuel_type", v)} options={reference?.fuel_types} />
+            <Field label="Ground Coverage (%)">
+              <InputF id="ground_coverage_pct" type="number" value={draft.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} />
             </Field>
-            <Field label="Baking Line Qty">
-              <InputF id="baking_line_qty" type="number" value={draft.baking_line_qty} onChange={(v) => patch("baking_line_qty", v)} />
+            <Field label="FAR / FSI">
+              <InputF id="far_fsi" type="number" value={draft.far_fsi} onChange={(v) => patch("far_fsi", v)} />
             </Field>
-            <Field label="Compressed Air (CFM)">
-              <InputF id="compressed_air_demand_cfm" type="number" value={draft.compressed_air_demand_cfm} onChange={(v) => patch("compressed_air_demand_cfm", v)} />
+            <Field label="Water Availability">
+              <SelectF id="water_availability" value={draft.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} />
             </Field>
-            <Field label="Cooling Conveyor Load">
-              <SelectF id="cooling_conveyor_load" value={draft.cooling_conveyor_load} onChange={(v) => patch("cooling_conveyor_load", v)} options={reference?.cooling_conveyor_load} />
+            <Field label="Grid Reliability">
+              <SelectF id="grid_reliability" value={draft.grid_reliability} onChange={(v) => patch("grid_reliability", v)} options={reference?.grid_reliability} />
             </Field>
-            <Field label="Dust Collection Required">
-              <BoolBox id="dust_collection_required" checked={draft.dust_collection_required} onChange={(v) => patch("dust_collection_required", v)} />
+            <Field label="Ambient Temperature">
+              <SelectF id="ambient_temp_range" value={draft.ambient_temp_range} onChange={(v) => patch("ambient_temp_range", v)} options={reference?.ambient_temp_ranges} />
+            </Field>
+            <Field label="Relative Humidity (%)">
+              <InputF id="relative_humidity_pct" type="number" value={draft.relative_humidity_pct} onChange={(v) => patch("relative_humidity_pct", v)} />
             </Field>
           </Section>
-        )}
 
-        {/* ---- Infra & Site ---- */}
-        <Section title="External Works Scope">
-          <Field label="Roads & Pathways">
-            <BoolBox id="include_roads" checked={draft.include_roads} onChange={(v) => patch("include_roads", v)} />
-          </Field>
-          <Field label="Landscaping">
-            <BoolBox id="include_landscaping" checked={draft.include_landscaping} onChange={(v) => patch("include_landscaping", v)} />
-          </Field>
-          <Field label="Compound Wall / Fence">
-            <BoolBox id="include_fence" checked={draft.include_fence} onChange={(v) => patch("include_fence", v)} />
-          </Field>
-        </Section>
+          {/* ---- Complexity ---- */}
+          <MultiField
+            title="Complexity Factors"
+            list={reference?.complexity || []}
+            selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
+            onToggle={(k) => patchCx(k, !draft.complexity[k])}
+            idPrefix="complexity"
+          />
 
-        <Section title="Site Inputs">
-          <Field label="Land Area (m²)">
-            <InputF id="land_area_sqm" type="number" value={draft.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} />
-          </Field>
-          <Field label="Ground Coverage (%)">
-            <InputF id="ground_coverage_pct" type="number" value={draft.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} />
-          </Field>
-          <Field label="FAR / FSI">
-            <InputF id="far_fsi" type="number" value={draft.far_fsi} onChange={(v) => patch("far_fsi", v)} />
-          </Field>
-          <Field label="Water Availability">
-            <SelectF id="water_availability" value={draft.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} />
-          </Field>
-          <Field label="Grid Reliability">
-            <SelectF id="grid_reliability" value={draft.grid_reliability} onChange={(v) => patch("grid_reliability", v)} options={reference?.grid_reliability} />
-          </Field>
-          <Field label="Ambient Temperature">
-            <SelectF id="ambient_temp_range" value={draft.ambient_temp_range} onChange={(v) => patch("ambient_temp_range", v)} options={reference?.ambient_temp_ranges} />
-          </Field>
-          <Field label="Relative Humidity (%)">
-            <InputF id="relative_humidity_pct" type="number" value={draft.relative_humidity_pct} onChange={(v) => patch("relative_humidity_pct", v)} />
-          </Field>
-        </Section>
+          {/* ---- Contingency ---- */}
+          <Section title="Contingency">
+            <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
+              <input
+                type="range"
+                min="4"
+                max="20"
+                step="0.5"
+                value={draft.contingency_pct}
+                onChange={(e) => patch("contingency_pct", +e.target.value)}
+                data-testid={TID.wizardField("contingency_pct")}
+                className="w-full accent-blue-600"
+              />
+            </Field>
+          </Section>
+        </div>
 
-        {/* ---- Complexity ---- */}
-        <MultiField
-          title="Complexity Factors"
-          list={reference?.complexity || []}
-          selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
-          onToggle={(k) => patchCx(k, !draft.complexity[k])}
-          idPrefix="complexity"
-        />
+        <SheetFooter className="flex-row items-center justify-end gap-2 border-t border-slate-200 px-6 py-3 bg-slate-50">
+          <Button
+            variant="outline"
+            data-testid="edit-cancel-btn"
+            onClick={() => {
+              setDraft(inputs);
+              onOpenChange(false);
+            }}
+          >
+            <X className="w-4 h-4 mr-1" /> Cancel
+          </Button>
 
-        {/* ---- Contingency ---- */}
-        <Section title="Contingency">
-          <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
-            <input
-              type="range"
-              min="4"
-              max="20"
-              step="0.5"
-              value={draft.contingency_pct}
-              onChange={(e) => patch("contingency_pct", +e.target.value)}
-              data-testid={TID.wizardField("contingency_pct")}
-              className="w-full accent-blue-600"
-            />
-          </Field>
-        </Section>
-      </div>
-
-      <SheetFooter className="flex-row items-center justify-end gap-2 border-t border-slate-200 px-6 py-3 bg-slate-50">
-        <Button
-          variant="outline"
-          data-testid="edit-cancel-btn"
-          onClick={() => {
-            setDraft(inputs);
-            onOpenChange(false);
-          }}
-        >
-          <X className="w-4 h-4 mr-1" /> Cancel
-        </Button>
-
-        <Button
-          data-testid="edit-save-btn"
-          onClick={handleSave}
-          disabled={!employeeCountValid}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4 mr-1" /> Save & Recalculate
-        </Button>
-      </SheetFooter>
-    </SheetContent>
+          <Button
+            data-testid="edit-save-btn"
+            onClick={handleSave}
+            disabled={!employeeCountValid}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+          >
+            <Save className="w-4 h-4 mr-1" /> Save & Recalculate
+          </Button>
+        </SheetFooter>
+      </SheetContent>
     </Sheet >
   );
 }

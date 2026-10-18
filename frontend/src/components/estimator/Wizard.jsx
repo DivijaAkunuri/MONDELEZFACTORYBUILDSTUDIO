@@ -133,9 +133,7 @@ function Step1({ inputs, patch, reference }) {
         <Field label="Project Type">
           <InputF id="project_type" value={inputs.project_type} onChange={(v) => patch("project_type", v)} options={reference?.project_types} />
         </Field>
-        <Field label="Industry Type">
-          <InputF id="industry_type" value={inputs.industry_type} onChange={(v) => patch("industry_type", v)} options={reference?.industries} />
-        </Field>
+        <Field label="Industry Type"><InputF id="industry_type" value="FMCG" readOnly /></Field>
         <Field label="Product Category">
           <SelectF id="product_category" value={inputs.product_category} onChange={(v) => patch("product_category", v)} options={reference?.product_categories} />
         </Field>
