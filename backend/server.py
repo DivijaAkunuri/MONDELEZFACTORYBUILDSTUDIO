@@ -2321,7 +2321,7 @@ async def reference_data():
         ],
         "building_components": [
             "Production Block", "Warehouse", "Warehouse-Chocolate", "Utilities Block",
-            "Admin Building", "WWTP", "R&D Lab", "Packaging Hall",
+            "Admin Building", "R&D Lab", "Packaging Hall",
         ],
         # ---- Step 3: Structural & Site ----
         "foundation_types": [
@@ -2347,7 +2347,7 @@ async def reference_data():
             "Water Treatment Plant", "Nitrogen Plant", "Fire Fighting System",
             "Electrical Substation", "DG Backup", "Solar Plant",
             "Steam Distribution", "Process Piping", "IT/OT System", "SCADA/MES",
-            "Wastewater Treatment", "WWTP",
+             "WWTP",
         ],
         "fuel_types": ["PNG", "LPG", "Diesel", "Biomass", "Electric"],
         "tempering_utility_demand": ["Low", "Medium", "High", "Very High"],
