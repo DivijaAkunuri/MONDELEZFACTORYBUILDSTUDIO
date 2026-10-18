@@ -45,3 +45,11 @@ export async function saveEstimate(inputs, result) {
   });
   return data;
 }
+
+
+export async function lookupLocation(city) {
+  const { data } = await api.get("/estimator/location-lookup", {
+    params: { city },
+  });
+  return data;
+}

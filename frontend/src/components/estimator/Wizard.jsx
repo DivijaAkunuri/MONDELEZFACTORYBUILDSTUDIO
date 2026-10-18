@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { lookupLocation } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -123,41 +124,202 @@ function CheckboxGrid({ list, selected, onToggle, idPrefix }) {
 }
 
 /* ---------- Step 1 : Project Identification ---------- */
+
 function Step1({ inputs, patch, reference }) {
+  const [locations, setLocations] = useState([]);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [locationError, setLocationError] = useState("");
+
+  const findLocation = async () => {
+    if (!inputs.location_city?.trim()) {
+      setLocationError("Please enter a city name.");
+      return;
+    }
+
+    setLoadingLocation(true);
+    setLocationError("");
+    setLocations([]);
+
+    try {
+      const data = await lookupLocation(inputs.location_city.trim());
+      setLocations(data.locations || []);
+
+      if (!data.locations?.length) {
+        setLocationError("No matching locations found.");
+      }
+    } catch (error) {
+      setLocationError(
+        error.response?.data?.detail ||
+        "Could not find the location. Please try again."
+      );
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
+
+  const selectLocation = (location) => {
+    const availableRegions = Object.keys(reference?.regions || {});
+
+    const matchedRegion = availableRegions.includes(location.region)
+      ? location.region
+      : availableRegions.find((region) =>
+        (reference?.regions?.[region] || []).includes(location.country)
+      );
+
+    patch("location_city", location.city);
+
+    if (matchedRegion) {
+      patch("region", matchedRegion);
+      patch("location_country", location.country);
+    } else {
+      setLocationError(
+        `Found ${location.country}, but it is not in your estimator's region mapping.`
+      );
+      return;
+    }
+
+    setLocations([]);
+    setLocationError("");
+  };
+
   return (
     <>
       <Section title="Project Identification">
         <Field label="Project Name" span={3}>
-          <InputF id="project_name" value={inputs.project_name} onChange={(v) => patch("project_name", v)} />
+          <InputF
+            id="project_name"
+            value={inputs.project_name}
+            onChange={(v) => patch("project_name", v)}
+          />
         </Field>
+
         <Field label="Project Type">
-          <InputF id="project_type" value={inputs.project_type} onChange={(v) => patch("project_type", v)} options={reference?.project_types} />
+          <InputF
+            id="project_type"
+            value={inputs.project_type}
+            onChange={(v) => patch("project_type", v)}
+          />
         </Field>
-        <Field label="Industry Type"><InputF id="industry_type" value="FMCG" readOnly /></Field>
+
+        <Field label="Industry Type">
+          <InputF id="industry_type" value="FMCG" readOnly />
+        </Field>
+
         <Field label="Product Category">
-          <SelectF id="product_category" value={inputs.product_category} onChange={(v) => patch("product_category", v)} options={reference?.product_categories} />
+          <SelectF
+            id="product_category"
+            value={inputs.product_category}
+            onChange={(v) => patch("product_category", v)}
+            options={reference?.product_categories}
+          />
         </Field>
       </Section>
+
       <Section title="Location">
         <Field label="City">
-          <InputF id="location_city" value={inputs.location_city} onChange={(v) => patch("location_city", v)} />
+          <InputF
+            id="location_city"
+            value={inputs.location_city}
+            onChange={(v) => {
+              patch("location_city", v);
+              setLocations([]);
+              setLocationError("");
+            }}
+            placeholder="Enter a city"
+          />
+
+          <Button
+            type="button"
+            className="mt-2 w-full"
+            onClick={findLocation}
+            disabled={loadingLocation}
+          >
+            {loadingLocation ? "Searching..." : "Find Location"}
+          </Button>
         </Field>
+
         <Field label="Country">
-          <SelectF id="location_country" value={inputs.location_country} onChange={(v) => patch("location_country", v)} options={reference?.regions?.[inputs.region] || []} />
+          <SelectF
+            id="location_country"
+            value={inputs.location_country}
+            onChange={(v) => patch("location_country", v)}
+            options={reference?.regions?.[inputs.region] || []}
+          />
         </Field>
+
         <Field label="Currency">
-          <SelectF id="currency" value={inputs.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
+          <SelectF
+            id="currency"
+            value={inputs.currency}
+            onChange={(v) => patch("currency", v)}
+            options={reference?.currencies}
+          />
         </Field>
+
         <Field label="Region">
-          <SelectF id="region" value={inputs.region} onChange={(v) => { patch("region", v); patch("location_country", ""); }} options={Object.keys(reference?.regions || {})} />
+          <SelectF
+            id="region"
+            value={inputs.region}
+            onChange={(v) => {
+              patch("region", v);
+              patch("location_country", "");
+            }}
+            options={Object.keys(reference?.regions || {})}
+          />
         </Field>
+
         <Field label="Location Tier (Stage 1)">
-          <SelectF id="location_tier" value={inputs.location_tier} onChange={(v) => patch("location_tier", v)} options={reference?.tiers} />
+          <SelectF
+            id="location_tier"
+            value={inputs.location_tier}
+            onChange={(v) => patch("location_tier", v)}
+            options={reference?.tiers}
+          />
         </Field>
       </Section>
+
+      {locationError && (
+        <p className="mb-3 text-sm text-red-600" role="alert">
+          {locationError}
+        </p>
+      )}
+
+      {locations.length > 0 && (
+        <div className="mb-5 rounded-lg border border-slate-200 p-3">
+          <p className="mb-2 text-sm font-semibold text-slate-700">
+            Select the correct location:
+          </p>
+
+          <div className="space-y-2">
+            {locations.map((location, index) => (
+              <button
+                key={`${location.country_code}-${location.city}-${index}`}
+                type="button"
+                onClick={() => selectLocation(location)}
+                className="block w-full rounded-md border border-slate-200 p-3 text-left text-sm hover:bg-slate-50"
+              >
+                <span className="font-medium">
+                  {location.city}, {location.country}
+                </span>
+
+                {location.state && (
+                  <span className="block text-xs text-slate-500">
+                    {location.state}
+                  </span>
+                )}
+
+                <span className="block text-xs text-slate-500">
+                  {location.formatted}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
 
 /* ---------- Step 2 : Building Geometry ---------- */
 function Step2({ inputs, patch, reference }) {

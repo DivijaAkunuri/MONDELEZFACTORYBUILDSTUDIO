@@ -2433,6 +2433,93 @@ async def list_estimates():
              "total": d["result"]["totals"]["total_project_cost"]} for d in docs]
 
 
+@api_router.get("/estimator/location-lookup")
+async def location_lookup(city: str):
+    city = city.strip()
+
+    if len(city) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Please enter a valid city name."
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={
+                    "q": city,
+                    "format": "jsonv2",
+                    "addressdetails": 1,
+                    "limit": 5,
+                },
+                headers={
+                    "User-Agent": "ConstructionEstimator/1.0"
+                },
+            )
+            response.raise_for_status()
+            results = response.json()
+
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502,
+            detail="Location lookup is temporarily unavailable."
+        )
+
+    locations = []
+
+    for item in results:
+        address = item.get("address", {})
+
+        country = address.get("country")
+        if not country:
+            continue
+
+        city_name = (
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("municipality")
+            or address.get("county")
+            or city
+        )
+
+        state = (
+            address.get("state")
+            or address.get("province")
+            or address.get("region")
+            or ""
+        )
+
+        country_code = address.get("country_code", "").upper()
+
+        region = next(
+            (
+                region_name
+                for region_name, countries in REGION_MULTIPLIERS.items()
+                if country in countries
+            ),
+            None,
+        )
+
+        locations.append({
+            "city": city_name,
+            "state": state,
+            "country": country,
+            "country_code": country_code,
+            "region": region,
+            "formatted": item.get("display_name", ""),
+        })
+
+    if not locations:
+        raise HTTPException(
+            status_code=404,
+            detail="City not found. Try adding the country name."
+        )
+
+    return {"locations": locations}
+
+
 @api_router.get("/estimator/{est_id}")
 async def get_estimate(est_id: str):
     doc = await db.estimates.find_one({"id": est_id}, {"_id": 0})
