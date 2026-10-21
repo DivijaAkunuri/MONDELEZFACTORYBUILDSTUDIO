@@ -356,19 +356,28 @@ function Step2({ inputs, patch, setInputs, reference }) {
     );
   };
 
-  const length = Number(inputs.length_m) || 0;
-  const width = Number(inputs.width_m) || 0;
+  const length = Number(inputs.length_m);
+  const width = Number(inputs.width_m);
+  const plotArea = Number(inputs.plot_area_sqm);
+  const landArea = Number(inputs.land_area_sqm);
+
   const area = length * width;
 
   const areaError =
     !Number.isFinite(length) ||
-      !Number.isFinite(width) ||
       length <= 0 ||
-      width <= 0 ||
-      !Number.isFinite(area) ||
-      area <= 0
-      ? "Length and Width must both be greater than 0. Plot Area and Land Area must also be greater than 0."
-      : "";
+      !Number.isFinite(width) ||
+      width <= 0
+      ? "Length and Width must both be greater than 0."
+      : !Number.isFinite(plotArea) ||
+        plotArea < area ||
+        plotArea <= 0
+        ? `Plot Area must be at least ${area} m² (Length × Width).`
+        : !Number.isFinite(landArea) ||
+          landArea < area ||
+          landArea <= 0
+          ? `Land Area must be at least ${area} m² (Length × Width).`
+          : "";
 
   const updateDimension = (field, value) => {
     const nextValue = value === "" ? "" : Number(value);
@@ -468,13 +477,8 @@ function Step2({ inputs, patch, setInputs, reference }) {
           <InputF
             id="plot_area_sqm"
             type="number"
-            value={
-              Number(inputs.length_m) > 0 &&
-                Number(inputs.width_m) > 0
-                ? Number(inputs.length_m) * Number(inputs.width_m)
-                : 0
-            }
-            readOnly
+            value={inputs.plot_area_sqm ?? ""}
+            onChange={(v) => patch("plot_area_sqm", v)}
           />
         </Field>
       </Section>
@@ -646,13 +650,8 @@ function Step5({ inputs, patch, patchComplexity, reference }) {
           <InputF
             id="land_area_sqm"
             type="number"
-            value={
-              Number(inputs.length_m) > 0 &&
-                Number(inputs.width_m) > 0
-                ? Number(inputs.length_m) * Number(inputs.width_m)
-                : 0
-            }
-            readOnly
+            value={inputs.land_area_sqm ?? ""}
+            onChange={(v) => patch("land_area_sqm", v)}
           />
         </Field>
         <Field label="Ground Coverage (%)"><InputF id="ground_coverage_pct" type="number" value={inputs.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} /></Field>

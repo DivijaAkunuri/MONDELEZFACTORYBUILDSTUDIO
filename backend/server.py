@@ -1210,23 +1210,45 @@ class ProjectInputs(BaseModel):
             raise ValueError("Male Employees + Female Employees must equal Total Employees.")
         return self
     
+    
     @model_validator(mode="after")
     def calculate_site_areas(self):
-        if not math.isfinite(self.length_m) or self.length_m <= 0:
+        length = self.length_m
+        width = self.width_m
+        plot_area = self.plot_area_sqm
+        land_area = self.land_area_sqm
+
+        if not math.isfinite(length) or length <= 0:
             raise ValueError("Length must be greater than 0.")
 
-        if not math.isfinite(self.width_m) or self.width_m <= 0:
+        if not math.isfinite(width) or width <= 0:
             raise ValueError("Width must be greater than 0.")
 
-        area = self.length_m * self.width_m
+        minimum_area = length * width
 
-        if not math.isfinite(area) or area <= 0:
-            raise ValueError("Calculated area must be greater than 0.")
+        if not math.isfinite(minimum_area) or minimum_area <= 0:
+            raise ValueError("Length × Width must be greater than 0.")
 
-        self.plot_area_sqm = area
-        self.land_area_sqm = area
+        if not math.isfinite(plot_area) or plot_area <= 0:
+            raise ValueError("Plot Area must be greater than 0.")
+
+        if plot_area < minimum_area:
+            raise ValueError(
+                f"Plot Area must be at least {minimum_area:g} m² "
+                "(Length × Width)."
+            )
+
+        if not math.isfinite(land_area) or land_area <= 0:
+            raise ValueError("Land Area must be greater than 0.")
+
+        if land_area < minimum_area:
+            raise ValueError(
+                f"Land Area must be at least {minimum_area:g} m² "
+                "(Length × Width)."
+            )
 
         return self
+
     
 
 # Complexity toggles
