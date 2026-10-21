@@ -1119,6 +1119,7 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI()
 origins = [
+    "https://constructionestimator-btqhaxybc-divijaakunuri.vercel.app",
     "http://localhost:3000",
     "https://constructionestimator-virid.vercel.app",
 ]
