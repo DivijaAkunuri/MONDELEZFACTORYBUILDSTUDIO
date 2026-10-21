@@ -371,23 +371,30 @@ function Step2({ inputs, patch, setInputs, reference }) {
       : "";
 
   const updateDimension = (field, value) => {
-    const nextValue = Number(value) || 0;
+    const nextValue = value === "" ? "" : Number(value);
 
     setInputs((current) => {
       const nextLength =
         field === "length_m"
           ? nextValue
-          : Number(current.length_m) || 0;
+          : Number(current.length_m);
 
       const nextWidth =
         field === "width_m"
           ? nextValue
-          : Number(current.width_m) || 0;
+          : Number(current.width_m);
 
-      const nextArea =
-        nextLength > 0 && nextWidth > 0
-          ? nextLength * nextWidth
-          : 0;
+      const validDimensions =
+        nextLength !== "" &&
+        nextWidth !== "" &&
+        Number.isFinite(nextLength) &&
+        Number.isFinite(nextWidth) &&
+        nextLength > 0 &&
+        nextWidth > 0;
+
+      const nextArea = validDimensions
+        ? nextLength * nextWidth
+        : 0;
 
       return {
         ...current,
