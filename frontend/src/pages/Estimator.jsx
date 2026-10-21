@@ -93,7 +93,7 @@ const DEFAULT_INPUTS = {
   roof_type: "PEB + Insulated Panel",
   seismic_zone: "Zone 0 (Very Low)",
   wind_zone: "Zone 2",
-  wind_speed_ms: 24,
+  wind_speed_ms: 45,
 
   gwt_depth: "Medium (3-8 m)",
 

@@ -700,7 +700,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
           />
         </Field>
 
-        <Field label="Bay Spacing (m)">
+        <Field label="Bay Spacing (Column (m))">
           <InputF
             id="bay_spacing_m"
             type="number"

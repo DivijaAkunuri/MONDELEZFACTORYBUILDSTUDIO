@@ -1164,7 +1164,7 @@ class ProjectInputs(BaseModel):
     roof_types_by_floor: List[List[str]] = Field(default_factory=lambda: [["PEB + Insulated Panel"]])
     seismic_zone: str = "Zone 0 (Very Low)"
     wind_zone: str = "Zone 2"
-    wind_speed_ms: float = 24.0
+    wind_speed_ms: float = 45.0
     gwt_depth: str = "Medium (3-8 m)"
     # Step 4 - utilities & process
     utility_scope: List[str] = Field(default_factory=lambda: [

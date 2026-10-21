@@ -186,7 +186,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 options={["1", "2", "3", "4"]}
               />
             </Field>
-            <Field label="Bay Spacing (m)">
+            <Field label="Bay Spacing (Column (m))">
               <InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} />
             </Field>
             <Field label="Plot Area (m²)">
