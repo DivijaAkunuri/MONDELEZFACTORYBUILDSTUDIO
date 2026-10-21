@@ -700,7 +700,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
           />
         </Field>
 
-        <Field label="Bay Spacing (Column (m))">
+        <Field label="Bay Spacing (Column) (m)">
           <InputF
             id="bay_spacing_m"
             type="number"
@@ -709,7 +709,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
           />
         </Field>
 
-        <Field label="Plot Area (m²)">
+        <Field label="Built-up Area (Length × Width × No. of Floors) (m²)">
           <InputF
             id="plot_area_sqm"
             type="number"
