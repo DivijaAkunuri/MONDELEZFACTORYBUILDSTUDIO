@@ -461,7 +461,12 @@ function Step2({ inputs, patch, setInputs, reference }) {
           <InputF
             id="plot_area_sqm"
             type="number"
-            value={area}
+            value={
+              Number(inputs.length_m) > 0 &&
+                Number(inputs.width_m) > 0
+                ? Number(inputs.length_m) * Number(inputs.width_m)
+                : 0
+            }
             readOnly
           />
         </Field>
@@ -630,7 +635,19 @@ function Step5({ inputs, patch, patchComplexity, reference }) {
       </Section>
 
       <Section title="Site Inputs">
-        <Field label="Land Area (m²)"><InputF id="land_area_sqm" type="number" value={inputs.land_area_sqm} readOnly /></Field>
+        <Field label="Land Area (m²)">
+          <InputF
+            id="land_area_sqm"
+            type="number"
+            value={
+              Number(inputs.length_m) > 0 &&
+                Number(inputs.width_m) > 0
+                ? Number(inputs.length_m) * Number(inputs.width_m)
+                : 0
+            }
+            readOnly
+          />
+        </Field>
         <Field label="Ground Coverage (%)"><InputF id="ground_coverage_pct" type="number" value={inputs.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} /></Field>
         <Field label="FAR / FSI"><InputF id="far_fsi" type="number" value={inputs.far_fsi} onChange={(v) => patch("far_fsi", v)} /></Field>
         <Field label="Water Availability"><SelectF id="water_availability" value={inputs.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} /></Field>
