@@ -104,7 +104,7 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     ["Floor Load", `${inputs.floor_load_kn} kN/m²`],
     ["Roof Type", inputs.roof_type],
     ["No. of Floors", inputs.num_floors],
-    ["Clear Height", `${(inputs.height_m * 1000).toFixed(0)} mm`],
+    ["Floor Height(m)", `${(inputs.height_m * 1000).toFixed(0)} mm`],
     ["Bay Spacing(Column) (m)", `${(inputs.bay_spacing_m * 1000).toFixed(0)} mm`],
     ["Production Capacity", `${inputs.production_capacity_tpd} TPD`],
     ["Annual Output", `${fmtNumber(inputs.annual_output_mt)} MT`],

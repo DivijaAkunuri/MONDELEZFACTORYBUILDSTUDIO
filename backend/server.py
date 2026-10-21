@@ -1153,7 +1153,7 @@ class ProjectInputs(BaseModel):
     bay_spacing_m: float = 8.0
     plot_area_sqm: float = 32000.0
     building_components: List[str] = Field(default_factory=lambda: [
-    "Production Block","Warehouse","Warehouse-Chocolate","Utilities Block","Admin Building","R&D Lab","Packaging Hall",
+    "Admin Building","RM Warehouse","Production Floor","WH-Bakery","WH-Chocolate","Utilities Block","Territory Packaging Hall","R&D Center",
     ])
     # Step 3 - structural & site
     
@@ -1169,7 +1169,7 @@ class ProjectInputs(BaseModel):
     # Step 4 - utilities & process
     utility_scope: List[str] = Field(default_factory=lambda: [
         "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
-        "Water Treatment Plant", "Fire Fighting System", "Electrical Substation",
+        "WTP", "Fire Fighting System", "Electrical Substation",
     ])
     production_capacity_tpd: float = 120.0
     annual_output_mt: float = 36000.0
@@ -2361,8 +2361,7 @@ async def reference_data():
             "Warehouse-PEB",
         ],
         "building_components": [
-            "Production Block", "Warehouse", "Warehouse-Chocolate", "Utilities Block",
-            "Admin Building", "R&D Center", "Packaging Hall",
+            "Admin Building","RM Warehouse","Production Floor","WH-Bakery","WH-Chocolate","Utilities Block","Territory Packaging Hall","R&D Center",
         ],
         # ---- Step 3: Structural & Site ----
         "foundation_types": [
@@ -2385,7 +2384,7 @@ async def reference_data():
         # ---- Step 4: Utilities & Process ----
         "utility_scope": [
             "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
-            "Water Treatment Plant", "Nitrogen Plant", "Fire Fighting System",
+            "WTP", "Nitrogen Plant", "Fire Fighting System",
             "Electrical Substation", "DG Backup", "Solar Plant",
             "Steam Distribution", "Process Piping", "IT/OT System", "SCADA/MES",
              "WWTP",

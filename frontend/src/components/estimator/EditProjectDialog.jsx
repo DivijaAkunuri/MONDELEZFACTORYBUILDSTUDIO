@@ -175,16 +175,16 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Width (m)">
               <InputF id="width_m" type="number" value={draft.width_m} onChange={(v) => patch("width_m", v)} />
             </Field>
-            <Field label="Clear Height (m)">
-              <InputF id="height_m" type="number" value={draft.height_m} onChange={(v) => patch("height_m", v)} />
-            </Field>
-            <Field label="No. of Floors">
+             <Field label="No. of Floors">
               <SelectF
                 id="num_floors"
                 value={String(draft.num_floors || 1)}
                 onChange={(v) => patch("num_floors", Number(v))}
                 options={["1", "2", "3", "4"]}
               />
+            </Field>
+            <Field label="Floor Height(m)">
+              <InputF id="height_m" type="number" value={draft.height_m} onChange={(v) => patch("height_m", v)} />
             </Field>
             <Field label="Bay Spacing (Column) (m)">
               <InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} />
@@ -325,7 +325,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 />
               </Field>
 
-              <Field label="Work Shoes / Boots Required?">
+              <Field label="Street & Safety Shoes Lockers Required?">
                 <SelectF
                   id="work_shoes_required"
                   value={draft.work_shoes_required ?? "Yes"}

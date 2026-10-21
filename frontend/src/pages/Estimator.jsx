@@ -78,7 +78,6 @@ const DEFAULT_INPUTS = {
 
   building_components: [
     "Production Block",
-    "Warehouse",
     "Cold Store",
     "Utilities Block",
     "Admin Building",
@@ -102,7 +101,7 @@ const DEFAULT_INPUTS = {
     "Chiller Plant",
     "HVAC System",
     "Air Compressors",
-    "Water Treatment Plant",
+    "WTP",
     "Fire Fighting System",
     "Electrical Substation",
   ],

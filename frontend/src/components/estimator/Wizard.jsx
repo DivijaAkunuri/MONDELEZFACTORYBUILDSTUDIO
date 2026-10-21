@@ -208,7 +208,7 @@ export default function Wizard({
 
     if (error) {
       if (error.field === "length_m" || error.field === "width_m" ||
-          error.field === "plot_area_sqm") {
+        error.field === "plot_area_sqm") {
         setStep(1);
         setAttemptedNext(true);
       } else {
@@ -427,7 +427,7 @@ function Step1({ inputs, patch, reference }) {
     } catch (error) {
       setLocationError(
         error.response?.data?.detail ||
-          "Could not find the location. Please try again."
+        "Could not find the location. Please try again."
       );
     } finally {
       setLoadingLocation(false);
@@ -440,8 +440,8 @@ function Step1({ inputs, patch, reference }) {
     const matchedRegion = availableRegions.includes(location.region)
       ? location.region
       : availableRegions.find((region) =>
-          (reference?.regions?.[region] || []).includes(location.country)
-        );
+        (reference?.regions?.[region] || []).includes(location.country)
+      );
 
     if (!matchedRegion) {
       setLocationError(
@@ -618,17 +618,17 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
   const lengthError =
     inputs.length_m === "" ||
-    inputs.length_m == null ||
-    !Number.isFinite(length) ||
-    length <= 0
+      inputs.length_m == null ||
+      !Number.isFinite(length) ||
+      length <= 0
       ? "Length must be greater than 0."
       : "";
 
   const widthError =
     inputs.width_m === "" ||
-    inputs.width_m == null ||
-    !Number.isFinite(width) ||
-    width <= 0
+      inputs.width_m == null ||
+      !Number.isFinite(width) ||
+      width <= 0
       ? "Width must be greater than 0."
       : "";
 
@@ -636,9 +636,9 @@ function Step2({ inputs, patch, reference, showErrors }) {
     lengthError || widthError
       ? ""
       : inputs.plot_area_sqm === "" ||
-          inputs.plot_area_sqm == null ||
-          !Number.isFinite(plotArea) ||
-          plotArea <= 0
+        inputs.plot_area_sqm == null ||
+        !Number.isFinite(plotArea) ||
+        plotArea <= 0
         ? "Plot Area must be greater than 0."
         : plotArea < minimumArea
           ? `Plot Area must be at least ${minimumArea} m² (Length × Width).`
@@ -681,22 +681,21 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
           {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
         </Field>
-
-        <Field label="Clear Height (m)">
-          <InputF
-            id="height_m"
-            type="number"
-            value={inputs.height_m}
-            onChange={(value) => patch("height_m", value)}
-          />
-        </Field>
-
         <Field label="Number of Floors">
           <InputF
             id="num_floors"
             type="number"
             value={inputs.num_floors}
             onChange={(value) => patch("num_floors", value)}
+          />
+        </Field>
+
+        <Field label="Floor Height(m)">
+          <InputF
+            id="height_m"
+            type="number"
+            value={inputs.height_m}
+            onChange={(value) => patch("height_m", value)}
           />
         </Field>
 
@@ -1098,9 +1097,9 @@ function Step5({
   const landAreaError = !dimensionsValid
     ? ""
     : inputs.land_area_sqm === "" ||
-        inputs.land_area_sqm == null ||
-        !Number.isFinite(landArea) ||
-        landArea <= 0
+      inputs.land_area_sqm == null ||
+      !Number.isFinite(landArea) ||
+      landArea <= 0
       ? "Land Area must be greater than 0."
       : landArea < minimumArea
         ? `Land Area must be at least ${minimumArea} m² (Length × Width).`
@@ -1161,7 +1160,7 @@ function Step5({
             />
           </Field>
 
-          <Field label="Work Shoes / Boots Required?">
+          <Field label="Street & Safety Shoes Lockers Required?">
             <SelectF
               id="work_shoes_required"
               value={inputs.work_shoes_required ?? "Yes"}
