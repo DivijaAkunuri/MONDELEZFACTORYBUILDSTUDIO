@@ -872,7 +872,6 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
   const processComplexity = (reference?.complexity || []).filter((item) =>
     [
-      "gmp_hygienic",
       "explosion_risk",
       "utility_redundancy",
     ].includes(item.key)
@@ -1073,7 +1072,6 @@ function Step5({
       "remote_site",
       "brownfield",
       "high_floor_load",
-      "seismic_zone_high",
     ].includes(item.key)
   );
 
@@ -1274,16 +1272,21 @@ function Step5({
           />
         </Field>
 
+
         <Field label="Relative Humidity (%)">
           <InputF
             id="relative_humidity_pct"
-            type="number"
-            value={inputs.relative_humidity_pct}
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={inputs.relative_humidity_pct ?? 0}
             onChange={(value) =>
               patch("relative_humidity_pct", value)
             }
           />
         </Field>
+
       </Section>
 
       <div className="mb-5">

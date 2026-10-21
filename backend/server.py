@@ -1254,8 +1254,7 @@ class ProjectInputs(BaseModel):
 
 # Complexity toggles
     complexity: Dict[str, bool] = Field(default_factory=lambda: {
-        "seismic_zone_high": False, 
-        "brownfield": False, "gmp_hygienic": True, "explosion_risk": False,
+        "brownfield": False,"explosion_risk": False,
         "utility_redundancy": True, "remote_site": False,
     })
     # Display
@@ -2404,9 +2403,7 @@ async def reference_data():
         ],
         # ---- Complexity toggles ----
         "complexity": [
-            {"key": "seismic_zone_high", "label": "Seismic Zone High"},
             {"key": "brownfield", "label": "Brownfield Tie-ins"},
-            {"key": "gmp_hygienic", "label": "GMP / Hygienic Finish"},
             {"key": "explosion_risk", "label": "Explosion Risk / Dust Areas"},
             {"key": "utility_redundancy", "label": "Utility Redundancy (N+1)"},
             {"key": "remote_site", "label": "Remote Site"},

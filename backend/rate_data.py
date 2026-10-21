@@ -1076,9 +1076,7 @@ LOCATION_FACTOR = {"Metro": 1.00, "Non-Metro": 0.92, "Remote": 1.10}
 # COMPLEXITY FACTORS
 # ───────────────────────────────────────────────────────────────
 COMPLEXITY_FACTORS = {
-    "seismic_zone_high":      1.12,
-    "brownfield":             1.15,
-    "gmp_hygienic":           1.18,     # benchmark default ON
+    "brownfield":             1.15,   # benchmark default ON
     "explosion_risk":         1.10,
     "utility_redundancy":     1.15,     # benchmark default ON
     "remote_site":            1.12,

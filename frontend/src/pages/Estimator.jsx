@@ -136,9 +136,7 @@ const DEFAULT_INPUTS = {
   relative_humidity_pct: 70,
 
   complexity: {
-    seismic_zone_high: false,
     brownfield: false,
-    gmp_hygienic: true,
     explosion_risk: false,
     utility_redundancy: true,
     high_floor_load: false,
