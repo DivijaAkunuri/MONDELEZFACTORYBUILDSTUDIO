@@ -1202,7 +1202,9 @@ class ProjectInputs(BaseModel):
     male_employees: int = 0
     female_employees: int = 0
     special_work_clothing: str = "Yes"
-    work_shoes_required: str = "Yes"      
+    work_shoes_required: str = "Yes" 
+    work_shoes_required: str = "Yes"
+         
     @model_validator(mode="after")
     def validate_employee_counts(self):
         if min(self.num_employees, self.male_employees, self.female_employees) < 0:
@@ -1390,6 +1392,7 @@ def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
 
     clothing = str(inp.special_work_clothing or "Yes").strip().lower() == "yes"
     shoes = str(inp.work_shoes_required or "Yes").strip().lower() == "yes"
+    canteen= str(inp.canteen_dining_required or "No").strip().lower() == "yes"
     country = str(inp.location_country or "").strip()
 
 

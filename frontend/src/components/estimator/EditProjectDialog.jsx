@@ -33,6 +33,8 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
       female_employees: inputs.female_employees ?? 0,
       special_work_clothing: inputs.special_work_clothing ?? "Yes",
       work_shoes_required: inputs.work_shoes_required ?? "Yes",
+      canteen_dining_required: inputs.canteen_dining_required ?? "Yes",
+
     });
   }, [open, inputs, reference]);
 
@@ -65,6 +67,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
       female_employees: femaleEmployees,
       special_work_clothing: draft.special_work_clothing || "Yes",
       work_shoes_required: draft.work_shoes_required || "Yes",
+      canteen_dining_required: draft.canteen_dining_required || "Yes",
     });
 
     onOpenChange(false);
@@ -330,6 +333,14 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                   id="work_shoes_required"
                   value={draft.work_shoes_required ?? "Yes"}
                   onChange={(v) => patch("work_shoes_required", v)}
+                  options={["Yes", "No"]}
+                />
+              </Field>
+              <Field label="Canteen/Dining Facilities Required?">
+                <SelectF
+                  id="canteen_dining_required"
+                  value={draft.canteen_dining_required ?? "Yes"}
+                  onChange={(v) => patch("canteen_dining_required", v)}
                   options={["Yes", "No"]}
                 />
               </Field>

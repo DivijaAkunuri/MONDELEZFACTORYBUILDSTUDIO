@@ -1166,6 +1166,16 @@ function Step5({
               options={["Yes", "No"]}
             />
           </Field>
+          <Field label="Canteen/Dining Facilities Required?">
+            <SelectF
+              id="canteen_dining_required"
+              value={inputs.canteen_dining_required ?? "Yes"}
+              onChange={(value) =>
+                patch("canteen_dining_required", value)
+              }
+              options={["Yes", "No"]}
+            />
+          </Field>
         </Section>
       )}
 
@@ -1273,6 +1283,7 @@ function Step5({
         </Field>
 
 
+
         <Field label="Relative Humidity (%)">
           <InputF
             id="relative_humidity_pct"
@@ -1280,12 +1291,22 @@ function Step5({
             min="0"
             max="100"
             step="1"
-            value={inputs.relative_humidity_pct ?? 0}
+            value={Math.min(
+              100,
+              Math.max(0, Number(inputs.relative_humidity_pct) || 0)
+            )}
             onChange={(value) =>
-              patch("relative_humidity_pct", value)
+              patch(
+                "relative_humidity_pct",
+                Math.min(100, Math.max(0, Number(value) || 0))
+              )
             }
           />
+          <span className="text-sm text-slate-600">
+            {Math.min(100, Math.max(0, Number(inputs.relative_humidity_pct) || 0))}%
+          </span>
         </Field>
+
 
       </Section>
 

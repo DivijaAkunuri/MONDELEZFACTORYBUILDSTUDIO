@@ -152,6 +152,7 @@ const DEFAULT_INPUTS = {
   female_employees: 0,
   special_work_clothing: "Yes",
   work_shoes_required: "Yes",
+  canteen_dining_required: "Yes",
 };
 
 /* -------------------------------------------------------
