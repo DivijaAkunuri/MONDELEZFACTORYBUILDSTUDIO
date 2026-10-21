@@ -733,6 +733,105 @@ function Step2({ inputs, patch, reference, showErrors }) {
           onToggle={toggle}
           idPrefix="comp"
         />
+
+        <Section title="Warehouses Geometry">
+          <div className="col-span-full">
+            <h3 className="text-sm font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3">
+              RM Warehouse (Raw Material)
+            </h3>
+          </div>
+
+          <Field label="RM Warehouse Length (m)">
+            <InputF
+              id="rm_warehouse_length_m"
+              type="number"
+              min="0"
+              value={inputs.rm_warehouse_length_m ?? ""}
+              onChange={(value) => patch("rm_warehouse_length_m", value)}
+            />
+          </Field>
+
+          <Field label="RM Warehouse Width (m)">
+            <InputF
+              id="rm_warehouse_width_m"
+              type="number"
+              min="0"
+              value={inputs.rm_warehouse_width_m ?? ""}
+              onChange={(value) => patch("rm_warehouse_width_m", value)}
+            />
+          </Field>
+
+          <Field label="RM Warehouse Height (m)">
+            <InputF
+              id="rm_warehouse_height_m"
+              type="number"
+              min="0"
+              value={inputs.rm_warehouse_height_m ?? ""}
+              onChange={(value) => patch("rm_warehouse_height_m", value)}
+            />
+          </Field>
+
+          <Field label="RM Warehouse Built-up Area (m²)">
+            <InputF
+              id="rm_warehouse_built_up_area_sqm"
+              type="number"
+              min="0"
+              value={inputs.rm_warehouse_built_up_area_sqm ?? ""}
+              onChange={(value) =>
+                patch("rm_warehouse_built_up_area_sqm", value)
+              }
+            />
+          </Field>
+
+          <div className="col-span-full mt-4">
+            <h3 className="text-sm font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3">
+              FG Warehouse (Finished Goods)
+            </h3>
+          </div>
+
+          <Field label="FG Warehouse Length (m)">
+            <InputF
+              id="fg_warehouse_length_m"
+              type="number"
+              min="0"
+              value={inputs.fg_warehouse_length_m ?? ""}
+              onChange={(value) => patch("fg_warehouse_length_m", value)}
+            />
+          </Field>
+
+          <Field label="FG Warehouse Width (m)">
+            <InputF
+              id="fg_warehouse_width_m"
+              type="number"
+              min="0"
+              value={inputs.fg_warehouse_width_m ?? ""}
+              onChange={(value) => patch("fg_warehouse_width_m", value)}
+            />
+          </Field>
+
+          <Field label="FG Warehouse Height (m)">
+            <InputF
+              id="fg_warehouse_height_m"
+              type="number"
+              min="0"
+              value={inputs.fg_warehouse_height_m ?? ""}
+              onChange={(value) => patch("fg_warehouse_height_m", value)}
+            />
+          </Field>
+
+          <Field label="FG Warehouse Built-up Area (m²)">
+            <InputF
+              id="fg_warehouse_built_up_area_sqm"
+              type="number"
+              min="0"
+              value={inputs.fg_warehouse_built_up_area_sqm ?? ""}
+              onChange={(value) =>
+                patch("fg_warehouse_built_up_area_sqm", value)
+              }
+            />
+          </Field>
+        </Section>
+
       </div>
     </>
   );

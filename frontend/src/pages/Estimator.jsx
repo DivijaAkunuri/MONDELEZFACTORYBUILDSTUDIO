@@ -76,6 +76,15 @@ const DEFAULT_INPUTS = {
 
   plot_area_sqm: 4440,
 
+  rm_warehouse_length_m: "",
+  rm_warehouse_width_m: "",
+  rm_warehouse_height_m: "",
+  rm_warehouse_built_up_area_sqm: "",
+  fg_warehouse_length_m: "",
+  fg_warehouse_width_m: "",
+  fg_warehouse_height_m: "",
+  fg_warehouse_built_up_area_sqm: "",
+
   building_components: [
     "Production Block",
     "Cold Store",
@@ -841,9 +850,8 @@ export default function Estimator() {
             disabled={loading}
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 mr-1.5 ${
-                loading ? "animate-spin" : ""
-              }`}
+              className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""
+                }`}
             />
             {loading ? "Calculating..." : "Recalculate"}
           </Button>
@@ -1112,10 +1120,10 @@ export default function Estimator() {
                         pct_of_total:
                           Number(result.totals.total_project_cost) > 0
                             ? +(
-                                (item.amount /
-                                  result.totals.total_project_cost) *
-                                100
-                              ).toFixed(2)
+                              (item.amount /
+                                result.totals.total_project_cost) *
+                              100
+                            ).toFixed(2)
                             : 0,
                       }))}
                       currency={currency}
@@ -1259,7 +1267,7 @@ export default function Estimator() {
                                 <td className="text-right font-semibold">
                                   {fmtMoney(
                                     result.totals.total_project_cost *
-                                      (1 + delta),
+                                    (1 + delta),
                                     currency,
                                     fxRates
                                   )}
