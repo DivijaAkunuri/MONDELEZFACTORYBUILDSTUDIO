@@ -1254,7 +1254,7 @@ class ProjectInputs(BaseModel):
 
 # Complexity toggles
     complexity: Dict[str, bool] = Field(default_factory=lambda: {
-        "seismic_zone_high": False, "high_humidity": False, "cold_region": False,
+        "seismic_zone_high": False, 
         "brownfield": False, "gmp_hygienic": True, "explosion_risk": False,
         "utility_redundancy": True, "remote_site": False,
     })
@@ -2384,7 +2384,7 @@ async def reference_data():
         # ---- Step 4: Utilities & Process ----
         "utility_scope": [
             "Boiler House", "Chiller Plant", "HVAC System", "Air Compressors",
-            "WTP", "Nitrogen Plant", "Fire Fighting System",
+            "WTP", "Nitrogen/CO2 Plant", "Fire Fighting System",
             "Electrical Substation", "DG Backup", "Solar Plant",
             "Steam Distribution", "Process Piping", "IT/OT System", "SCADA/MES",
              "WWTP",
@@ -2405,8 +2405,6 @@ async def reference_data():
         # ---- Complexity toggles ----
         "complexity": [
             {"key": "seismic_zone_high", "label": "Seismic Zone High"},
-            {"key": "high_humidity", "label": "High Humidity Region"},
-            {"key": "cold_region", "label": "Cold Region"},
             {"key": "brownfield", "label": "Brownfield Tie-ins"},
             {"key": "gmp_hygienic", "label": "GMP / Hygienic Finish"},
             {"key": "explosion_risk", "label": "Explosion Risk / Dust Areas"},

@@ -403,7 +403,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
           {/* ---- Infra & Site ---- */}
           <Section title="External Works Scope">
-            <Field label="Roads & Pathways">
+            <Field label="Roads,Pathways & Parking Bays">
               <BoolBox id="include_roads" checked={draft.include_roads} onChange={(v) => patch("include_roads", v)} />
             </Field>
             <Field label="Landscaping">
@@ -427,7 +427,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Water Availability">
               <SelectF id="water_availability" value={draft.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} />
             </Field>
-            <Field label="Grid Reliability">
+            <Field label="Electrical Grid Reliability">
               <SelectF id="grid_reliability" value={draft.grid_reliability} onChange={(v) => patch("grid_reliability", v)} options={reference?.grid_reliability} />
             </Field>
             <Field label="Ambient Temperature">

@@ -873,8 +873,6 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
   const processComplexity = (reference?.complexity || []).filter((item) =>
     [
       "gmp_hygienic",
-      "high_humidity",
-      "cold_region",
       "explosion_risk",
       "utility_redundancy",
     ].includes(item.key)
@@ -1174,7 +1172,7 @@ function Step5({
       )}
 
       <Section title="External Works Scope">
-        <Field label="Roads & Pathways">
+        <Field label="Roads,Pathways & Parking Bays">
           <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
             <Checkbox
               data-testid={TID.wizardField("include_roads")}

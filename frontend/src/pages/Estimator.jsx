@@ -137,8 +137,6 @@ const DEFAULT_INPUTS = {
 
   complexity: {
     seismic_zone_high: false,
-    high_humidity: false,
-    cold_region: false,
     brownfield: false,
     gmp_hygienic: true,
     explosion_risk: false,
