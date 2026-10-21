@@ -15,6 +15,44 @@ const STEP_TITLES = [
 
 export default function Wizard({ step, setStep, inputs, setInputs, reference, onFinish }) {
   const patch = (k, v) => setInputs((s) => ({ ...s, [k]: v }));
+  const validateAreas = () => {
+    const length = Number(inputs.length_m);
+    const width = Number(inputs.width_m);
+    const plotArea = Number(inputs.plot_area_sqm);
+    const landArea = Number(inputs.land_area_sqm);
+
+    if (!Number.isFinite(length) || length <= 0) {
+      return "Length must be greater than 0.";
+    }
+
+    if (!Number.isFinite(width) || width <= 0) {
+      return "Width must be greater than 0.";
+    }
+
+    const minimumArea = length * width;
+
+    if (!Number.isFinite(minimumArea) || minimumArea <= 0) {
+      return "Length × Width must be greater than 0.";
+    }
+
+    if (!Number.isFinite(plotArea) || plotArea <= 0) {
+      return "Plot Area must be greater than 0.";
+    }
+
+    if (plotArea < minimumArea) {
+      return `Plot Area must be at least ${minimumArea} m² (Length × Width).`;
+    }
+
+    if (!Number.isFinite(landArea) || landArea <= 0) {
+      return "Land Area must be greater than 0.";
+    }
+
+    if (landArea < minimumArea) {
+      return `Land Area must be at least ${minimumArea} m² (Length × Width).`;
+    }
+
+    return "";
+  };
   const patchComplexity = (k, v) =>
     setInputs((s) => ({ ...s, complexity: { ...s.complexity, [k]: v } }));
 
@@ -47,17 +85,10 @@ export default function Wizard({ step, setStep, inputs, setInputs, reference, on
             data-testid={TID.wizardNext}
             onClick={() => {
               if (step === 1) {
-                const length = Number(inputs.length_m);
-                const width = Number(inputs.width_m);
+                const error = validateAreas();
 
-                if (
-                  !Number.isFinite(length) ||
-                  !Number.isFinite(width) ||
-                  length <= 0 ||
-                  width <= 0 ||
-                  !Number.isFinite(length * width) ||
-                  length * width <= 0
-                ) {
+                if (error) {
+                  window.alert(error);
                   return;
                 }
               }
@@ -68,7 +99,16 @@ export default function Wizard({ step, setStep, inputs, setInputs, reference, on
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         ) : (
-          <Button data-testid={TID.wizardNext} onClick={onFinish} className="bg-blue-600 hover:bg-blue-700">
+          <Button data-testid={TID.wizardNext} onClick={() => {
+            const error = validateAreas();
+
+            if (error) {
+              window.alert(error);
+              return;
+            }
+
+            onFinish();
+          }} className="bg-blue-600 hover:bg-blue-700">
             Calculate Estimate <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         )}
@@ -359,51 +399,37 @@ function Step2({ inputs, patch, setInputs, reference }) {
   const length = Number(inputs.length_m);
   const width = Number(inputs.width_m);
   const plotArea = Number(inputs.plot_area_sqm);
-  const landArea = Number(inputs.land_area_sqm);
-
-  const area = length * width;
+  const minimumArea = length * width;
 
   const areaError =
-    !Number.isFinite(length) ||
-      length <= 0 ||
-      !Number.isFinite(width) ||
-      width <= 0
-      ? "Length and Width must both be greater than 0."
-      : !Number.isFinite(plotArea) ||
-        plotArea < area ||
-        plotArea <= 0
-        ? `Plot Area must be at least ${area} m² (Length × Width).`
-        : !Number.isFinite(landArea) ||
-          landArea < area ||
-          landArea <= 0
-          ? `Land Area must be at least ${area} m² (Length × Width).`
-          : "";
+    !Number.isFinite(length) || length <= 0
+      ? "Length must be greater than 0."
+      : !Number.isFinite(width) || width <= 0
+        ? "Width must be greater than 0."
+        : !Number.isFinite(plotArea) || plotArea <= 0
+          ? "Plot Area must be greater than 0."
+          : plotArea < minimumArea
+            ? `Plot Area must be at least ${minimumArea} m² (Length × Width).`
+            : "";
 
   const updateDimension = (field, value) => {
-    const nextValue = value === "" ? "" : Number(value);
+    const nextValue = Number(value) || 0;
 
     setInputs((current) => {
       const nextLength =
         field === "length_m"
           ? nextValue
-          : Number(current.length_m);
+          : Number(current.length_m) || 0;
 
       const nextWidth =
         field === "width_m"
           ? nextValue
-          : Number(current.width_m);
+          : Number(current.width_m) || 0;
 
-      const validDimensions =
-        nextLength !== "" &&
-        nextWidth !== "" &&
-        Number.isFinite(nextLength) &&
-        Number.isFinite(nextWidth) &&
-        nextLength > 0 &&
-        nextWidth > 0;
-
-      const nextArea = validDimensions
-        ? nextLength * nextWidth
-        : 0;
+      const nextArea =
+        nextLength > 0 && nextWidth > 0
+          ? nextLength * nextWidth
+          : 0;
 
       return {
         ...current,
@@ -413,7 +439,6 @@ function Step2({ inputs, patch, setInputs, reference }) {
       };
     });
   };
-
   return (
     <>
       <Section title="Building Envelope">
@@ -432,7 +457,7 @@ function Step2({ inputs, patch, setInputs, reference }) {
             type="number"
             min="0"
             value={inputs.length_m}
-            onChange={(v) => updateDimension("length_m", v)}
+            onChange={(v) => patch("length_m", v)}
           />
         </Field>
 
@@ -442,7 +467,7 @@ function Step2({ inputs, patch, setInputs, reference }) {
             type="number"
             min="0"
             value={inputs.width_m}
-            onChange={(v) => updateDimension("width_m", v)}
+            onChange={(v) => patch("width_m", v)}
           />
         </Field>
 
@@ -477,6 +502,7 @@ function Step2({ inputs, patch, setInputs, reference }) {
           <InputF
             id="plot_area_sqm"
             type="number"
+            min="0"
             value={inputs.plot_area_sqm ?? ""}
             onChange={(v) => patch("plot_area_sqm", v)}
           />
@@ -484,10 +510,7 @@ function Step2({ inputs, patch, setInputs, reference }) {
       </Section>
 
       {areaError && (
-        <p
-          role="alert"
-          className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
-        >
+        <p className="mt-2 text-sm text-red-600" role="alert">
           {areaError}
         </p>
       )}
@@ -650,6 +673,7 @@ function Step5({ inputs, patch, patchComplexity, reference }) {
           <InputF
             id="land_area_sqm"
             type="number"
+            min="0"
             value={inputs.land_area_sqm ?? ""}
             onChange={(v) => patch("land_area_sqm", v)}
           />
