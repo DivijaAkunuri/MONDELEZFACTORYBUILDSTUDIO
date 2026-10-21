@@ -1146,7 +1146,7 @@ class ProjectInputs(BaseModel):
     # Step 2 - geometry
     building_type: str = "Industrial Building (RCC + PEB)"
     length_m: float = 185.0
-    width_m: float = 20.0
+    width_m: float = 24.0
     height_m: float = 10.5
     num_floors: int = 1
     bay_spacing_m: float = 8.0
@@ -1208,6 +1208,24 @@ class ProjectInputs(BaseModel):
             raise ValueError("Employee counts cannot be negative.")
         if self.male_employees + self.female_employees != self.num_employees:
             raise ValueError("Male Employees + Female Employees must equal Total Employees.")
+        return self
+    
+    @model_validator(mode="after")
+    def calculate_site_areas(self):
+        if not math.isfinite(self.length_m) or self.length_m <= 0:
+            raise ValueError("Length must be greater than 0.")
+
+        if not math.isfinite(self.width_m) or self.width_m <= 0:
+            raise ValueError("Width must be greater than 0.")
+
+        area = self.length_m * self.width_m
+
+        if not math.isfinite(area) or area <= 0:
+            raise ValueError("Calculated area must be greater than 0.")
+
+        self.plot_area_sqm = area
+        self.land_area_sqm = area
+
         return self
     
 
@@ -2321,7 +2339,7 @@ async def reference_data():
         ],
         "building_components": [
             "Production Block", "Warehouse", "Warehouse-Chocolate", "Utilities Block",
-            "Admin Building", "R&D Lab", "Packaging Hall",
+            "Admin Building", "R&D Center", "Packaging Hall",
         ],
         # ---- Step 3: Structural & Site ----
         "foundation_types": [

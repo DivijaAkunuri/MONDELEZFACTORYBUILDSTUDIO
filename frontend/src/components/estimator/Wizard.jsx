@@ -21,7 +21,7 @@ export default function Wizard({ step, setStep, inputs, setInputs, reference, on
   const stepUi = () => {
     switch (step) {
       case 0: return <Step1 inputs={inputs} patch={patch} reference={reference} />;
-      case 1: return <Step2 inputs={inputs} patch={patch} reference={reference} />;
+      case 1: return <Step2 inputs={inputs} patch={patch} setInputs={setInputs} reference={reference} />;
       case 2: return <Step3 inputs={inputs} patch={patch} reference={reference} />;
       case 3: return <Step4 inputs={inputs} patch={patch} patchComplexity={patchComplexity} reference={reference} />;
       case 4: return <Step5 inputs={inputs} patch={patch} patchComplexity={patchComplexity} reference={reference} />;
@@ -43,7 +43,28 @@ export default function Wizard({ step, setStep, inputs, setInputs, reference, on
           <ChevronLeft className="w-4 h-4 mr-1" /> Back
         </Button>
         {step < 4 ? (
-          <Button data-testid={TID.wizardNext} onClick={() => setStep(step + 1)}>
+          <Button
+            data-testid={TID.wizardNext}
+            onClick={() => {
+              if (step === 1) {
+                const length = Number(inputs.length_m);
+                const width = Number(inputs.width_m);
+
+                if (
+                  !Number.isFinite(length) ||
+                  !Number.isFinite(width) ||
+                  length <= 0 ||
+                  width <= 0 ||
+                  !Number.isFinite(length * width) ||
+                  length * width <= 0
+                ) {
+                  return;
+                }
+              }
+
+              setStep(step + 1);
+            }}
+          >
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         ) : (
@@ -322,33 +343,155 @@ function Step1({ inputs, patch, reference }) {
 
 
 /* ---------- Step 2 : Building Geometry ---------- */
-function Step2({ inputs, patch, reference }) {
+
+function Step2({ inputs, patch, setInputs, reference }) {
   const toggle = (item) => {
     const has = inputs.building_components?.includes(item);
-    patch("building_components", has
-      ? inputs.building_components.filter((s) => s !== item)
-      : [...(inputs.building_components || []), item]);
+
+    patch(
+      "building_components",
+      has
+        ? inputs.building_components.filter((s) => s !== item)
+        : [...(inputs.building_components || []), item]
+    );
   };
+
+  const length = Number(inputs.length_m) || 0;
+  const width = Number(inputs.width_m) || 0;
+  const area = length * width;
+
+  const areaError =
+    !Number.isFinite(length) ||
+      !Number.isFinite(width) ||
+      length <= 0 ||
+      width <= 0 ||
+      !Number.isFinite(area) ||
+      area <= 0
+      ? "Length and Width must both be greater than 0. Plot Area and Land Area must also be greater than 0."
+      : "";
+
+  const updateDimension = (field, value) => {
+    const nextValue = Number(value) || 0;
+
+    setInputs((current) => {
+      const nextLength =
+        field === "length_m"
+          ? nextValue
+          : Number(current.length_m) || 0;
+
+      const nextWidth =
+        field === "width_m"
+          ? nextValue
+          : Number(current.width_m) || 0;
+
+      const nextArea =
+        nextLength > 0 && nextWidth > 0
+          ? nextLength * nextWidth
+          : 0;
+
+      return {
+        ...current,
+        [field]: nextValue,
+        plot_area_sqm: nextArea,
+        land_area_sqm: nextArea,
+      };
+    });
+  };
+
   return (
     <>
       <Section title="Building Envelope">
         <Field label="Building Type" span={3}>
-          <SelectF id="building_type" value={inputs.building_type} onChange={(v) => patch("building_type", v)} options={reference?.building_types} />
+          <SelectF
+            id="building_type"
+            value={inputs.building_type}
+            onChange={(v) => patch("building_type", v)}
+            options={reference?.building_types}
+          />
         </Field>
-        <Field label="Length (m)"><InputF id="length_m" type="number" value={inputs.length_m} onChange={(v) => patch("length_m", v)} /></Field>
-        <Field label="Width (m)"><InputF id="width_m" type="number" value={inputs.width_m} onChange={(v) => patch("width_m", v)} /></Field>
-        <Field label="Clear Height (m)"><InputF id="height_m" type="number" value={inputs.height_m} onChange={(v) => patch("height_m", v)} /></Field>
-        <Field label="Number of Floors"><InputF id="num_floors" type="number" value={inputs.num_floors} onChange={(v) => patch("num_floors", v)} /></Field>
-        <Field label="Bay Spacing (m)"><InputF id="bay_spacing_m" type="number" value={inputs.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} /></Field>
-        <Field label="Plot Area (m²)"><InputF id="plot_area_sqm" type="number" value={inputs.plot_area_sqm} onChange={(v) => patch("plot_area_sqm", v)} /></Field>
+
+        <Field label="Length (m)">
+          <InputF
+            id="length_m"
+            type="number"
+            min="0"
+            value={inputs.length_m}
+            onChange={(v) => updateDimension("length_m", v)}
+          />
+        </Field>
+
+        <Field label="Width (m)">
+          <InputF
+            id="width_m"
+            type="number"
+            min="0"
+            value={inputs.width_m}
+            onChange={(v) => updateDimension("width_m", v)}
+          />
+        </Field>
+
+        <Field label="Clear Height (m)">
+          <InputF
+            id="height_m"
+            type="number"
+            value={inputs.height_m}
+            onChange={(v) => patch("height_m", v)}
+          />
+        </Field>
+
+        <Field label="Number of Floors">
+          <InputF
+            id="num_floors"
+            type="number"
+            value={inputs.num_floors}
+            onChange={(v) => patch("num_floors", v)}
+          />
+        </Field>
+
+        <Field label="Bay Spacing (m)">
+          <InputF
+            id="bay_spacing_m"
+            type="number"
+            value={inputs.bay_spacing_m}
+            onChange={(v) => patch("bay_spacing_m", v)}
+          />
+        </Field>
+
+        <Field label="Plot Area (m²)">
+          <InputF
+            id="plot_area_sqm"
+            type="number"
+            value={area}
+            readOnly
+          />
+        </Field>
       </Section>
+
+      {areaError && (
+        <p
+          role="alert"
+          className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          {areaError}
+        </p>
+      )}
+
       <div>
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">Building Components</div>
-        <CheckboxGrid list={reference?.building_components || []} selected={inputs.building_components || []} onToggle={toggle} idPrefix="comp" />
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Building Components
+        </div>
+
+        <CheckboxGrid
+          list={reference?.building_components || []}
+          selected={inputs.building_components || []}
+          onToggle={toggle}
+          idPrefix="comp"
+        />
       </div>
     </>
   );
 }
+
 
 /* ---------- Step 3 : Structural & Site ---------- */
 function Step3({ inputs, patch, reference }) {
@@ -487,7 +630,7 @@ function Step5({ inputs, patch, patchComplexity, reference }) {
       </Section>
 
       <Section title="Site Inputs">
-        <Field label="Land Area (m²)"><InputF id="land_area_sqm" type="number" value={inputs.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} /></Field>
+        <Field label="Land Area (m²)"><InputF id="land_area_sqm" type="number" value={inputs.land_area_sqm} readOnly /></Field>
         <Field label="Ground Coverage (%)"><InputF id="ground_coverage_pct" type="number" value={inputs.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} /></Field>
         <Field label="FAR / FSI"><InputF id="far_fsi" type="number" value={inputs.far_fsi} onChange={(v) => patch("far_fsi", v)} /></Field>
         <Field label="Water Availability"><SelectF id="water_availability" value={inputs.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} /></Field>

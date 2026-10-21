@@ -60,12 +60,12 @@ const DEFAULT_INPUTS = {
 
   building_type: "Industrial Building (RCC + PEB)",
   length_m: 185,
-  width_m: 20,
+  width_m: 24,
   height_m: 10.5,
   num_floors: 1,
   bay_spacing_m: 8,
 
-  plot_area_sqm: 32000,
+  plot_area_sqm: 4440,
   building_components: [
     "Production Block",
     "Warehouse",
@@ -115,7 +115,7 @@ const DEFAULT_INPUTS = {
   include_landscaping: true,
   include_fence: true,
 
-  land_area_sqm: 32000,
+  land_area_sqm: 4440,
   ground_coverage_pct: 58,
   far_fsi: 1.2,
   water_availability: "Municipal + Borewell",
@@ -194,7 +194,30 @@ export default function Estimator() {
 
   // Define recalc BEFORE any effect that calls it.
   // The function uses its argument rather than capturing inputs.
+
   const recalc = React.useCallback(async (inp) => {
+    const length = Number(inp.length_m);
+    const width = Number(inp.width_m);
+    const plotArea = Number(inp.plot_area_sqm);
+    const landArea = Number(inp.land_area_sqm);
+
+    if (
+      !Number.isFinite(length) ||
+      !Number.isFinite(width) ||
+      !Number.isFinite(plotArea) ||
+      !Number.isFinite(landArea) ||
+      length <= 0 ||
+      width <= 0 ||
+      plotArea <= 0 ||
+      landArea <= 0
+    ) {
+      setLoading(false);
+      toast.error(
+        "Invalid area: Length, Width, Plot Area, and Land Area must all be greater than 0."
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -209,7 +232,6 @@ export default function Estimator() {
       setLoading(false);
       toast.success("Estimate recalculated");
 
-      // Load supplementary insights and exchange rates in the background.
       (async () => {
         try {
           const [fx, ins] = await Promise.all([
@@ -238,10 +260,11 @@ export default function Estimator() {
       setLoading(false);
       toast.error(
         "Calculation failed: " +
-          (e.response?.data?.detail || e.message)
+        (e.response?.data?.detail || e.message)
       );
     }
   }, []);
+
 
   // Persist the inputs.
   React.useEffect(() => {
@@ -510,9 +533,8 @@ export default function Estimator() {
             disabled={loading}
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 mr-1.5 ${
-                loading ? "animate-spin" : ""
-              }`}
+              className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""
+                }`}
             />
             {loading ? "Calculating..." : "Recalculate"}
           </Button>
