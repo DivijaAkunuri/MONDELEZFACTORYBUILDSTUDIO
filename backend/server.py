@@ -2471,8 +2471,12 @@ async def list_estimates():
              "total": d["result"]["totals"]["total_project_cost"]} for d in docs]
 
 
+
+
 @api_router.get("/estimator/location-lookup")
 async def location_lookup(city: str):
+    import logging
+
     city = city.strip()
 
     if len(city) < 2:
@@ -2482,7 +2486,7 @@ async def location_lookup(city: str):
         )
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.get(
                 "https://nominatim.openstreetmap.org/search",
                 params={
@@ -2492,24 +2496,42 @@ async def location_lookup(city: str):
                     "limit": 5,
                 },
                 headers={
-                    "User-Agent": "ConstructionEstimator/1.0"
+                    "User-Agent": "ConstructionEstimator/1.0 (location lookup)"
                 },
             )
+
+            if response.status_code == 429:
+                logging.warning(
+                    "OpenStreetMap rate limit reached for city: %s",
+                    city
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        "The location service is temporarily busy. "
+                        "Please wait a minute and try again."
+                    )
+                )
+
             response.raise_for_status()
             results = response.json()
 
+    except HTTPException:
+        raise
     except httpx.HTTPError:
+        logging.exception("Location lookup request failed")
         raise HTTPException(
             status_code=502,
-            detail="Location lookup is temporarily unavailable."
+            detail="Could not contact the location service. Please try again."
         )
 
     locations = []
+    seen = set()
 
     for item in results:
         address = item.get("address", {})
-
         country = address.get("country")
+
         if not country:
             continue
 
@@ -2518,44 +2540,51 @@ async def location_lookup(city: str):
             or address.get("town")
             or address.get("village")
             or address.get("municipality")
-            or address.get("county")
             or city
-        )
-
-        state = (
-            address.get("state")
-            or address.get("province")
-            or address.get("region")
-            or ""
         )
 
         country_code = address.get("country_code", "").upper()
 
-        region = next(
+        key = (city_name.casefold(), country.casefold())
+        if key in seen:
+            continue
+        seen.add(key)
+
+        matched_region = next(
             (
                 region_name
                 for region_name, countries in REGION_MULTIPLIERS.items()
-                if country in countries
+                if any(
+                    str(mapped_country).casefold() == country.casefold()
+                    for mapped_country in countries
+                )
             ),
             None,
         )
 
         locations.append({
             "city": city_name,
-            "state": state,
+            "state": (
+                address.get("state")
+                or address.get("province")
+                or address.get("region")
+                or ""
+            ),
             "country": country,
             "country_code": country_code,
-            "region": region,
+            "region": matched_region,
             "formatted": item.get("display_name", ""),
         })
 
     if not locations:
         raise HTTPException(
             status_code=404,
-            detail="City not found. Try adding the country name."
+            detail="No matching location found. Try entering the city and country."
         )
 
     return {"locations": locations}
+
+
 
 
 @api_router.get("/estimator/{est_id}")

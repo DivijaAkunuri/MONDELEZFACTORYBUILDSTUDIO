@@ -178,7 +178,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Width (m)">
               <InputF id="width_m" type="number" value={draft.width_m} onChange={(v) => patch("width_m", v)} />
             </Field>
-             <Field label="No. of Floors">
+            <Field label="No. of Floors">
               <SelectF
                 id="num_floors"
                 value={String(draft.num_floors || 1)}
@@ -192,9 +192,28 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Bay Spacing (Column) (m)">
               <InputF id="bay_spacing_m" type="number" value={draft.bay_spacing_m} onChange={(v) => patch("bay_spacing_m", v)} />
             </Field>
+
+
             <Field label="Built-up Area (Length × Width × No. of Floors) (m²)">
-              <InputF id="plot_area_sqm" type="number" value={draft.plot_area_sqm} onChange={(v) => patch("plot_area_sqm", v)} />
+              <InputF
+                id="built_up_area_display"
+                type="text"
+                value={
+                  Number(draft.length_m) > 0 &&
+                    Number(draft.width_m) > 0 &&
+                    Number(draft.num_floors) > 0
+                    ? (
+                      Number(draft.length_m) *
+                      Number(draft.width_m) *
+                      Number(draft.num_floors)
+                    ).toLocaleString()
+                    : "Enter dimensions and floors"
+                }
+                disabled
+              />
             </Field>
+
+
           </Section>
 
           <MultiField
@@ -348,8 +367,8 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               <div className="sm:col-span-2">
                 <div
                   className={`rounded border px-3 py-2 text-xs ${employeeCountValid
-                      ? "border-slate-200 bg-slate-50 text-slate-600"
-                      : "border-red-300 bg-red-50 text-red-600"
+                    ? "border-slate-200 bg-slate-50 text-slate-600"
+                    : "border-red-300 bg-red-50 text-red-600"
                     }`}
                 >
                   {employeeCountValid
@@ -548,18 +567,38 @@ function SelectF({ id, value, onChange, options }) {
   );
 }
 
-function InputF({ id, value, onChange, type = "text" }) {
+
+function InputF({
+  id,
+  value,
+  onChange,
+  type = "text",
+  disabled = false,
+}) {
   return (
     <Input
       data-testid={TID.wizardField(`edit_${id}`)}
       value={value ?? ""}
-      onChange={(e) => onChange(type === "number" ? +e.target.value : e.target.value)}
+      onChange={(e) => {
+        if (typeof onChange === "function") {
+          onChange(
+            type === "number"
+              ? e.target.value === ""
+                ? ""
+                : Number(e.target.value)
+              : e.target.value
+          );
+        }
+      }}
       type={type}
       min={type === "number" ? 0 : undefined}
+      disabled={disabled}
+      readOnly={!onChange}
       className="h-9 text-sm"
     />
   );
 }
+
 
 function BoolBox({ id, checked, onChange }) {
   return (

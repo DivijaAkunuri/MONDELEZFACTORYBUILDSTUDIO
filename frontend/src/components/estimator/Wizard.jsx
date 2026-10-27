@@ -339,7 +339,16 @@ function SelectF({ id, value, onChange, options }) {
   );
 }
 
+
 function InputF({ id, value, onChange, type = "text", ...props }) {
+  const limits = {
+    relative_humidity_pct: { min: 0, max: 100 },
+    humidity_controlled_pct: { min: 0, max: 100 },
+    wind_speed_ms: { min: 45, max: Infinity },
+  };
+
+  const limit = limits[id];
+
   return (
     <Input
       data-testid={TID.wizardField(id)}
@@ -347,20 +356,53 @@ function InputF({ id, value, onChange, type = "text", ...props }) {
       onChange={(event) => {
         const rawValue = event.target.value;
 
+        if (type === "number" && limit) {
+          if (rawValue === "") {
+            onChange(limit.min);
+            return;
+          }
+
+          const number = Number(rawValue);
+
+          if (!Number.isFinite(number)) return;
+
+          onChange(
+            Math.min(limit.max, Math.max(limit.min, number))
+          );
+          return;
+        }
+
         onChange(
           type === "number"
-            ? rawValue === ""
-              ? ""
-              : Number(rawValue)
-            : rawValue
+            ? rawValue === "" ? "" : Number(rawValue)
+            : type === "range" ? Number(rawValue) : rawValue
         );
       }}
       type={type}
+      min={limit?.min ?? props.min}
+      max={Number.isFinite(limit?.max) ? limit.max : props.max}
+      onBlur={(event) => {
+        if (!limit) {
+          props.onBlur?.(event);
+          return;
+        }
+
+        const number = Number(event.target.value);
+
+        onChange(
+          event.target.value === "" || !Number.isFinite(number)
+            ? limit.min
+            : Math.min(limit.max, Math.max(limit.min, number))
+        );
+
+        props.onBlur?.(event);
+      }}
       className="h-9"
       {...props}
     />
   );
 }
+
 
 function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
   return (
@@ -406,8 +448,11 @@ function Step1({ inputs, patch, reference }) {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
 
+
   const findLocation = async () => {
-    if (!inputs.location_city?.trim()) {
+    const city = inputs.location_city?.trim();
+
+    if (!city) {
       setLocationError("Please enter a city name.");
       return;
     }
@@ -417,16 +462,24 @@ function Step1({ inputs, patch, reference }) {
     setLocations([]);
 
     try {
-      const data = await lookupLocation(inputs.location_city.trim());
+      const data = await lookupLocation(city);
+      const results = Array.isArray(data?.locations) ? data.locations : [];
 
-      setLocations(data.locations || []);
+      setLocations(results);
 
-      if (!data.locations?.length) {
-        setLocationError("No matching locations found.");
+      if (results.length === 0) {
+        setLocationError(
+          "No matching locations found. Try entering the city with its country name."
+        );
       }
     } catch (error) {
+      console.error("Location lookup failed:", error);
+      console.error("Response data:", error.response?.data);
+      console.error("Response status:", error.response?.status);
+
       setLocationError(
         error.response?.data?.detail ||
+        error.message ||
         "Could not find the location. Please try again."
       );
     } finally {
@@ -434,29 +487,50 @@ function Step1({ inputs, patch, reference }) {
     }
   };
 
+
+
   const selectLocation = (location) => {
-    const availableRegions = Object.keys(reference?.regions || {});
+    const regions = reference?.regions || {};
+    const availableRegions = Object.keys(regions);
 
-    const matchedRegion = availableRegions.includes(location.region)
-      ? location.region
-      : availableRegions.find((region) =>
-        (reference?.regions?.[region] || []).includes(location.country)
-      );
+    const normalize = (value) =>
+      String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
 
-    if (!matchedRegion) {
+    const country = String(location.country || "").trim();
+
+    if (!country) {
       setLocationError(
-        `Found ${location.country}, but it is not in your estimator's region mapping.`
+        "The location lookup did not return a country. Please select another result."
       );
       return;
     }
 
-    patch("location_city", location.city);
+    // Match the returned country against your existing country-to-region mapping.
+    const matchedRegion = availableRegions.find((region) =>
+      (regions[region] || []).some(
+        (mappedCountry) => normalize(mappedCountry) === normalize(country)
+      )
+    );
+
+    if (!matchedRegion) {
+      setLocationError(
+        `Found ${country}, but this country is not in your estimator's region mapping.`
+      );
+      return;
+    }
+
+    patch("location_city", location.city || inputs.location_city);
+    patch("location_country", country);
     patch("region", matchedRegion);
-    patch("location_country", location.country);
 
     setLocations([]);
     setLocationError("");
   };
+
 
   return (
     <>
@@ -708,18 +782,28 @@ function Step2({ inputs, patch, reference, showErrors }) {
           />
         </Field>
 
+
         <Field label="Built-up Area (Length × Width × No. of Floors) (m²)">
           <InputF
-            id="plot_area_sqm"
-            type="number"
-            min="0"
-            value={inputs.plot_area_sqm}
-            onChange={(value) => patch("plot_area_sqm", value)}
-            aria-invalid={!!plotAreaError && showErrors}
+            id="built_up_area_display"
+            type="text"
+            value={
+              Number(inputs.length_m) > 0 &&
+                Number(inputs.width_m) > 0 &&
+                Number(inputs.num_floors) > 0
+                ? (
+                  Number(inputs.length_m) *
+                  Number(inputs.width_m) *
+                  Number(inputs.num_floors)
+                ).toLocaleString()
+                : "Enter dimensions and floors"
+            }
+            disabled
+            onChange={() => { }}
           />
-
-          {showErrors && <ErrorMessage>{plotAreaError}</ErrorMessage>}
         </Field>
+
+
       </Section>
 
       <div>
@@ -924,14 +1008,30 @@ function Step3({ inputs, patch, reference }) {
           />
         </Field>
 
+
+
         <Field label="Wind Speed (m/s)">
           <InputF
             id="wind_speed_ms"
             type="number"
-            value={inputs.wind_speed_ms}
-            onChange={(value) => patch("wind_speed_ms", value)}
+            min="45"
+            step="1"
+            value={Math.max(45, Number(inputs.wind_speed_ms) || 45)}
+            onChange={(value) => {
+              if (value === "") {
+                patch("wind_speed_ms", 45);
+                return;
+              }
+
+              const number = Number(value);
+
+              if (Number.isFinite(number)) {
+                patch("wind_speed_ms", Math.max(45, number));
+              }
+            }}
           />
         </Field>
+
 
         <Field label="Ground Water Table Depth">
           <SelectF
@@ -1033,16 +1133,36 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
             />
           </Field>
 
+
           <Field label="Humidity Controlled Areas (%)">
             <InputF
               id="humidity_controlled_pct"
               type="number"
-              value={inputs.humidity_controlled_pct}
-              onChange={(value) =>
-                patch("humidity_controlled_pct", value)
-              }
+              min="0"
+              max="100"
+              step="1"
+              value={Math.min(
+                100,
+                Math.max(0, Number(inputs.humidity_controlled_pct) || 0)
+              )}
+              onChange={(value) => {
+                if (value === "") {
+                  patch("humidity_controlled_pct", "");
+                  return;
+                }
+
+                const number = Number(value);
+
+                if (Number.isFinite(number)) {
+                  patch(
+                    "humidity_controlled_pct",
+                    Math.min(100, Math.max(0, number))
+                  );
+                }
+              }}
             />
           </Field>
+
 
           <Field label="Chocolate Storage Temp (°C)">
             <InputF
@@ -1383,6 +1503,8 @@ function Step5({
 
 
 
+
+
         <Field label="Relative Humidity (%)">
           <InputF
             id="relative_humidity_pct"
@@ -1402,9 +1524,14 @@ function Step5({
             }
           />
           <span className="text-sm text-slate-600">
-            {Math.min(100, Math.max(0, Number(inputs.relative_humidity_pct) || 0))}%
+            {Math.min(
+              100,
+              Math.max(0, Number(inputs.relative_humidity_pct) || 0)
+            )}%
           </span>
         </Field>
+
+
 
 
       </Section>

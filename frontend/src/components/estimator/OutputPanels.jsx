@@ -90,8 +90,7 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     ["Industry Type", inputs.industry_type],
     ["Product Category", inputs.product_category],
     ["Building Type", inputs.building_type],
-    ["Built-up Area", `${fmtNumber(totals.built_up_area_sqm)} m²`],
-    ["Built-up Area (Length × Width × No. of Floors) (m²)", `${fmtNumber(inputs.plot_area_sqm)} m²`],
+    ["Built-up Area (Length × Width × No. of Floors) (m²)", `${fmtNumber(totals.built_up_area_sqm)} m²`],
     ["Location", `${inputs.location_city}, ${inputs.location_country}`],
     ["Region / Tier", `${inputs.region} · ${inputs.location_tier}`],
     ["Seismic Zone", inputs.seismic_zone],
@@ -109,7 +108,7 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     ["Production Capacity", `${inputs.production_capacity_tpd} TPD`],
     ["Annual Output", `${fmtNumber(inputs.annual_output_mt)} MT`],
     ["Water Availability", inputs.water_availability],
-    ["Grid Reliability", inputs.grid_reliability],
+    ["Electrical Grid Reliability", inputs.grid_reliability],
     ["Ambient Temperature", inputs.ambient_temp_range],
     ["Relative Humidity", `${inputs.relative_humidity_pct}%`],
   ];

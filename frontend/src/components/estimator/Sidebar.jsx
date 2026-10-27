@@ -109,8 +109,7 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         <div className="text-white font-semibold mb-2">{activeProject?.name ?? "—"}</div>
 
         <Row label="Location" value={activeProject?.location} />
-        <Row label="Built-up Area" value={activeProject?.builtUp} />
-        <Row label="Built-up Area (Length × Width × No. of Floors) (m²)" value={activeProject?.plot} />
+        <Row label="Built-up Area (Length × Width × No. of Floors) (m²)" value={activeProject?.builtUp} />
         <Row label="Version" value="1.0" />
         <Row label="Last Saved" value={activeProject?.lastSaved ?? "—"} />
       </div>
