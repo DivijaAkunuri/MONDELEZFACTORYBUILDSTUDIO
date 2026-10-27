@@ -40,12 +40,6 @@ export default function InfraExternal() {
     result.totals?.built_up_area_sqm || 0
   );
 
-  const plotArea = Number(
-    result.totals?.plot_area_sqm ||
-      inputs?.plot_area_sqm ||
-      0
-  );
-
   const infraCostPerSqm = builtUpArea
     ? infraTotal / builtUpArea
     : 0;

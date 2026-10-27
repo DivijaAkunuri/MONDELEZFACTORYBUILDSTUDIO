@@ -74,7 +74,6 @@ const DEFAULT_INPUTS = {
   num_floors: 1,
   bay_spacing_m: 8,
 
-  plot_area_sqm: 4440,
 
   rm_warehouse_length_m: "",
   rm_warehouse_width_m: "",
@@ -262,48 +261,7 @@ function getReadableError(error) {
   return "An unexpected error occurred. Check the browser console and backend logs.";
 }
 
-/* -------------------------------------------------------
-   INPUT VALIDATION
-
-   Check dimensions and land/plot areas before calling
-   the calculation API.
-------------------------------------------------------- */
-
 function validateInputs(inputs) {
-  const length = Number(inputs.length_m);
-  const width = Number(inputs.width_m);
-  const plotArea = Number(inputs.plot_area_sqm);
-  const landArea = Number(inputs.land_area_sqm);
-
-  if (!Number.isFinite(length) || length <= 0) {
-    return "Length must be greater than 0.";
-  }
-
-  if (!Number.isFinite(width) || width <= 0) {
-    return "Width must be greater than 0.";
-  }
-
-  const minimumArea = length * width;
-
-  if (!Number.isFinite(minimumArea) || minimumArea <= 0) {
-    return "Length × Width must be greater than 0.";
-  }
-
-  if (!Number.isFinite(plotArea) || plotArea <= 0) {
-    return "Plot Area must be greater than 0.";
-  }
-
-  if (plotArea < minimumArea) {
-    return `Plot Area must be at least ${minimumArea} m² (Length × Width).`;
-  }
-
-  if (!Number.isFinite(landArea) || landArea <= 0) {
-    return "Land Area must be greater than 0.";
-  }
-
-  if (landArea < minimumArea) {
-    return `Land Area must be at least ${minimumArea} m² (Length × Width).`;
-  }
 
   const floors = Number(inputs.num_floors);
 
@@ -695,7 +653,6 @@ export default function Estimator() {
           name: inputs.project_name,
           location: `${inputs.location_city}, ${inputs.location_country}`,
           builtUp: `${fmtNumber(builtUpArea)} m²`,
-          plot: `${fmtNumber(Number(inputs.plot_area_sqm) || 0)} m²`,
           lastSaved: new Date().toLocaleString("en-GB", {
             day: "2-digit",
             month: "short",

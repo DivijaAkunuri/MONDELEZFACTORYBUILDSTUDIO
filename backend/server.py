@@ -1151,7 +1151,6 @@ class ProjectInputs(BaseModel):
     height_m: float = 10.5
     num_floors: int = 1
     bay_spacing_m: float = 8.0
-    plot_area_sqm: float = 32000.0
     building_components: List[str] = Field(default_factory=lambda: [
     "Admin Building","RM Warehouse","Production Floor","WH-Bakery","WH-Chocolate","Utilities Block","Territory Packaging Hall","R&D Center",
     ])
@@ -1834,7 +1833,6 @@ def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
 
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     built_up = inp.length_m * inp.width_m * max(1, inp.num_floors)
-    plot_area = max(inp.plot_area_sqm or 0, inp.land_area_sqm or 0) or inp.plot_area_sqm
     employee_facilities = calculate_employee_facilities(inp)
 
     market = _market_factor_set(inp)
@@ -2206,7 +2204,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "employee_seating": employee_facilities["seating"],
             "employee_shoe_storage_positions": employee_facilities["street_shoe_storage_positions"] + employee_facilities["work_shoe_storage_positions"],
             "employee_facility_cost": employee_facility_cost,
-            "plot_area_sqm": plot_area,
         },
         "breakdown": breakdown,
         "employee_facilities": employee_facilities,

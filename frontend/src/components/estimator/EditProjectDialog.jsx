@@ -290,9 +290,18 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Wind Zone">
               <SelectF id="wind_zone" value={draft.wind_zone} onChange={(v) => patch("wind_zone", v)} options={reference?.wind_zones} />
             </Field>
+
             <Field label="Wind Speed (m/s)">
-              <InputF id="wind_speed_ms" type="number" value={draft.wind_speed_ms} onChange={(v) => patch("wind_speed_ms", v)} />
+              <InputF
+                id="wind_speed_ms"
+                type="number"
+                value={Math.max(45, Number(draft.wind_speed_ms) || 45)}
+                onChange={(v) =>
+                  patch("wind_speed_ms", Math.max(45, Number(v) || 45))
+                }
+              />
             </Field>
+            f
             <Field label="GWT Depth">
               <SelectF id="gwt_depth" value={draft.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} />
             </Field>
@@ -396,9 +405,24 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               <Field label="Tempering Utility Demand">
                 <SelectF id="tempering_utility_demand" value={draft.tempering_utility_demand} onChange={(v) => patch("tempering_utility_demand", v)} options={reference?.tempering_utility_demand} />
               </Field>
+
               <Field label="Humidity Controlled (%)">
-                <InputF id="humidity_controlled_pct" type="number" value={draft.humidity_controlled_pct} onChange={(v) => patch("humidity_controlled_pct", v)} />
+                <InputF
+                  id="humidity_controlled_pct"
+                  type="number"
+                  value={Math.min(
+                    100,
+                    Math.max(0, Number(draft.humidity_controlled_pct) || 0)
+                  )}
+                  onChange={(v) =>
+                    patch(
+                      "humidity_controlled_pct",
+                      Math.min(100, Math.max(0, Number(v) || 0))
+                    )
+                  }
+                />
               </Field>
+
               <Field label="Chocolate Storage Temp (°C)">
                 <InputF id="chocolate_storage_temp_c" type="number" value={draft.chocolate_storage_temp_c} onChange={(v) => patch("chocolate_storage_temp_c", v)} />
               </Field>
@@ -463,35 +487,49 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             <Field label="Ambient Temperature">
               <SelectF id="ambient_temp_range" value={draft.ambient_temp_range} onChange={(v) => patch("ambient_temp_range", v)} options={reference?.ambient_temp_ranges} />
             </Field>
+
             <Field label="Relative Humidity (%)">
-              <InputF id="relative_humidity_pct" type="number" value={draft.relative_humidity_pct} onChange={(v) => patch("relative_humidity_pct", v)} />
-            </Field>
-          </Section>
-
-          {/* ---- Complexity ---- */}
-          <MultiField
-            title="Complexity Factors"
-            list={reference?.complexity || []}
-            selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
-            onToggle={(k) => patchCx(k, !draft.complexity[k])}
-            idPrefix="complexity"
-          />
-
-          {/* ---- Contingency ---- */}
-          <Section title="Contingency">
-            <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
-              <input
-                type="range"
-                min="4"
-                max="20"
-                step="0.5"
-                value={draft.contingency_pct}
-                onChange={(e) => patch("contingency_pct", +e.target.value)}
-                data-testid={TID.wizardField("contingency_pct")}
-                className="w-full accent-blue-600"
+              <InputF
+                id="relative_humidity_pct"
+                type="number"
+                value={Math.min(
+                  100,
+                  Math.max(0, Number(draft.relative_humidity_pct) || 0)
+                )}
+                onChange={(v) =>
+                  patch(
+                    "relative_humidity_pct",
+                    Math.min(100, Math.max(0, Number(v) || 0))
+                  )
+                }
               />
-            </Field>
-          </Section>
+            </Field></Section>
+
+
+            {/* ---- Complexity ---- */}
+            <MultiField
+              title="Complexity Factors"
+              list={reference?.complexity || []}
+              selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
+              onToggle={(k) => patchCx(k, !draft.complexity[k])}
+              idPrefix="complexity"
+            />
+
+            {/* ---- Contingency ---- */}
+            <Section title="Contingency">
+              <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
+                <input
+                  type="range"
+                  min="4"
+                  max="20"
+                  step="0.5"
+                  value={draft.contingency_pct}
+                  onChange={(e) => patch("contingency_pct", +e.target.value)}
+                  data-testid={TID.wizardField("contingency_pct")}
+                  className="w-full accent-blue-600"
+                />
+              </Field>
+            </Section>
         </div>
 
         <SheetFooter className="flex-row items-center justify-end gap-2 border-t border-slate-200 px-6 py-3 bg-slate-50">

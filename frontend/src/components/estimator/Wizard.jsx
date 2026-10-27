@@ -51,10 +51,11 @@ export default function Wizard({
   };
 
   // Validate dimensions and both manually entered areas.
+
+  // Validate dimensions and land area only.
   const validateAreas = () => {
     const length = Number(inputs.length_m);
     const width = Number(inputs.width_m);
-    const plotArea = Number(inputs.plot_area_sqm);
     const landArea = Number(inputs.land_area_sqm);
 
     if (
@@ -91,25 +92,6 @@ export default function Wizard({
     }
 
     if (
-      inputs.plot_area_sqm === "" ||
-      inputs.plot_area_sqm == null ||
-      !Number.isFinite(plotArea) ||
-      plotArea <= 0
-    ) {
-      return {
-        field: "plot_area_sqm",
-        message: "Plot Area must be greater than 0.",
-      };
-    }
-
-    if (plotArea < minimumArea) {
-      return {
-        field: "plot_area_sqm",
-        message: `Plot Area must be at least ${minimumArea} m² (Length × Width).`,
-      };
-    }
-
-    if (
       inputs.land_area_sqm === "" ||
       inputs.land_area_sqm == null ||
       !Number.isFinite(landArea) ||
@@ -130,6 +112,7 @@ export default function Wizard({
 
     return null;
   };
+
 
   const stepUi = () => {
     switch (step) {
@@ -207,8 +190,10 @@ export default function Wizard({
     const error = validateAreas();
 
     if (error) {
-      if (error.field === "length_m" || error.field === "width_m" ||
-        error.field === "plot_area_sqm") {
+      if (
+        error.field === "length_m" ||
+        error.field === "width_m"
+      ) {
         setStep(1);
         setAttemptedNext(true);
       } else {
@@ -687,7 +672,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
   const length = Number(inputs.length_m);
   const width = Number(inputs.width_m);
-  const plotArea = Number(inputs.plot_area_sqm);
   const minimumArea = length * width;
 
   const lengthError =
@@ -706,17 +690,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
       ? "Width must be greater than 0."
       : "";
 
-  const plotAreaError =
-    lengthError || widthError
-      ? ""
-      : inputs.plot_area_sqm === "" ||
-        inputs.plot_area_sqm == null ||
-        !Number.isFinite(plotArea) ||
-        plotArea <= 0
-        ? "Plot Area must be greater than 0."
-        : plotArea < minimumArea
-          ? `Plot Area must be at least ${minimumArea} m² (Length × Width).`
-          : "";
 
   return (
     <>
@@ -1009,14 +982,16 @@ function Step3({ inputs, patch, reference }) {
         </Field>
 
 
-
         <Field label="Wind Speed (m/s)">
           <InputF
             id="wind_speed_ms"
             type="number"
             min="45"
             step="1"
-            value={Math.max(45, Number(inputs.wind_speed_ms) || 45)}
+            value={Math.max(
+              45,
+              Number(inputs.wind_speed_ms) || 45
+            )}
             onChange={(value) => {
               if (value === "") {
                 patch("wind_speed_ms", 45);

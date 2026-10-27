@@ -71,9 +71,6 @@ export default function CivilScope() {
         (inputs?.width_m || 0) *
         (inputs?.num_floors || 0)
     )} m²`,
-    plot: `${fmtNumber(
-      inputs?.plot_area_sqm || 0
-    )} m²`,
     lastSaved: "—",
   };
 
