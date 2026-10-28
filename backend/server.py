@@ -1221,10 +1221,10 @@ class ProjectInputs(BaseModel):
         if not math.isfinite(width) or width <= 0:
            raise ValueError("Width must be greater than 0.")
 
-        minimum_area = length * width
+        minimum_area = self.built_up_area_sqm
 
         if not math.isfinite(minimum_area) or minimum_area <= 0:
-           raise ValueError("Length × Width must be greater than 0.")
+           raise ValueError("Built-up Area must be greater than 0.")
 
         if not math.isfinite(land_area) or land_area <= 0:
            raise ValueError("Land Area must be greater than 0.")
