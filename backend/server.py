@@ -1117,10 +1117,9 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-app = FastAPI()
 origins = [
     "http://localhost:3000",
-    "https://constructionestimator-virid.vercel.app",
+    "https://constructionestimator.vercel.app",
 ]
 
 app.add_middleware(
@@ -1131,6 +1130,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 api_router = APIRouter(prefix="/api")
 
 # ---------- Models ----------
