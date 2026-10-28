@@ -1221,7 +1221,7 @@ class ProjectInputs(BaseModel):
         if not math.isfinite(width) or width <= 0:
            raise ValueError("Width must be greater than 0.")
 
-        minimum_area = length * width * max(1, self.num_floors)
+        minimum_area = length * width * max(1, self.num_floors) * 2
 
         if not math.isfinite(minimum_area) or minimum_area <= 0:
            raise ValueError("Built-up Area must be greater than 0.")
