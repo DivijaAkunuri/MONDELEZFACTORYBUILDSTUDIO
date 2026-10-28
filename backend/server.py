@@ -1230,7 +1230,7 @@ class ProjectInputs(BaseModel):
            raise ValueError("Land Area must be greater than 0.")
 
         if land_area < minimum_area:
-            raise ValueError(f"Land Area must be at least {minimum_area:g} m² ""(Length × Width).")
+            raise ValueError(f"Land Area must be at least {minimum_area:g} m² ""(Built-up Area).")
         return self
 
     @model_validator(mode="after")

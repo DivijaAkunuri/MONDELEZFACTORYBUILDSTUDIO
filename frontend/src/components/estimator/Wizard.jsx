@@ -106,7 +106,7 @@ export default function Wizard({
     if (landArea < minimumArea) {
       return {
         field: "land_area_sqm",
-        message: `Land Area must be at least ${minimumArea} m² (Length × Width).`,
+        message: `Land Area must be at least ${minimumArea} m² (Built-up Area).`,
       };
     }
 
@@ -1292,7 +1292,7 @@ function Step5({
       landArea <= 0
       ? "Land Area must be greater than 0."
       : landArea < minimumArea
-        ? `Land Area must be at least ${minimumArea} m² (Length × Width).`
+        ? `Land Area must be at least ${minimumArea} m² (Built-up Area).`
         : "";
 
   const toggleBoolean = (key, value) => {
