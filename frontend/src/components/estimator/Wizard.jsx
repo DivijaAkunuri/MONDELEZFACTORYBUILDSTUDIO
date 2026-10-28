@@ -82,7 +82,7 @@ export default function Wizard({
       };
     }
 
-    const minimumArea = length * width;
+    const minimumArea = length * width * Math.max(1, inputs.num_floors);
 
     if (!Number.isFinite(minimumArea) || minimumArea <= 0) {
       return {
