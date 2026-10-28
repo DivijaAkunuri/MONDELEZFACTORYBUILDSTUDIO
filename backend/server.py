@@ -1214,44 +1214,33 @@ class ProjectInputs(BaseModel):
         return self
     
     
-    @model_validator(mode="after")
-    @model_validator(mode="after")
-    def calculate_site_areas(self):
-        length = self.length_m
-        width = self.width_m
-        land_area = self.land_area_sqm
-        if not math.isfinite(length) or length <= 0:
-            raise ValueError("Length must be greater than 0.")
+   @model_validator(mode="after")
+def calculate_site_areas(self):
+    length = self.length_m
+    width = self.width_m
+    land_area = self.land_area_sqm
 
-        if not math.isfinite(width) or width <= 0:
-             raise ValueError("Width must be greater than 0.")
-        minimum_area = length * width
+    if not math.isfinite(length) or length <= 0:
+        raise ValueError("Length must be greater than 0.")
 
-        if not math.isfinite(minimum_area) or minimum_area <= 0:
-             raise ValueError("Length × Width must be greater than 0.")
+    if not math.isfinite(width) or width <= 0:
+        raise ValueError("Width must be greater than 0.")
 
-        if not math.isfinite(land_area) or land_area <= 0:
-             raise ValueError("Land Area must be greater than 0.")
+    minimum_area = length * width
 
-        if land_area < minimum_area:
-             raise ValueError(
-                 f"Land Area must be at least {minimum_area:g} m² "
-                 "(Length × Width)."
-                 )
-        return self
+    if not math.isfinite(minimum_area) or minimum_area <= 0:
+        raise ValueError("Length × Width must be greater than 0.")
 
-    
+    if not math.isfinite(land_area) or land_area <= 0:
+        raise ValueError("Land Area must be greater than 0.")
 
-# Complexity toggles
-    complexity: Dict[str, bool] = Field(default_factory=lambda: {
-        "brownfield": False,"explosion_risk": False,
-        "utility_redundancy": True, "remote_site": False,
-    })
-    # Display
-    currency: str = "USD"
-    base_unit: str = "mm"
-    contingency_pct: float = 4.8
+    if land_area < minimum_area:
+        raise ValueError(
+            f"Land Area must be at least {minimum_area:g} m² "
+            "(Length × Width)."
+        )
 
+    return self
 
 class Estimate(BaseModel):
     model_config = ConfigDict(extra="ignore")
