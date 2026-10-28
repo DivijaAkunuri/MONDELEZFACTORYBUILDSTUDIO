@@ -1082,7 +1082,6 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -1125,13 +1124,14 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https://constructionestimator-[a-z0-9-]+-divijaakunuri\.vercel\.app",
+    allow_origin_regex=(
+        r"https://constructionestimator-[a-z0-9-]+-"
+        r"divijaakunuri\.vercel\.app"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-api_router = APIRouter(prefix="/api")
 
 # ---------- Models ----------
 class ProjectInputs(BaseModel):
@@ -1207,37 +1207,54 @@ class ProjectInputs(BaseModel):
     
     @model_validator(mode="after")
     def calculate_site_areas(self):
-       length = self.length_m
-       width = self.width_m
-       land_area = self.land_area_sqm
+        length = self.length_m
+        width = self.width_m
+        land_area = self.land_area_sqm
 
-       if not math.isfinite(length) or length <= 0:
-           raise ValueError("Length must be greater than 0.")
+        if not math.isfinite(length) or length <= 0:
+            raise ValueError("Length must be greater than 0.")
 
-       if not math.isfinite(width) or width <= 0:
-           raise ValueError("Width must be greater than 0.")
+        if not math.isfinite(width) or width <= 0:
+            raise ValueError("Width must be greater than 0.")
 
-       minimum_area = length * width
+        minimum_area = length * width
 
-       if not math.isfinite(minimum_area) or minimum_area <= 0:
-           raise ValueError("Length × Width must be greater than 0.")
+        if not math.isfinite(minimum_area) or minimum_area <= 0:
+            raise ValueError(
+                "Length × Width must be greater than 0."
+            )
 
-       if not math.isfinite(land_area) or land_area <= 0:
-           raise ValueError("Land Area must be greater than 0.")
+        if not math.isfinite(land_area) or land_area <= 0:
+            raise ValueError("Land Area must be greater than 0.")
 
-       if land_area < minimum_area:
-           raise ValueError(
-               f"Land Area must be at least {minimum_area:g} m² "
-               "(Length × Width)."
-        )
-           return self
-         
+        if land_area < minimum_area:
+            raise ValueError(
+                f"Land Area must be at least {minimum_area:g} m² "
+                "(Length × Width)."
+            )
+
+        return self
+
     @model_validator(mode="after")
     def validate_employee_counts(self):
-        if min(self.num_employees, self.male_employees, self.female_employees) < 0:
-            raise ValueError("Employee counts cannot be negative.")
-        if self.male_employees + self.female_employees != self.num_employees:
-            raise ValueError("Male Employees + Female Employees must equal Total Employees.")
+        if min(
+            self.num_employees,
+            self.male_employees,
+            self.female_employees,
+        ) < 0:
+            raise ValueError(
+                "Employee counts cannot be negative."
+            )
+
+        if (
+            self.male_employees + self.female_employees
+            != self.num_employees
+        ):
+            raise ValueError(
+                "Male Employees + Female Employees must equal "
+                "Total Employees."
+            )
+
         return self
     
 

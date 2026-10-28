@@ -124,7 +124,6 @@ const activeProject = {
             : ""
     }`,
     builtUp: `${fmtNumber(totals.built_up_area_sqm || 0)} m²`,
-    plot: `${fmtNumber(totals.plot_area_sqm || 0)} m²`,
     lastSaved: "—",
 };
 
