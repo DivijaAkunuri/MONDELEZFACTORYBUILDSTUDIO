@@ -1212,27 +1212,21 @@ class ProjectInputs(BaseModel):
         land_area = self.land_area_sqm
 
         if not math.isfinite(length) or length <= 0:
-            raise ValueError("Length must be greater than 0.")
+           raise ValueError("Length must be greater than 0.")
 
         if not math.isfinite(width) or width <= 0:
-            raise ValueError("Width must be greater than 0.")
+           raise ValueError("Width must be greater than 0.")
 
         minimum_area = length * width
 
         if not math.isfinite(minimum_area) or minimum_area <= 0:
-            raise ValueError(
-                "Length × Width must be greater than 0."
-            )
+           raise ValueError("Length × Width must be greater than 0.")
 
         if not math.isfinite(land_area) or land_area <= 0:
-            raise ValueError("Land Area must be greater than 0.")
+           raise ValueError("Land Area must be greater than 0.")
 
         if land_area < minimum_area:
-            raise ValueError(
-                f"Land Area must be at least {minimum_area:g} m² "
-                "(Length × Width)."
-            )
-
+            raise ValueError(f"Land Area must be at least {minimum_area:g} m² ""(Length × Width).")
         return self
 
     @model_validator(mode="after")
