@@ -1119,14 +1119,14 @@ db = client[os.environ['DB_NAME']]
 
 app = FastAPI()
 origins = [
-     "https://constructionestimator-virid.vercel.app",
-    "https://constructionestimator-hwk3omhs9-divijaakunuri.vercel.app",
-    "https://constructionestimator-btqhaxybc-divijaakunuri.vercel.app",
     "http://localhost:3000",
+    "https://constructionestimator-virid.vercel.app",
 ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://constructionestimator-[a-z0-9-]+-divijaakunuri\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
