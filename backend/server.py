@@ -1116,6 +1116,8 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+app = FastAPI()
+
 origins = [
     "http://localhost:3000",
     "https://constructionestimator.vercel.app",
@@ -1133,6 +1135,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+api_router = APIRouter(prefix="/api")
 # ---------- Models ----------
 class ProjectInputs(BaseModel):
     model_config = ConfigDict(extra="allow")
