@@ -56,10 +56,24 @@ export default function InfraExternal() {
 
   const infraRows = (result.boq || []).filter(isInfraRow);
 
-  const infraTotal = infraRows.reduce(
-    (sum, row) => sum + Number(row.amount || 0),
+  const infraBreakdownTotal = Number(
+    (result.breakdown || []).find((item) => {
+      const name = String(item.name || "").toLowerCase();
+      return (
+        name.includes("infra") ||
+        name.includes("external") ||
+        name.includes("site development")
+      );
+    })?.value || 0
+  );
+
+  const infraBoqTotal = infraRows.reduce(
+    (sum, row) => sum + (Number(row.amount) || 0),
     0
   );
+
+  const infraTotal =
+    infraBreakdownTotal > 0 ? infraBreakdownTotal : infraBoqTotal;
 
   const builtUpArea = Number(
     result.totals?.built_up_area_sqm || 0
@@ -72,11 +86,10 @@ export default function InfraExternal() {
 
   const activeProject = {
     name: inputs?.project_name ?? "—",
-    location: `${inputs?.location_city ?? ""}${
-      inputs?.location_country
+    location: `${inputs?.location_city ?? ""}${inputs?.location_country
         ? `, ${inputs.location_country}`
         : ""
-    }`,
+      }`,
     builtUp: `${fmtNumber(builtUpArea)} m²`,
     lastSaved: "—",
   };
@@ -462,9 +475,8 @@ function SummaryCard({ title, value, subtitle, icon: Icon, color }) {
     <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
       <div className="flex items-center gap-3">
         <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-            styles[color] || styles.orange
-          }`}
+          className={`w-10 h-10 rounded-lg flex items-center justify-center ${styles[color] || styles.orange
+            }`}
         >
           <Icon className="w-5 h-5" />
         </div>
