@@ -7,6 +7,7 @@ import {
 import { TID } from "@/constants/testIds";
 
 const items = [
+  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { key: "new-estimate", label: "New Estimate", icon: Plus, path: "/estimator" },
   { key: "civil-scope", label: "Civil Scope", icon: Building2, path: "/civil-scope" },
   { key: "utilities-process", label: "Utilities & Process", icon: Zap, path: "/utilities-process" },
