@@ -381,7 +381,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                     }`}
                 >
                   {employeeCountValid
-                    ? `Individual lockers: ${employeeTotal} — one locker per employee. Facilities are located in the Admin Building.`
+                    ? `Individual lockers: ${employeeTotal} — two lockers per employee. Facilities are located in the Admin Building.`
                     : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
                 </div>
               </div>

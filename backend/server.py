@@ -1153,7 +1153,7 @@ class ProjectInputs(BaseModel):
     building_type: str = "Industrial Building (RCC + PEB)"
     length_m: float = 185.0
     width_m: float = 24.0
-    height_m: float = 10.5
+    height_m: float = 7
     num_floors: int = 1
     bay_spacing_m: float = 8.0
     building_components: List[str] = Field(default_factory=lambda: [

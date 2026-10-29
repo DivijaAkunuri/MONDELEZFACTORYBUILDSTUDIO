@@ -70,7 +70,7 @@ const DEFAULT_INPUTS = {
   building_type: "Industrial Building (RCC + PEB)",
   length_m: 185,
   width_m: 24,
-  height_m: 10.5,
+  height_m: 7,
   num_floors: 1,
   bay_spacing_m: 8,
 
