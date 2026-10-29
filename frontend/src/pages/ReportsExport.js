@@ -109,6 +109,46 @@ export default function ReportsExport() {
         ? result.breakdown
         : [];
     const boq = Array.isArray(result.boq) ? result.boq : [];
+
+    const infraRows = boq.filter((row) => {
+        const category = String(row.category || "").trim().toLowerCase();
+        const activity = String(row.activity || "").trim().toLowerCase();
+
+        return (
+            category.includes("infra") ||
+            category.includes("external") ||
+            category.includes("site development") ||
+            activity.includes("roads") ||
+            activity.includes("pathways") ||
+            activity.includes("parking") ||
+            activity.includes("landscaping") ||
+            activity.includes("compound wall") ||
+            activity.includes("fence")
+        );
+    });
+
+    const infraBoqTotal = infraRows.reduce((sum, row) => {
+        const amount = Number(row.amount);
+        return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
+
+    const infraBreakdown = findBreakdownCategory(breakdown, [
+        "External / Site Development",
+        "Infra & External",
+        "Infrastructure",
+        "Infra",
+    ]);
+
+    const infraBreakdownTotal = Number(infraBreakdown?.value || 0);
+
+    const infraTotal =
+        infraBreakdownTotal > 0 ? infraBreakdownTotal : infraBoqTotal;
+
+    const infraPct =
+        Number(totals.total_project_cost) > 0
+            ? (infraTotal / Number(totals.total_project_cost)) * 100
+            : 0;
+
     const utilities = Array.isArray(result.utilities)
         ? result.utilities
         : [];
@@ -327,8 +367,8 @@ export default function ReportsExport() {
                                     data={breakdown.find(
                                         (b) => b.name?.trim().toLowerCase() === "civil / csa"
                                     )}
-                                currency={currency}
-                                fxRates={fxRates}
+                                    currency={currency}
+                                    fxRates={fxRates}
                                 />
 
                                 <CategoryCard
@@ -340,14 +380,17 @@ export default function ReportsExport() {
                                     fxRates={fxRates}
                                 />
 
+
                                 <CategoryCard
                                     title="Infra & External"
-                                    data={breakdown.find(
-                                        (b) => b.name?.trim().toLowerCase() === "external / site development"
-                                    )}
+                                    data={{
+                                        value: infraTotal,
+                                        pct: Number(infraPct.toFixed(2)),
+                                    }}
                                     currency={currency}
                                     fxRates={fxRates}
                                 />
+
                             </div>
 
                         </section>
@@ -366,15 +409,15 @@ export default function ReportsExport() {
                                     "Rate",
                                     "Amount",
                                 ]}
-                                rows={boq.map((row, index) => [
-                                    index + 1,
+
+                                rows={infraRows.map((row) => [
                                     row.activity,
-                                    row.category,
                                     fmtNumber(row.quantity || 0),
                                     row.unit,
                                     fmtMoney(row.rate || 0, currency, fxRates),
                                     fmtMoney(row.amount || 0, currency, fxRates),
                                 ])}
+
                             />
                         </section>
 
