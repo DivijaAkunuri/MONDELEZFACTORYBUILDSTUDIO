@@ -2,13 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  Bell,
-  HelpCircle,
-  Save,
   RefreshCw,
   GitCompareArrows,
   Download,
-  MoreVertical,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -752,16 +748,6 @@ export default function Estimator() {
               </SelectContent>
             </Select>
 
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-4 h-4 text-slate-600" />
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center">
-                6
-              </span>
-            </Button>
-
-            <Button variant="ghost" size="icon">
-              <HelpCircle className="w-4 h-4 text-slate-600" />
-            </Button>
 
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
@@ -789,16 +775,6 @@ export default function Estimator() {
         {/* ACTION BAR */}
 
         <div className="flex items-center justify-end gap-2 px-5 py-2 border-b border-slate-200 bg-white">
-          <Button
-            data-testid={TID.saveBtn}
-            variant="outline"
-            size="sm"
-            onClick={onSave}
-            disabled={!result}
-          >
-            <Save className="w-3.5 h-3.5 mr-1.5" />
-            Save
-          </Button>
 
           <Button
             data-testid={TID.recalcBtn}
@@ -847,14 +823,6 @@ export default function Estimator() {
             Export
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => toast.info("More options are not implemented yet.")}
-          >
-            <MoreVertical className="w-4 h-4" />
-          </Button>
         </div>
 
         {/* MAIN CONTENT */}
