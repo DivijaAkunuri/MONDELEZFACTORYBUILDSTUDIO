@@ -95,7 +95,6 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     ["SBC / Soil Type", inputs.sbc_soil_type],
     ["Foundation Type", inputs.foundation_type],
     ["GWT Depth", inputs.gwt_depth],
-    ["Floor Load", `${inputs.floor_load_kn} kN/m²`],
     ["Roof Type", inputs.roof_type],
     ["No. of Floors", inputs.num_floors],
     ["Floor Height(m)", `${(inputs.height_m * 1000).toFixed(0)} mm`],
