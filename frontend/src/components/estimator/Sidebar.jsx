@@ -11,7 +11,7 @@ const items = [
   { key: "new-estimate", label: "New Estimate", icon: Plus, path: "/estimator" },
   { key: "civil-scope", label: "Civil Scope", icon: Building2, path: "/civil-scope" },
   { key: "utilities-process", label: "Utilities & Process", icon: Zap, path: "/utilities-process" },
-  { key: "infra-external", label: "Infra & External", icon: Wrench, path: "/infra-external" },
+  { key: "infra-external", label: "External & Site Development", icon: Wrench, path: "/infra-external" },
   { key: "compare", label: "Compare Options", icon: GitCompareArrows, path: "/compare" },
   { key: "reports", label: "Reports & Export", icon: FileOutput, path: "/reports" },
   { key: "rates", label: "Rate Database", icon: Database, path: "/rates" },

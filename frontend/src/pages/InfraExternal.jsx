@@ -170,7 +170,7 @@ export default function InfraExternal() {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SummaryCard
-              title="INFRA & EXTERNAL COST"
+              title="EXTERNAL & SITE DEVELOPMENT COST"
               value={formatAmount(infraTotal)}
               subtitle={`USD ${fmtNumber(infraTotal)}`}
               icon={Wrench}

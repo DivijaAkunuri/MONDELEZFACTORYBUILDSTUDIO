@@ -4,7 +4,7 @@ import { TID } from "@/constants/testIds";
 
 const STEPS = [
   "Project Details", "Building Geometry", "Structural & Site",
-  "Utilities & Process", "Infra & External", "Output & Review",
+  "Utilities & Process", "External & Site Development", "Output & Review",
 ];
 
 export default function Stepper({ current = 5, onJump }) {

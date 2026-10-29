@@ -19,7 +19,7 @@ const STEP_TITLES = [
   "Building Geometry",
   "Structural & Site",
   "Utilities & Process",
-  "Infra & External",
+  "External & Site Development",
 ];
 
 export default function Wizard({

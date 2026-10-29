@@ -147,8 +147,7 @@ export default function ReportsExport() {
     }, 0);
 
     const infraBreakdown = findBreakdownCategory(breakdown, [
-        "External / Site Development",
-        "Infra & External",
+        "External & Site Development",
         "Infrastructure",
         "Infra",
     ]);
@@ -396,7 +395,7 @@ export default function ReportsExport() {
 
 
                                 <CategoryCard
-                                    title="Infra & External"
+                                    title="External & Site Development"
                                     data={{
                                         value: infraTotal,
                                         pct: Number(infraPct.toFixed(2)),
@@ -480,7 +479,7 @@ export default function ReportsExport() {
 
                         {/* Infrastructure */}
                         <section className="p-8 border-b border-slate-200">
-                            <SectionTitle title="Infra & External Details" />
+                            <SectionTitle title="External & Site Development Details" />
 
                             <ReportTable
                                 headers={[
