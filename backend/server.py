@@ -2380,8 +2380,10 @@ def _fallback_insights(inp: ProjectInputs, result: Dict[str, Any]) -> Dict[str, 
         ],
         "executive_summary": (
             f"Concept-stage estimate for a {inp.production_capacity_tpd:.0f} TPD "
-            f"{inp.industry_type.lower()} in {inp.location_city}, {inp.location_country}. "
-            f"Total project cost is USD {result['totals']['total_project_cost']:,.0f} "
+            f"{inp.industry_type.lower()} manufacturing facility in "
+            f"{inp.location_city}, {inp.location_country}. "
+            f"Total project cost is USD "
+            f"{result['totals']['total_project_cost']:,.0f} "
             f"with {result['totals']['confidence_label'].lower()} confidence."
         ),
     }
