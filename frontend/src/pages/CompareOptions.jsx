@@ -372,8 +372,8 @@ export default function CompareOptions() {
             : null;
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-            <Sidebar />
+         <div className="flex h-screen w-full overflow-hidden bg-slate-50">
+    <Sidebar />
 
             <div className="flex min-w-0 flex-1 flex-col overflow-y-auto"></div>
             <header className="border-b border-slate-200 bg-white">
@@ -397,7 +397,7 @@ export default function CompareOptions() {
                 </div>
             </header>
 
-            <main className="mx-auto max-w-7xl space-y-6 px-5 py-7">
+            <main className="min-w-0 flex-1 overflow-y-auto p-6">
                 {referenceError && (
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                         {referenceError}
