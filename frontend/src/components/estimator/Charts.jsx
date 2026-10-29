@@ -6,40 +6,82 @@ import { fmtMoney, fmtNumber } from "@/lib/format";
 const DONUT_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#64748B"];
 const LINE_COLORS = { base: "#2563EB", current: "#10B981", benchmark: "#F59E0B" };
 
+
 export function DonutChart({ data, currency, fxRates, total }) {
   return (
-    <div data-testid={TID.donut} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">Cost Breakdown (% of Total Cost)</h3>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="relative w-[220px] h-[220px] flex-shrink-0">
-          <ResponsiveContainer>
+    <div
+      data-testid={TID.donut}
+      className="min-w-0 w-full bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm"
+    >
+      <h3 className="text-sm font-semibold text-slate-800 font-['Manrope'] mb-4">
+        Cost Breakdown (% of Total Cost)
+      </h3>
+
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] items-center gap-4">
+        {/* Donut chart */}
+        <div className="relative w-full min-w-0 h-[220px]">
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={data} dataKey="value" innerRadius={60} outerRadius={95} paddingAngle={2} stroke="#fff" strokeWidth={2}>
-                {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
+              <Pie
+                data={data}
+                dataKey="value"
+                innerRadius={55}
+                outerRadius={85}
+                paddingAngle={2}
+                stroke="#fff"
+                strokeWidth={2}
+              >
+                {data.map((_, i) => (
+                  <Cell
+                    key={i}
+                    fill={DONUT_COLORS[i % DONUT_COLORS.length]}
+                  />
+                ))}
               </Pie>
+
               <Tooltip
-                contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }}
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
                 formatter={(v) => fmtMoney(v, currency, fxRates)}
               />
             </PieChart>
           </ResponsiveContainer>
+
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider">{currency}</div>
-            <div className="text-lg font-extrabold text-slate-900 font-['Manrope']">
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+              {currency}
+            </div>
+            <div className="text-base sm:text-lg font-extrabold text-slate-900 font-['Manrope']">
               {fmtMoney(total, currency, fxRates, { compact: true })}
             </div>
           </div>
         </div>
-        <div className="flex-1 space-y-2">
+
+        {/* Legend */}
+        <div className="min-w-0 w-full space-y-3">
           {data.map((row, i) => (
-            <div key={row.name} className="flex items-center justify-between text-[13px]">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-sm" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
-                <span className="text-slate-700 truncate">{row.name}</span>
-              </div>
-              <span className="text-slate-900 font-semibold">{row.pct}%</span>
+            <div
+              key={row.name}
+              className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-start gap-2 text-xs sm:text-[13px]"
+            >
+              <span
+                className="mt-1 w-2.5 h-2.5 rounded-sm"
+                style={{
+                  background: DONUT_COLORS[i % DONUT_COLORS.length],
+                }}
+              />
+
+              <span className="min-w-0 whitespace-normal break-words leading-5 text-slate-700">
+                {row.name}
+              </span>
+
+              <span className="whitespace-nowrap text-right text-slate-900 font-semibold tabular-nums">
+                {row.pct}%
+              </span>
             </div>
           ))}
         </div>

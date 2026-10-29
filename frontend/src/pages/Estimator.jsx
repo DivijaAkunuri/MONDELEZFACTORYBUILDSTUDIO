@@ -889,8 +889,8 @@ export default function Estimator() {
                   {/* SUMMARY */}
 
                   {activeTab === "summary" && (
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-                      <div className="xl:col-span-4">
+                    <div className="grid grid-cols-1 2xl:grid-cols-12 gap-5 items-start">
+                      <div className="min-w-0 2xl:col-span-5">
                         <DonutChart
                           data={result.breakdown || []}
                           currency={currency}
