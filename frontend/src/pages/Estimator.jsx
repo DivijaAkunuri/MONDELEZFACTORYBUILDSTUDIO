@@ -166,7 +166,7 @@ const DEFAULT_INPUTS = {
 const TABS = [
   { key: "summary", label: "Summary" },
   { key: "breakdown", label: "Cost Breakdown" },
-  { key: "boq", label: "BOQ" },
+  { key: "boq", label: "Top Cost Items" },
   { key: "utilities", label: "Utilities Summary" },
   { key: "infra", label: "External & Site Development" },
   { key: "cashflow", label: "Cost Trend" },
