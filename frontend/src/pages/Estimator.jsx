@@ -888,9 +888,11 @@ export default function Estimator() {
 
                   {/* SUMMARY */}
 
+
                   {activeTab === "summary" && (
-                    <div className="grid grid-cols-1 2xl:grid-cols-12 gap-5 items-start">
-                      <div className="min-w-0 2xl:col-span-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-12 gap-5 items-start">
+
+                      <div className="min-w-0 w-full lg:col-span-1 2xl:col-span-4">
                         <DonutChart
                           data={result.breakdown || []}
                           currency={currency}
@@ -899,7 +901,7 @@ export default function Estimator() {
                         />
                       </div>
 
-                      <div className="xl:col-span-5">
+                      <div className="min-w-0 w-full lg:col-span-1 2xl:col-span-4">
                         <TrendChart
                           data={result.cost_trend || []}
                           currency={currency}
@@ -907,7 +909,7 @@ export default function Estimator() {
                         />
                       </div>
 
-                      <div className="xl:col-span-3">
+                      <div className="min-w-0 w-full lg:col-span-2 2xl:col-span-4">
                         <UtilitiesSummary
                           utilities={result.utilities || []}
                           total={result.utilities_total}
@@ -915,6 +917,7 @@ export default function Estimator() {
                           fxRates={fxRates}
                         />
                       </div>
+
 
                       <div className="xl:col-span-8">
                         <BoqTable
