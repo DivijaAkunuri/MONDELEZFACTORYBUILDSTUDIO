@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 
 import Sidebar from "@/components/estimator/Sidebar";
-import RightToolbar from "@/components/estimator/RightToolbar";
 import Stepper from "@/components/estimator/Stepper";
 import KpiCards from "@/components/estimator/KpiCards";
 import { DonutChart, TrendChart } from "@/components/estimator/Charts";
@@ -1191,19 +1190,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
       </div>
     </div>
 
-      {/* RIGHT TOOLBAR */ }
-
-  <RightToolbar
-    onAction={(key) => {
-      if (key === "quick-inputs") {
-        setEditOpen(true);
-      } else {
-        toast.info(`Opening ${key}...`);
-      }
-    }}
-  />
-
-  {/* EDIT PROJECT DIALOG */ }
 
   <EditProjectDialog
     open={editOpen}
