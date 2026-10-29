@@ -155,7 +155,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 options={reference?.regions?.[draft.region] || []}
               />
             </Field>
-            <Field label="Currency">
+            <Field label="Local Currency">
               <SelectF id="currency" value={draft.currency} onChange={(v) => patch("currency", v)} options={reference?.currencies} />
             </Field>
             <Field label="Location Tier">

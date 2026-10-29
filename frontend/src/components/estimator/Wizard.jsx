@@ -582,7 +582,7 @@ function Step1({ inputs, patch, reference }) {
           />
         </Field>
 
-        <Field label="Currency">
+        <Field label="Local Currency">
           <SelectF
             id="currency"
             value={inputs.currency}
