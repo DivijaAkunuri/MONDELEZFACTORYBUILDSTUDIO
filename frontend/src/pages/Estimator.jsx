@@ -1112,64 +1112,88 @@ export default function Estimator({ initialView = "new-estimate" }) {
                     />
                   )}
 
+
                   {/* INFRA SUMMARY */}
+                  {activeTab === "infra" && (() => {
+                    const infraRows = (result.boq || []).filter((item) => {
+                      const activity = String(item.activity || "").toLowerCase();
+                      const category = String(item.category || "").toLowerCase();
 
-                  {activeTab === "infra" && (
-                    <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                      <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                        Infra & External
-                      </h3>
+                      return (
+                        category.includes("infra") ||
+                        category.includes("external") ||
+                        category.includes("site development") ||
+                        activity.includes("roads") ||
+                        activity.includes("pathways") ||
+                        activity.includes("parking") ||
+                        activity.includes("landscaping") ||
+                        activity.includes("compound wall") ||
+                        activity.includes("fence")
+                      );
+                    });
 
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="text-xs text-slate-500 uppercase font-semibold">
-                            <tr>
-                              <th className="text-left py-2">Item</th>
-                              <th className="text-right">Amount</th>
-                            </tr>
-                          </thead>
+                    const breakdownInfraTotal = Number(
+                      (result.breakdown || []).find((item) => {
+                        const name = String(item.name || "").toLowerCase();
+                        return (
+                          name.includes("infra") ||
+                          name.includes("external") ||
+                          name.includes("site development")
+                        );
+                      })?.value || 0
+                    );
 
-                          <tbody>
-                            {(result.boq || [])
-                              .filter((item) => item.category === "Infra")
-                              .map((item, index) => (
+                    const boqInfraTotal = infraRows.reduce(
+                      (sum, item) => sum + (Number(item.amount) || 0),
+                      0
+                    );
+
+                    const infraTotal =
+                      breakdownInfraTotal > 0 ? breakdownInfraTotal : boqInfraTotal;
+
+                    return (
+                      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
+                          Infra &amp; External
+                        </h3>
+
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="text-xs text-slate-500 uppercase font-semibold">
+                              <tr>
+                                <th className="text-left py-2">Item</th>
+                                <th className="text-right">Amount</th>
+                              </tr>
+                            </thead>
+
+                            <tbody>
+                              {infraRows.map((item, index) => (
                                 <tr
-                                  key={item.activity || index}
+                                  key={`${item.activity || "infra"}-${index}`}
                                   className="border-t border-slate-100"
                                 >
                                   <td className="py-2">{item.activity}</td>
-
                                   <td className="py-2 text-right font-semibold">
-                                    {fmtMoney(
-                                      item.amount,
-                                      currency,
-                                      fxRates
-                                    )}
+                                    {fmtMoney(item.amount, currency, fxRates)}
                                   </td>
                                 </tr>
                               ))}
 
-                            <tr className="border-t-2 border-slate-200">
-                              <td className="py-3 font-semibold">
-                                Total Infra & External
-                              </td>
-
-                              <td className="py-3 text-right font-bold">
-                                {fmtMoney(
-                                  (result.breakdown || []).find(
-                                    (item) =>
-                                      item.name === "Infra & External"
-                                  )?.value || 0,
-                                  currency,
-                                  fxRates
-                                )}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                              <tr className="border-t-2 border-slate-200">
+                                <td className="py-3 font-semibold">
+                                  Total Infra &amp; External
+                                </td>
+                                <td className="py-3 text-right font-bold">
+                                  {fmtMoney(infraTotal, currency, fxRates)}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
+
 
                   {/* CASH FLOW */}
 
