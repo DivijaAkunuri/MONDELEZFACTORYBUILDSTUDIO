@@ -90,27 +90,121 @@ export function DonutChart({ data, currency, fxRates, total }) {
   );
 }
 
+
 export function TrendChart({ data, currency, fxRates }) {
-  const tooltipFmt = (v) => fmtMoney(v, currency, fxRates, { compact: true });
+  const tooltipFmt = (v) =>
+    fmtMoney(v, currency, fxRates, { compact: true });
+
   return (
-    <div data-testid={TID.line} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">Cost Trend ({currency})</h3>
-        <div className="text-xs text-slate-500 border border-slate-200 rounded px-2 py-1">Monthly</div>
+    <div
+      data-testid={TID.line}
+      className="min-w-0 w-full bg-white border border-slate-200 rounded-lg p-5 shadow-sm"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">
+          Cost Trend ({currency})
+        </h3>
+
+        <div className="text-xs text-slate-500 border border-slate-200 rounded px-2 py-1">
+          Monthly
+        </div>
       </div>
-      <div className="h-[240px]">
-        <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#f1f5f9" vertical={false} />
-            <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false}
-              tickFormatter={(v) => fmtMoney(v, currency, fxRates, { compact: true })} />
-            <Tooltip formatter={tooltipFmt}
-              contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }} />
-            <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-            <Line type="monotone" dataKey="base" name="Base Cost" stroke={LINE_COLORS.base} strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="current" name="Current Estimate" stroke={LINE_COLORS.current} strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="benchmark" name="Benchmark" stroke={LINE_COLORS.benchmark} strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
+
+      <div className="w-full h-[300px] min-w-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 12, right: 18, left: 12, bottom: 8 }}
+          >
+            <CartesianGrid
+              stroke="#e2e8f0"
+              strokeDasharray="3 3"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="period"
+              tick={{ fontSize: 11, fill: "#64748b" }}
+              axisLine={{ stroke: "#cbd5e1" }}
+              tickLine={false}
+              tickMargin={10}
+              minTickGap={12}
+            />
+
+            <YAxis
+              width={75}
+              tick={{ fontSize: 11, fill: "#64748b" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) =>
+                fmtMoney(v, currency, fxRates, { compact: true })
+              }
+            />
+
+            <Tooltip
+              formatter={(value, name) => [
+                fmtMoney(value, currency, fxRates),
+                name,
+              ]}
+              contentStyle={{
+                background: "#fff",
+                border: "1px solid #cbd5e1",
+                borderRadius: 8,
+                fontSize: 12,
+                padding: 12,
+              }}
+              labelStyle={{
+                color: "#0f172a",
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
+            />
+
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              iconType="plainline"
+              wrapperStyle={{
+                fontSize: 12,
+                paddingTop: 14,
+              }}
+            />
+
+            <Line
+              type="linear"
+              dataKey="base"
+              name="Base Cost"
+              stroke="#2563EB"
+              strokeWidth={3}
+              strokeDasharray="7 4"
+              dot={{ r: 4, fill: "#2563EB", strokeWidth: 1 }}
+              activeDot={{ r: 7, stroke: "#fff", strokeWidth: 2 }}
+              connectNulls={false}
+            />
+
+            <Line
+              type="linear"
+              dataKey="benchmark"
+              name="Benchmark"
+              stroke="#D97706"
+              strokeWidth={3}
+              strokeDasharray="3 5"
+              dot={{ r: 4, fill: "#D97706", strokeWidth: 1 }}
+              activeDot={{ r: 7, stroke: "#fff", strokeWidth: 2 }}
+              connectNulls={false}
+            />
+
+            <Line
+              type="linear"
+              dataKey="current"
+              name="Current Estimate"
+              stroke="#059669"
+              strokeWidth={3}
+              strokeDasharray="10 3 2 3"
+              dot={{ r: 4, fill: "#059669", strokeWidth: 1 }}
+              activeDot={{ r: 7, stroke: "#fff", strokeWidth: 2 }}
+              connectNulls={false}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
