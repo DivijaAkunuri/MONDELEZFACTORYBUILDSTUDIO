@@ -37,8 +37,6 @@ export function BoqTable({ rows, currency, fxRates, testid }) {
             <tr>
               <th className="text-left px-4 py-2 w-10">#</th>
               <th className="text-left px-4 py-2">Activity</th>
-              <th className="text-right px-4 py-2">Quantity</th>
-              <th className="text-left px-4 py-2 w-16">Unit</th>
               <th className="text-right px-4 py-2">Rate (USD / {currency})</th>
               <th className="text-right px-4 py-2">Amount ({currency})</th>
               <th className="text-right px-4 py-2 w-24">% of Total</th>
