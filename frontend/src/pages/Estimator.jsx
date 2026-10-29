@@ -168,7 +168,7 @@ const TABS = [
   { key: "breakdown", label: "Cost Breakdown" },
   { key: "boq", label: "BOQ" },
   { key: "utilities", label: "Utilities Summary" },
-  { key: "infra", label: "Infra Summary" },
+  { key: "infra", label: "External & Site Development" },
   { key: "cashflow", label: "Cost Trend" },
   { key: "sensitivity", label: "Sensitivity" },
   { key: "assumptions", label: "Assumptions" },
@@ -1080,7 +1080,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                     return (
                       <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                         <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                          Infra &amp; External
+                          External & Site Development
                         </h3>
 
                         <div className="overflow-x-auto">
@@ -1107,7 +1107,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
                               <tr className="border-t-2 border-slate-200">
                                 <td className="py-3 font-semibold">
-                                  Total Infra &amp; External
+                                  Total External & Site Development
                                 </td>
                                 <td className="py-3 text-right font-bold">
                                   {fmtMoney(infraTotal, currency, fxRates)}

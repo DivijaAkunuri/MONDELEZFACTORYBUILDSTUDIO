@@ -178,7 +178,7 @@ export default function InfraExternal() {
             />
 
             <SummaryCard
-              title="INFRA COST / m²"
+              title="EXTERNAL & SITE DEVELOPMENT COST / m²"
               value={`${formatAmount(infraCostPerSqm)} / m²`}
               subtitle={
                 builtUpArea > 0
