@@ -90,7 +90,7 @@ const DEFAULT_INPUTS = {
   soil_type: "Medium Dense Sand",
   sbc_soil_type: "Hard Stone",
   soil_hardness: "Medium",
-  foundation_type: ["Raft Foundation"],
+  foundation_type: ["Isolated Footing"],
 
   column_type: "Steel",
   roof_type: "PEB + Insulated Panel",

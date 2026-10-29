@@ -1162,7 +1162,7 @@ class ProjectInputs(BaseModel):
     # Step 3 - structural & site
     
     sbc_soil_type: str = "Hard"           # Bearing capacity type               # Hard / Medium / Soft
-    foundation_type: List[str] = Field(default_factory=lambda: ["Raft Foundation"])
+    foundation_type: List[str] = Field(default_factory=lambda: ["Isolated Footing"])
     column_type: str = "Steel"
     roof_type: str = "PEB + Insulated Panel"
     roof_types_by_floor: List[List[str]] = Field(default_factory=lambda: [["PEB + Insulated Panel"]])
