@@ -4,11 +4,6 @@ import { TID } from "@/constants/testIds";
 
 const tools = [
   { key: "quick-inputs", label: "Quick Inputs", icon: Edit3 },
-  { key: "rate-check", label: "Rate Check", icon: DollarSign },
-  { key: "drawing-upload", label: "Drawing Upload", icon: Upload },
-  { key: "take-off-ai", label: "Take-off (AI)", icon: Sparkles },
-  { key: "notes", label: "Notes", icon: StickyNote },
-  { key: "audit-log", label: "Audit Log", icon: FileText },
 ];
 
 export default function RightToolbar({ onAction }) {
