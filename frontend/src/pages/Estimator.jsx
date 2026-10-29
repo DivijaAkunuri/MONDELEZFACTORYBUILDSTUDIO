@@ -746,9 +746,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
           </div>
         </header>
 
-        {/* KEEP YOUR EXISTING CONTENT BELOW THIS HEADER HERE */}
-      </div>
-
 
       {/* ACTION BAR */}
 
