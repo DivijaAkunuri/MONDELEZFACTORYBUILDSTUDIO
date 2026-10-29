@@ -1139,7 +1139,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
           </Field>
 
 
-          <Field label="Chocolate Storage Temp (°C)">
+          <Field label="Chocolate FG Storage Temp (°C)">
             <InputF
               id="chocolate_storage_temp_c"
               type="number"

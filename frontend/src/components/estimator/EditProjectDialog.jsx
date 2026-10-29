@@ -423,7 +423,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 />
               </Field>
 
-              <Field label="Chocolate Storage Temp (°C)">
+              <Field label="Chocolate FG Storage Temp (°C)">
                 <InputF
                   id="chocolate_storage_temp_c"
                   type="number"
