@@ -5,6 +5,20 @@ import { FileOutput, Download } from "lucide-react";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import Sidebar from "@/components/estimator/Sidebar";
 
+
+function findBreakdownCategory(breakdown, aliases) {
+    const normalizedAliases = aliases.map((name) =>
+        name.trim().toLowerCase()
+    );
+
+    return breakdown.find((item) =>
+        normalizedAliases.includes(
+            String(item?.name ?? "").trim().toLowerCase()
+        )
+    );
+}
+
+
 export default function ReportsExport() {
     const location = useLocation();
 
