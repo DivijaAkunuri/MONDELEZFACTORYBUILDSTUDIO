@@ -49,17 +49,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
   const isChocolate = /chocolate|combo/i.test(draft.product_category || "");
   const isBiscuit = /biscuit|wafer|cookie|combo/i.test(draft.product_category || "");
 
-  const employeeTotal = Math.max(0, Number(draft.num_employees) || 0);
   const maleEmployees = Math.max(0, Number(draft.male_employees) || 0);
   const femaleEmployees = Math.max(0, Number(draft.female_employees) || 0);
 
-  const employeeCountValid = maleEmployees + femaleEmployees === employeeTotal;
+  const employeeTotal = maleEmployees + femaleEmployees;
+  const employeeCountValid = true;
 
   const handleSave = () => {
-    if (!employeeCountValid) {
-      return;
-    }
-
     onSave({
       ...draft,
       male_employees: maleEmployees,
@@ -342,8 +338,8 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 <InputF
                   id="num_employees"
                   type="number"
-                  value={draft.num_employees ?? 0}
-                  onChange={(v) => patch("num_employees", Math.max(0, v))}
+                  value={employeeTotal}
+                  disabled={true}
                 />
               </Field>
 
@@ -373,17 +369,8 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 />
               </Field>
 
-              <div className="sm:col-span-2">
-                <div
-                  className={`rounded border px-3 py-2 text-xs ${employeeCountValid
-                    ? "border-slate-200 bg-slate-50 text-slate-600"
-                    : "border-red-300 bg-red-50 text-red-600"
-                    }`}
-                >
-                  {employeeCountValid
-                    ? `Individual lockers: ${employeeTotal * 2} — two lockers per employee. Facilities are located in the Admin Building.`
-                    : `Employee count mismatch: Male (${maleEmployees}) + Female (${femaleEmployees}) must equal Total Employees (${employeeTotal}).`}
-                </div>
+              <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                Total employees: {employeeTotal} | Individual lockers: {employeeTotal * 2} — two lockers per employee. Facilities are located in the Admin Building.
               </div>
             </Section>
           )}
@@ -563,7 +550,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
           <Button
             data-testid="edit-save-btn"
             onClick={handleSave}
-            disabled={!employeeCountValid}
+            disabled={false}
             className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
             <Save className="w-4 h-4 mr-1" /> Save & Recalculate

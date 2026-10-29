@@ -1377,9 +1377,9 @@ CONVEYOR_M     = {"Light": 0.94, "Standard": 1.00, "Heavy Duty": 1.15}
 def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
     admin_building_selected = "Admin Building" in (inp.building_components or [])
 
-    employees = max(0, int(inp.num_employees or 0)) if admin_building_selected else 0
     male = max(0, int(inp.male_employees or 0)) if admin_building_selected else 0
     female = max(0, int(inp.female_employees or 0)) if admin_building_selected else 0
+    employees = male + female
 
     clothing = str(inp.special_work_clothing or "Yes").strip().lower() == "yes"
     shoes = str(inp.work_shoes_required or "Yes").strip().lower() == "yes"
