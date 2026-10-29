@@ -168,7 +168,6 @@ const TABS = [
   { key: "breakdown", label: "Cost Breakdown" },
   { key: "boq", label: "BOQ" },
   { key: "utilities", label: "Utilities Summary" },
-  { key: "process", label: "Process Data" },
   { key: "infra", label: "Infra Summary" },
   { key: "cashflow", label: "Cost Trend" },
   { key: "sensitivity", label: "Sensitivity" },
