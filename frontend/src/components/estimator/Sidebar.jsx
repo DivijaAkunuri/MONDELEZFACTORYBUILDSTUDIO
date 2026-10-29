@@ -90,7 +90,7 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
         <div>
           <div className="text-white font-extrabold text-[15px] leading-tight tracking-tight font-['Manrope']">
-            CONSTRUCTION COST<br />ESTIMATOR
+            MONDELEZ FACTORY<br />BUILD STUDIO
           </div>
           <div className="text-[11px] text-slate-400 mt-1">Civil | Utilities | Infra | Food Industry</div>
         </div>
