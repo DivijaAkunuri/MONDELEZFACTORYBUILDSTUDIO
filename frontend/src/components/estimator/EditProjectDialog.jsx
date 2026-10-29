@@ -424,7 +424,23 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               </Field>
 
               <Field label="Chocolate Storage Temp (°C)">
-                <InputF id="chocolate_storage_temp_c" type="number" value={draft.chocolate_storage_temp_c} onChange={(v) => patch("chocolate_storage_temp_c", v)} />
+                <InputF
+                  id="chocolate_storage_temp_c"
+                  type="number"
+                  min="19"
+                  value={draft.chocolate_storage_temp_c}
+                  onChange={(v) => {
+                    if (v === "") {
+                      patch("chocolate_storage_temp_c", "");
+                      return;
+                    }
+
+                    patch(
+                      "chocolate_storage_temp_c",
+                      Math.max(19, Number(v))
+                    );
+                  }}
+                />
               </Field>
               <Field label="Process Hot Water (L/hr)">
                 <InputF id="process_hot_water_lph" type="number" value={draft.process_hot_water_lph} onChange={(v) => patch("process_hot_water_lph", v)} />
@@ -506,30 +522,30 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             </Field></Section>
 
 
-            {/* ---- Complexity ---- */}
-            <MultiField
-              title="Complexity Factors"
-              list={reference?.complexity || []}
-              selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
-              onToggle={(k) => patchCx(k, !draft.complexity[k])}
-              idPrefix="complexity"
-            />
+          {/* ---- Complexity ---- */}
+          <MultiField
+            title="Complexity Factors"
+            list={reference?.complexity || []}
+            selected={Object.keys(draft.complexity || {}).filter((k) => draft.complexity[k])}
+            onToggle={(k) => patchCx(k, !draft.complexity[k])}
+            idPrefix="complexity"
+          />
 
-            {/* ---- Contingency ---- */}
-            <Section title="Contingency">
-              <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
-                <input
-                  type="range"
-                  min="4"
-                  max="20"
-                  step="0.5"
-                  value={draft.contingency_pct}
-                  onChange={(e) => patch("contingency_pct", +e.target.value)}
-                  data-testid={TID.wizardField("contingency_pct")}
-                  className="w-full accent-blue-600"
-                />
-              </Field>
-            </Section>
+          {/* ---- Contingency ---- */}
+          <Section title="Contingency">
+            <Field label={`Contingency: ${draft.contingency_pct}%`} span={2}>
+              <input
+                type="range"
+                min="4"
+                max="20"
+                step="0.5"
+                value={draft.contingency_pct}
+                onChange={(e) => patch("contingency_pct", +e.target.value)}
+                data-testid={TID.wizardField("contingency_pct")}
+                className="w-full accent-blue-600"
+              />
+            </Field>
+          </Section>
         </div>
 
         <SheetFooter className="flex-row items-center justify-end gap-2 border-t border-slate-200 px-6 py-3 bg-slate-50">

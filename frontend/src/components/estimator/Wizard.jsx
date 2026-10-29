@@ -1143,10 +1143,19 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
             <InputF
               id="chocolate_storage_temp_c"
               type="number"
+              min="19"
               value={inputs.chocolate_storage_temp_c}
-              onChange={(value) =>
-                patch("chocolate_storage_temp_c", value)
-              }
+              onChange={(value) => {
+                if (value === "") {
+                  patch("chocolate_storage_temp_c", "");
+                  return;
+                }
+
+                patch(
+                  "chocolate_storage_temp_c",
+                  Math.max(19, Number(value))
+                );
+              }}
             />
           </Field>
 
