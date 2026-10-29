@@ -706,557 +706,519 @@ export default function Estimator({ initialView = "new-estimate" }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Select
-              value={inputs.base_unit || "mm"}
-              onValueChange={(value) =>
-                setInputs((current) => ({
-                  ...current,
-                  base_unit: value,
-                }))
-              }
-            >
-              <SelectTrigger
-                data-testid={TID.unitSelect}
-                className="h-9 w-[130px] bg-white text-xs"
-              >
-                <SelectValue placeholder="Base Unit" />
-              </SelectTrigger>
 
-              <SelectContent className="bg-white z-50">
-                {["mm", "cm", "m", "ft", "in"].map((unit) => (
-                  <SelectItem key={unit} value={unit}>
-                    Base Unit: {unit}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={currency}
-              onValueChange={(value) =>
-                setInputs((current) => ({
-                  ...current,
-                  currency: value,
-                }))
-              }
-            >
-              <SelectTrigger
-                data-testid={TID.currencySelect}
-                className="h-9 w-[130px] bg-white text-xs"
-              >
-                <SelectValue placeholder="Currency" />
-              </SelectTrigger>
-
-              <SelectContent className="bg-white z-50">
-                {(reference?.currencies || ["USD"]).map((item) => (
-                  <SelectItem key={item} value={item}>
-                    Currency: {item}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700">
+            Base Unit: <span className="font-semibold">m</span>
+          </div>
 
 
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
-                {(inputs.user_name || "User")
-                  .trim()
-                  .split(/\s+/)
-                  .map((name) => name[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
+
+          <div className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700">
+            Currency: <span className="font-semibold">USD</span>
+          </div>
+
+
+
+          <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
+              {(inputs.user_name || "User")
+                .trim()
+                .split(/\s+/)
+                .map((name) => name[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </div>
+
+            <div className="hidden md:block leading-tight">
+              <div className="text-xs font-semibold text-slate-800">
+                {inputs.user_name || "User"}
               </div>
-
-              <div className="hidden md:block leading-tight">
-                <div className="text-xs font-semibold text-slate-800">
-                  {inputs.user_name || "User"}
-                </div>
-                <div className="text-[10px] text-slate-500">
-                  Estimator
-                </div>
+              <div className="text-[10px] text-slate-500">
+                Estimator
               </div>
             </div>
           </div>
-        </header>
+      </div>
+    </header>
 
-        {/* ACTION BAR */}
+        {/* ACTION BAR */ }
 
-        <div className="flex items-center justify-end gap-2 px-5 py-2 border-b border-slate-200 bg-white">
+  <div className="flex items-center justify-end gap-2 px-5 py-2 border-b border-slate-200 bg-white">
 
-          <Button
-            data-testid={TID.recalcBtn}
-            size="sm"
-            onClick={() => recalc(inputs)}
-            disabled={loading}
+    <Button
+      data-testid={TID.recalcBtn}
+      size="sm"
+      onClick={() => recalc(inputs)}
+      disabled={loading}
+    >
+      <RefreshCw
+        className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""
+          }`}
+      />
+      {loading ? "Calculating..." : "Recalculate"}
+    </Button>
+
+    <Button
+      data-testid={TID.compareBtn}
+      variant="outline"
+      size="sm"
+      onClick={() => toast.info("Compare is not implemented yet.")}
+    >
+      <GitCompareArrows className="w-3.5 h-3.5 mr-1.5" />
+      Compare
+    </Button>
+
+    <Button
+      data-testid={TID.exportBtn}
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        if (!result) {
+          toast.error("Calculate an estimate before exporting.");
+          return;
+        }
+
+        navigate("/reports", {
+          state: {
+            result,
+            inputs,
+            currency,
+            fxRates,
+          },
+        });
+      }}
+    >
+      <Download className="w-3.5 h-3.5 mr-1.5" />
+      Export
+    </Button>
+
+  </div>
+
+  {/* MAIN CONTENT */ }
+
+  <div className="flex-1 overflow-y-auto p-5 space-y-5">
+    <Stepper current={step} onJump={setStep} />
+
+    {step < 5 ? (
+      <Wizard
+        step={step}
+        setStep={setStep}
+        inputs={inputs}
+        setInputs={setInputs}
+        reference={reference}
+        onFinish={onFinish}
+      />
+    ) : (
+      <>
+        {loading && !result && (
+          <div
+            className="bg-white border border-slate-200 rounded-lg p-6 text-sm text-slate-600"
+            role="status"
           >
-            <RefreshCw
-              className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""
-                }`}
+            Calculating your estimate...
+          </div>
+        )}
+
+        {!loading && !result && (
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <h2 className="text-base font-semibold text-slate-800">
+              No estimate available
+            </h2>
+
+            <p className="text-sm text-slate-600 mt-2">
+              Check your project inputs and click Recalculate to
+              generate an estimate.
+            </p>
+
+            <Button
+              className="mt-4"
+              onClick={() => recalc(inputs)}
+              disabled={loading}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Calculate Estimate
+            </Button>
+          </div>
+        )}
+
+        {result && (
+          <>
+            <KpiCards
+              totals={result.totals}
+              currency={currency}
+              fxRates={fxRates}
             />
-            {loading ? "Calculating..." : "Recalculate"}
-          </Button>
 
-          <Button
-            data-testid={TID.compareBtn}
-            variant="outline"
-            size="sm"
-            onClick={() => toast.info("Compare is not implemented yet.")}
-          >
-            <GitCompareArrows className="w-3.5 h-3.5 mr-1.5" />
-            Compare
-          </Button>
-
-          <Button
-            data-testid={TID.exportBtn}
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (!result) {
-                toast.error("Calculate an estimate before exporting.");
-                return;
-              }
-
-              navigate("/reports", {
-                state: {
-                  result,
-                  inputs,
-                  currency,
-                  fxRates,
-                },
-              });
-            }}
-          >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
-            Export
-          </Button>
-
-        </div>
-
-        {/* MAIN CONTENT */}
-
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          <Stepper current={step} onJump={setStep} />
-
-          {step < 5 ? (
-            <Wizard
-              step={step}
-              setStep={setStep}
-              inputs={inputs}
-              setInputs={setInputs}
-              reference={reference}
-              onFinish={onFinish}
+            <TabsBar
+              tabs={TABS}
+              active={activeTab}
+              onChange={setActiveTab}
             />
-          ) : (
-            <>
-              {loading && !result && (
-                <div
-                  className="bg-white border border-slate-200 rounded-lg p-6 text-sm text-slate-600"
-                  role="status"
-                >
-                  Calculating your estimate...
-                </div>
-              )}
 
-              {!loading && !result && (
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h2 className="text-base font-semibold text-slate-800">
-                    No estimate available
-                  </h2>
+            {/* SUMMARY */}
 
-                  <p className="text-sm text-slate-600 mt-2">
-                    Check your project inputs and click Recalculate to
-                    generate an estimate.
-                  </p>
 
-                  <Button
-                    className="mt-4"
-                    onClick={() => recalc(inputs)}
-                    disabled={loading}
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Calculate Estimate
-                  </Button>
-                </div>
-              )}
 
-              {result && (
-                <>
-                  <KpiCards
-                    totals={result.totals}
+
+            {activeTab === "summary" && (
+              <div className="space-y-5">
+                <ProjectOverview
+                  inputs={inputs}
+                  totals={result.totals}
+                  onEdit={() => setEditOpen(true)}
+                />
+              </div>
+            )}
+
+
+
+            {/* COST BREAKDOWN */}
+
+            {activeTab === "breakdown" && (
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+                <div className="xl:col-span-5">
+                  <DonutChart
+                    data={result.breakdown || []}
                     currency={currency}
                     fxRates={fxRates}
+                    total={result.totals.total_project_cost}
                   />
+                </div>
 
-                  <TabsBar
-                    tabs={TABS}
-                    active={activeTab}
-                    onChange={setActiveTab}
-                  />
+                <div className="xl:col-span-7">
+                  <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
+                      Category-wise Breakdown
+                    </h3>
 
-                  {/* SUMMARY */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="text-xs text-slate-500 uppercase font-semibold">
+                          <tr>
+                            <th className="text-left py-2">Category</th>
+                            <th className="text-right">Amount</th>
+                            <th className="text-right">Cost / m²</th>
+                            <th className="text-right">%</th>
+                          </tr>
+                        </thead>
 
+                        <tbody>
+                          {(result.breakdown || []).map((item, index) => (
+                            <tr
+                              key={item.name || index}
+                              className="border-t border-slate-100"
+                            >
+                              <td className="py-2 text-slate-800">
+                                {item.name}
+                              </td>
 
+                              <td className="py-2 text-right font-semibold">
+                                {fmtMoney(
+                                  item.value,
+                                  currency,
+                                  fxRates
+                                )}
+                              </td>
 
+                              <td className="py-2 text-right text-slate-600">
+                                {fmtMoney(
+                                  item.cost_per_sqm,
+                                  "USD",
+                                  fxRates
+                                )}{" "}
+                                / m²
+                                <br />
+                                {fmtMoney(
+                                  item.cost_per_sqm,
+                                  currency,
+                                  fxRates
+                                )}{" "}
+                                / m²
+                              </td>
 
-                  {activeTab === "summary" && (
-                    <div className="space-y-5">
-                      <ProjectOverview
-                        inputs={inputs}
-                        totals={result.totals}
-                        onEdit={() => setEditOpen(true)}
-                      />
-                    </div>
-                  )}
-
-
-
-                  {/* COST BREAKDOWN */}
-
-                  {activeTab === "breakdown" && (
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-                      <div className="xl:col-span-5">
-                        <DonutChart
-                          data={result.breakdown || []}
-                          currency={currency}
-                          fxRates={fxRates}
-                          total={result.totals.total_project_cost}
-                        />
-                      </div>
-
-                      <div className="xl:col-span-7">
-                        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                          <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                            Category-wise Breakdown
-                          </h3>
-
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead className="text-xs text-slate-500 uppercase font-semibold">
-                                <tr>
-                                  <th className="text-left py-2">Category</th>
-                                  <th className="text-right">Amount</th>
-                                  <th className="text-right">Cost / m²</th>
-                                  <th className="text-right">%</th>
-                                </tr>
-                              </thead>
-
-                              <tbody>
-                                {(result.breakdown || []).map((item, index) => (
-                                  <tr
-                                    key={item.name || index}
-                                    className="border-t border-slate-100"
-                                  >
-                                    <td className="py-2 text-slate-800">
-                                      {item.name}
-                                    </td>
-
-                                    <td className="py-2 text-right font-semibold">
-                                      {fmtMoney(
-                                        item.value,
-                                        currency,
-                                        fxRates
-                                      )}
-                                    </td>
-
-                                    <td className="py-2 text-right text-slate-600">
-                                      {fmtMoney(
-                                        item.cost_per_sqm,
-                                        "USD",
-                                        fxRates
-                                      )}{" "}
-                                      / m²
-                                      <br />
-                                      {fmtMoney(
-                                        item.cost_per_sqm,
-                                        currency,
-                                        fxRates
-                                      )}{" "}
-                                      / m²
-                                    </td>
-
-                                    <td className="py-2 text-right text-slate-600">
-                                      {item.pct}%
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* BOQ */}
-
-                  {activeTab === "boq" && (
-                    <BoqTable
-                      rows={(result.boq || []).map((item, index) => ({
-                        ...item,
-                        rank: index + 1,
-                        pct_of_total:
-                          Number(result.totals.total_project_cost) > 0
-                            ? +(
-                              (item.amount /
-                                result.totals.total_project_cost) *
-                              100
-                            ).toFixed(2)
-                            : 0,
-                      }))}
-                      currency={currency}
-                      fxRates={fxRates}
-                      testid={TID.boqTable}
-                    />
-                  )}
-
-                  {/* UTILITIES */}
-
-                  {activeTab === "utilities" && (
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-                      <UtilitiesSummary
-                        utilities={result.utilities || []}
-                        total={result.utilities_total}
-                        currency={currency}
-                        fxRates={fxRates}
-                      />
-
-                      <UtilityCards
-                        demand={result.utility_demand || []}
-                      />
-                    </div>
-                  )}
-
-                  {/* PROCESS DATA */}
-
-                  {activeTab === "process" && (
-                    <ProjectOverview
-                      inputs={inputs}
-                      totals={result.totals}
-                      onEdit={() => setEditOpen(true)}
-                    />
-                  )}
-
-
-                  {/* INFRA SUMMARY */}
-                  {activeTab === "infra" && (() => {
-                    const infraRows = (result.boq || []).filter((item) => {
-                      const activity = String(item.activity || "").toLowerCase();
-                      const category = String(item.category || "").toLowerCase();
-
-                      return (
-                        category.includes("infra") ||
-                        category.includes("external") ||
-                        category.includes("site development") ||
-                        activity.includes("roads") ||
-                        activity.includes("pathways") ||
-                        activity.includes("parking") ||
-                        activity.includes("landscaping") ||
-                        activity.includes("compound wall") ||
-                        activity.includes("fence")
-                      );
-                    });
-
-                    const breakdownInfraTotal = Number(
-                      (result.breakdown || []).find((item) => {
-                        const name = String(item.name || "").toLowerCase();
-                        return (
-                          name.includes("infra") ||
-                          name.includes("external") ||
-                          name.includes("site development")
-                        );
-                      })?.value || 0
-                    );
-
-                    const boqInfraTotal = infraRows.reduce(
-                      (sum, item) => sum + (Number(item.amount) || 0),
-                      0
-                    );
-
-                    const infraTotal =
-                      breakdownInfraTotal > 0 ? breakdownInfraTotal : boqInfraTotal;
-
-                    return (
-                      <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                        <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                          External & Site Development
-                        </h3>
-
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead className="text-xs text-slate-500 uppercase font-semibold">
-                              <tr>
-                                <th className="text-left py-2">Item</th>
-                                <th className="text-right">Amount</th>
-                              </tr>
-                            </thead>
-
-                            <tbody>
-                              {infraRows.map((item, index) => (
-                                <tr
-                                  key={`${item.activity || "infra"}-${index}`}
-                                  className="border-t border-slate-100"
-                                >
-                                  <td className="py-2">{item.activity}</td>
-                                  <td className="py-2 text-right font-semibold">
-                                    {fmtMoney(item.amount, currency, fxRates)}
-                                  </td>
-                                </tr>
-                              ))}
-
-                              <tr className="border-t-2 border-slate-200">
-                                <td className="py-3 font-semibold">
-                                  Total External & Site Development
-                                </td>
-                                <td className="py-3 text-right font-bold">
-                                  {fmtMoney(infraTotal, currency, fxRates)}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-
-                  {/* CASH FLOW */}
-
-                  {activeTab === "cashflow" && (
-                    <TrendChart
-                      data={result.cost_trend || []}
-                      currency={currency}
-                      fxRates={fxRates}
-                    />
-                  )}
-
-                  {/* SENSITIVITY */}
-
-                  {activeTab === "sensitivity" && (
-                    <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                      <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                        Sensitivity Analysis
-                      </h3>
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="text-xs text-slate-500 uppercase font-semibold">
-                            <tr>
-                              <th className="text-left py-2">Scenario</th>
-                              <th className="text-right">Δ</th>
-                              <th className="text-right">Total</th>
+                              <td className="py-2 text-right text-slate-600">
+                                {item.pct}%
+                              </td>
                             </tr>
-                          </thead>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                          <tbody>
-                            {[
-                              ["Steel +5%", 0.02],
-                              ["Cement +10%", 0.015],
-                              ["Utilities +8%", 0.025],
-                              ["Labor +6%", 0.018],
-                              ["FX +3%", 0.012],
-                            ].map(([label, delta]) => (
-                              <tr
-                                key={label}
-                                className="border-t border-slate-100"
-                              >
-                                <td className="py-2">{label}</td>
+            {/* BOQ */}
 
-                                <td className="text-right text-amber-600">
-                                  +{(delta * 100).toFixed(1)}%
-                                </td>
+            {activeTab === "boq" && (
+              <BoqTable
+                rows={(result.boq || []).map((item, index) => ({
+                  ...item,
+                  rank: index + 1,
+                  pct_of_total:
+                    Number(result.totals.total_project_cost) > 0
+                      ? +(
+                        (item.amount /
+                          result.totals.total_project_cost) *
+                        100
+                      ).toFixed(2)
+                      : 0,
+                }))}
+                currency={currency}
+                fxRates={fxRates}
+                testid={TID.boqTable}
+              />
+            )}
 
-                                <td className="text-right font-semibold">
-                                  {fmtMoney(
-                                    result.totals.total_project_cost *
-                                    (1 + delta),
-                                    currency,
-                                    fxRates
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+            {/* UTILITIES */}
+
+            {activeTab === "utilities" && (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <UtilitiesSummary
+                  utilities={result.utilities || []}
+                  total={result.utilities_total}
+                  currency={currency}
+                  fxRates={fxRates}
+                />
+
+                <UtilityCards
+                  demand={result.utility_demand || []}
+                />
+              </div>
+            )}
+
+            {/* PROCESS DATA */}
+
+            {activeTab === "process" && (
+              <ProjectOverview
+                inputs={inputs}
+                totals={result.totals}
+                onEdit={() => setEditOpen(true)}
+              />
+            )}
+
+
+            {/* INFRA SUMMARY */}
+            {activeTab === "infra" && (() => {
+              const infraRows = (result.boq || []).filter((item) => {
+                const activity = String(item.activity || "").toLowerCase();
+                const category = String(item.category || "").toLowerCase();
+
+                return (
+                  category.includes("infra") ||
+                  category.includes("external") ||
+                  category.includes("site development") ||
+                  activity.includes("roads") ||
+                  activity.includes("pathways") ||
+                  activity.includes("parking") ||
+                  activity.includes("landscaping") ||
+                  activity.includes("compound wall") ||
+                  activity.includes("fence")
+                );
+              });
+
+              const breakdownInfraTotal = Number(
+                (result.breakdown || []).find((item) => {
+                  const name = String(item.name || "").toLowerCase();
+                  return (
+                    name.includes("infra") ||
+                    name.includes("external") ||
+                    name.includes("site development")
+                  );
+                })?.value || 0
+              );
+
+              const boqInfraTotal = infraRows.reduce(
+                (sum, item) => sum + (Number(item.amount) || 0),
+                0
+              );
+
+              const infraTotal =
+                breakdownInfraTotal > 0 ? breakdownInfraTotal : boqInfraTotal;
+
+              return (
+                <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
+                    External & Site Development
+                  </h3>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-xs text-slate-500 uppercase font-semibold">
+                        <tr>
+                          <th className="text-left py-2">Item</th>
+                          <th className="text-right">Amount</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {infraRows.map((item, index) => (
+                          <tr
+                            key={`${item.activity || "infra"}-${index}`}
+                            className="border-t border-slate-100"
+                          >
+                            <td className="py-2">{item.activity}</td>
+                            <td className="py-2 text-right font-semibold">
+                              {fmtMoney(item.amount, currency, fxRates)}
+                            </td>
+                          </tr>
+                        ))}
+
+                        <tr className="border-t-2 border-slate-200">
+                          <td className="py-3 font-semibold">
+                            Total External & Site Development
+                          </td>
+                          <td className="py-3 text-right font-bold">
+                            {fmtMoney(infraTotal, currency, fxRates)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+
+
+            {/* CASH FLOW */}
+
+            {activeTab === "cashflow" && (
+              <TrendChart
+                data={result.cost_trend || []}
+                currency={currency}
+                fxRates={fxRates}
+              />
+            )}
+
+            {/* SENSITIVITY */}
+
+            {activeTab === "sensitivity" && (
+              <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
+                  Sensitivity Analysis
+                </h3>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-xs text-slate-500 uppercase font-semibold">
+                      <tr>
+                        <th className="text-left py-2">Scenario</th>
+                        <th className="text-right">Δ</th>
+                        <th className="text-right">Total</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {[
+                        ["Steel +5%", 0.02],
+                        ["Cement +10%", 0.015],
+                        ["Utilities +8%", 0.025],
+                        ["Labor +6%", 0.018],
+                        ["FX +3%", 0.012],
+                      ].map(([label, delta]) => (
+                        <tr
+                          key={label}
+                          className="border-t border-slate-100"
+                        >
+                          <td className="py-2">{label}</td>
+
+                          <td className="text-right text-amber-600">
+                            +{(delta * 100).toFixed(1)}%
+                          </td>
+
+                          <td className="text-right font-semibold">
+                            {fmtMoney(
+                              result.totals.total_project_cost *
+                              (1 + delta),
+                              currency,
+                              fxRates
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ASSUMPTIONS AND INSIGHTS */}
+
+            {activeTab === "assumptions" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <AssumptionsBox
+                  items={result.insights?.assumptions || []}
+                />
+
+                <RisksBox
+                  items={result.insights?.risks || []}
+                />
+
+                <OptimizationsBox
+                  items={result.insights?.optimizations || []}
+                />
+
+                {result.insights?.executive_summary && (
+                  <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
+                      Executive Summary
+                    </h3>
+
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      {result.insights.executive_summary}
+                    </p>
+
+                    {result.insights?.source && (
+                      <div className="text-[10px] text-slate-400 mt-2 uppercase">
+                        Source: {result.insights.source}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </>
+    )}
+  </div>
+      </div >
 
-                  {/* ASSUMPTIONS AND INSIGHTS */}
+    {/* RIGHT TOOLBAR */ }
 
-                  {activeTab === "assumptions" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                      <AssumptionsBox
-                        items={result.insights?.assumptions || []}
-                      />
-
-                      <RisksBox
-                        items={result.insights?.risks || []}
-                      />
-
-                      <OptimizationsBox
-                        items={result.insights?.optimizations || []}
-                      />
-
-                      {result.insights?.executive_summary && (
-                        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                          <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
-                            Executive Summary
-                          </h3>
-
-                          <p className="text-sm text-slate-700 leading-relaxed">
-                            {result.insights.executive_summary}
-                          </p>
-
-                          {result.insights?.source && (
-                            <div className="text-[10px] text-slate-400 mt-2 uppercase">
-                              Source: {result.insights.source}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* RIGHT TOOLBAR */}
-
-      <RightToolbar
-        onAction={(key) => {
-          if (key === "quick-inputs") {
-            setEditOpen(true);
-          } else {
-            toast.info(`Opening ${key}...`);
-          }
-        }}
+    < RightToolbar
+  onAction = {(key) => {
+    if (key === "quick-inputs") {
+      setEditOpen(true);
+    } else {
+      toast.info(`Opening ${key}...`);
+    }
+  }
+}
       />
 
-      {/* EDIT PROJECT DIALOG */}
+{/* EDIT PROJECT DIALOG */ }
 
-      <EditProjectDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        inputs={inputs}
-        reference={reference}
-        onSave={async (updated) => {
-          setInputs((current) => ({
-            ...current,
-            ...updated,
-            complexity: {
-              ...current.complexity,
-              ...(updated.complexity || {}),
-            },
-          }));
+<EditProjectDialog
+  open={editOpen}
+  onOpenChange={setEditOpen}
+  inputs={inputs}
+  reference={reference}
+  onSave={async (updated) => {
+    setInputs((current) => ({
+      ...current,
+      ...updated,
+      complexity: {
+        ...current.complexity,
+        ...(updated.complexity || {}),
+      },
+    }));
 
-          setEditOpen(false);
-        }}
-      />
-    </div>
+    setEditOpen(false);
+  }}
+/>
+    </div >
   );
 }
