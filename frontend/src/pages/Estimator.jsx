@@ -652,9 +652,21 @@ export default function Estimator({ initialView = "new-estimate" }) {
         onNewEstimate={() => {
           setStep(0);
         }}
+
         activeProject={{
-          // Keep your existing activeProject properties here.
+          name: inputs.project_name,
+          location: `${inputs.location_city}, ${inputs.location_country}`,
+          builtUp: `${fmtNumber(inputs.length_m * inputs.width_m * inputs.num_floors)} m²`,
+          plot: `${fmtNumber(inputs.plot_area_sqm)} m²`,
+          lastSaved: new Date().toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         }}
+
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
