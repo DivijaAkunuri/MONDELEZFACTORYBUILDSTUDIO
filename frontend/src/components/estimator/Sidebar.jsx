@@ -17,7 +17,8 @@ const items = [
   { key: "rates", label: "Rate Database", icon: Database, path: "/rates" },
 ];
 
-export default function Sidebar({ activeProject, fxRates, currency, result, inputs, liveRateIndex }) {
+export default function Sidebar({ activeProject, fxRates, currency, result, inputs, liveRateIndex, onDashboard,
+  onNewEstimate, }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,9 +32,25 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
   const idxColor = idxPct > 0 ? "text-amber-400" : idxPct < 0 ? "text-emerald-400" : "text-slate-300";
 
+
   const handleNavigation = (key) => {
     if (key === "new-estimate") {
-      navigate("/estimator");
+      if (onNewEstimate) {
+        onNewEstimate();
+      } else {
+        navigate("/estimator");
+      }
+      return;
+    }
+
+    if (key === "dashboard") {
+      if (onDashboard) {
+        onDashboard();
+      } else {
+        navigate("/dashboard", {
+          state: { result, inputs, currency, fxRates },
+        });
+      }
       return;
     }
 
@@ -60,6 +77,7 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
     const item = items.find((i) => i.key === key);
     if (item?.path) navigate(item.path);
   };
+
 
   return (
     <aside data-testid={TID.sidebar} className="sidebar-scroll w-[260px] flex-shrink-0 flex flex-col h-full bg-[#0B1120] text-slate-300 overflow-y-auto">
@@ -106,7 +124,7 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         <div className="text-white font-semibold mb-2">{activeProject?.name ?? "—"}</div>
 
         <Row label="Location" value={activeProject?.location} />
-        <Row label="Built-up Area (Length × Width × No. of Floors) (m²)" value={activeProject?.builtUp} />
+        <Row label="Built-up Area (m²)" value={activeProject?.builtUp} />
         <Row label="Version" value="1.0" />
         <Row label="Last Saved" value={activeProject?.lastSaved ?? "—"} />
       </div>

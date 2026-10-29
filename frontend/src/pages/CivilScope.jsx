@@ -223,13 +223,6 @@ export default function CivilScope() {
                       Activity
                     </th>
 
-                    <th className="text-right px-5 py-3">
-                      Quantity
-                    </th>
-
-                    <th className="text-left px-5 py-3">
-                      Unit
-                    </th>
 
                     <th className="text-right px-5 py-3">
                       Rate (USD / {currency})
@@ -266,17 +259,6 @@ export default function CivilScope() {
 
                         <td className="px-5 py-3 text-slate-800 font-medium">
                           {row.activity}
-                        </td>
-
-                        <td className="px-5 py-3 text-right text-slate-700">
-                          {fmtNumber(
-                            row.quantity,
-                            2
-                          )}
-                        </td>
-
-                        <td className="px-5 py-3 text-slate-500">
-                          {row.unit}
                         </td>
 
                         <td className="px-5 py-3 text-right text-slate-700">

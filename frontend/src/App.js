@@ -24,6 +24,11 @@ function App() {
           />
 
           <Route
+            path="/dashboard"
+            element={<Estimator initialView="dashboard" />}
+          />
+
+          <Route
             path="/civil-scope"
             element={<CivilScope />}
           />

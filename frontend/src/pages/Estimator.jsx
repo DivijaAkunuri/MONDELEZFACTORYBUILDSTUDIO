@@ -282,7 +282,7 @@ function validateInputs(inputs) {
    ESTIMATOR PAGE
 ------------------------------------------------------- */
 
-export default function Estimator() {
+export default function Estimator({ initialView = "new-estimate" }) {
   const navigate = useNavigate();
 
   const [reference, setReference] = React.useState(null);
@@ -330,7 +330,7 @@ export default function Estimator() {
   });
 
   const [loading, setLoading] = React.useState(false);
-  const [step, setStep] = React.useState(5);
+  const [step, setStep] = React.useState(initialView === "dashboard" ? 5 : 0);
   const [activeTab, setActiveTab] = React.useState("summary");
   const [editOpen, setEditOpen] = React.useState(false);
 
@@ -645,17 +645,15 @@ export default function Estimator() {
         result={result}
         inputs={inputs}
         liveRateIndex={result?.live_rate_index}
+        onDashboard={() => {
+          setStep(5);
+          setActiveTab("summary");
+        }}
+        onNewEstimate={() => {
+          setStep(0);
+        }}
         activeProject={{
-          name: inputs.project_name,
-          location: `${inputs.location_city}, ${inputs.location_country}`,
-          builtUp: `${fmtNumber(builtUpArea)} m²`,
-          lastSaved: new Date().toLocaleString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          // Keep your existing activeProject properties here.
         }}
       />
 
