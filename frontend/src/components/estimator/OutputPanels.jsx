@@ -47,8 +47,6 @@ export function BoqTable({ rows, currency, fxRates, testid }) {
               <tr key={i} data-testid={TID.boqRow(i + 1)} className="border-t border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 text-slate-500">{r.rank ?? i + 1}</td>
                 <td className="px-4 py-2 text-slate-800 font-medium">{r.activity}</td>
-                <td className="px-4 py-2 text-right text-slate-700">{fmtNumber(r.quantity, 2)}</td>
-                <td className="px-4 py-2 text-slate-500">{r.unit}</td>
                 <td className="px-4 py-2 text-right text-slate-700">{fmtMoney(r.rate, "USD", fxRates)}<br />{fmtMoney(r.rate, currency, fxRates)}</td>
                 <td className="px-4 py-2 text-right text-slate-900 font-semibold">{fmtMoney(r.amount, currency, fxRates)}</td>
                 <td className="px-4 py-2 text-right text-slate-600">{r.pct_of_total ?? "—"}%</td>
