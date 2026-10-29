@@ -1100,7 +1100,7 @@ BENCHMARK_STRUCTURAL_M = 0.9440
 # PRODUCT CATEGORY → auto floor load (kN)
 # ───────────────────────────────────────────────────────────────
 PRODUCT_CATEGORY_LOAD = {
-    "Chocolate Plant":          1500,
+    "Chocolate":          1500,
     "Bakery + Chocolate Combo": 1500,
     "Bakery":                    1000,
     "Warehouse":                 750,
@@ -1215,7 +1215,7 @@ def get_employee_facility_rates(country: str) -> Dict[str, float]:
 # INDUSTRY PRESETS
 # ───────────────────────────────────────────────────────────────
 INDUSTRY_PRESETS = {
-    "Chocolate Plant":          {"utilities_pct": 0.63, "cold_chain_pct": 0.18, "hvac_pct": 0.11},
+    "Chocolate":          {"utilities_pct": 0.63, "cold_chain_pct": 0.18, "hvac_pct": 0.11},
     "Bakery + Chocolate Combo": {"utilities_pct": 0.60, "cold_chain_pct": 0.16, "hvac_pct": 0.11},
     "Bakery":                   {"utilities_pct": 0.50, "cold_chain_pct": 0.05, "hvac_pct": 0.09},
     "Warehouse":                {"utilities_pct": 0.25, "cold_chain_pct": 0.02, "hvac_pct": 0.04},

@@ -55,11 +55,11 @@ import { TID } from "@/constants/testIds";
 ------------------------------------------------------- */
 
 const DEFAULT_INPUTS = {
-  project_name: "Chocolate & Bakery Manufacturing Plant",
+  project_name: "Mondelez",
   user_name: "",
   project_type: "Greenfield",
   industry_type: "Food",
-  product_category: "Chocolate Plant",
+  product_category: "Chocolate",
 
   location_city: "Hamburg",
   location_country: "Germany",

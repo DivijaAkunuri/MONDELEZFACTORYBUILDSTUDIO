@@ -1144,7 +1144,7 @@ class ProjectInputs(BaseModel):
     project_name: str = "Chocolate & Bakery Manufacturing Plant"
     project_type: str = "Greenfield"           # Greenfield / Brownfield / Retrofit
     industry_type: str = "FMCG"                 # Food / FMCG / Warehouse / Process Building
-    product_category: str = "Chocolate Plant"   # Chocolate Plant / Biscuit Plant / ...
+    product_category: str = "Chocolate"   # Chocolate Plant / Biscuit Plant / ...
     location_city: str = "Hamburg"
     location_country: str = "Germany"
     region: str = "MEU"                      # Stage 2 region                   # Stage 3 world/continent
@@ -1636,7 +1636,7 @@ OTHER_SCOPE_WEIGHTS = {
 # not to civil construction. Inputs supplied by the user further refine
 # the applicable process systems.
 PRODUCT_UTILITY_INTENSITY = {
-    "Chocolate Plant": {
+    "Chocolate": {
         "Refrigeration / Cold Chain": 1.20,
         "HVAC": 1.10,
         "Utility Piping": 1.08,
@@ -1810,7 +1810,7 @@ def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
     # Food manufacturing baseline: the benchmark basket includes the core
     # utility/process systems. The UI selection can add optional systems,
     # but it must not silently remove core scope from a food plant.
-    if product in {"chocolate plant","bakery", "bakery + chocolate combo"}:
+    if product in {"chocolate","bakery", "bakery + chocolate combo"}:
         return True
     if product == "warehouse":
         core = {
