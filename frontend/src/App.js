@@ -7,6 +7,7 @@ import CivilScope from "@/pages/CivilScope";
 import InfraExternal from "@/pages/InfraExternal";
 import UtilitiesProcess from "@/pages/UtilitiesProcess";
 import ReportsExport from "@/pages/ReportsExport";
+import CompareOptions from "@/pages/CompareOptions";
 
 function App() {
   return (
@@ -46,6 +47,11 @@ function App() {
           <Route
             path="/reports"
             element={<ReportsExport />}
+          />
+
+          <Route
+            path="/compare-options"
+            element={<CompareOptions />}
           />
         </Routes>
       </BrowserRouter>
