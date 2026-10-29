@@ -15,9 +15,6 @@ const items = [
   { key: "compare", label: "Compare Options", icon: GitCompareArrows, path: "/compare" },
   { key: "reports", label: "Reports & Export", icon: FileOutput, path: "/reports" },
   { key: "rates", label: "Rate Database", icon: Database, path: "/rates" },
-  { key: "approvals", label: "Approvals", icon: CheckSquare, path: "/approvals" },
-  { key: "admin", label: "Admin Settings", icon: Settings, path: "/admin" },
-  { key: "help", label: "Help & Support", icon: HelpCircle, path: "/help" },
 ];
 
 export default function Sidebar({ activeProject, fxRates, currency, result, inputs, liveRateIndex }) {
