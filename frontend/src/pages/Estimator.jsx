@@ -900,90 +900,17 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
 
 
+
                   {activeTab === "summary" && (
                     <div className="space-y-5">
-
-                      {/* ROW 1: Three dashboard cards */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5 items-start">
-
-                        <div className="min-w-0 w-full">
-                          <DonutChart
-                            data={result.breakdown || []}
-                            currency={currency}
-                            fxRates={fxRates}
-                            total={result.totals.total_project_cost}
-                          />
-                        </div>
-
-                        <div className="min-w-0 w-full">
-                          <TrendChart
-                            data={result.cost_trend || []}
-                            currency={currency}
-                            fxRates={fxRates}
-                          />
-                        </div>
-
-                        <div className="min-w-0 w-full">
-                          <UtilitiesSummary
-                            utilities={result.utilities || []}
-                            total={result.utilities_total}
-                            currency={currency}
-                            fxRates={fxRates}
-                          />
-                        </div>
-
-                      </div>
-
-                      {/* ROW 2: BOQ and project information */}
-                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-
-                        <div className="min-w-0 xl:col-span-8">
-                          <BoqTable
-                            rows={result.top_cost_items || []}
-                            currency={currency}
-                            fxRates={fxRates}
-                            testid={TID.boqTable}
-                          />
-                        </div>
-
-                        <div className="min-w-0 xl:col-span-4 space-y-4">
-
-                          <ProjectOverview
-                            inputs={inputs}
-                            totals={result.totals}
-                            onEdit={() => setEditOpen(true)}
-                          />
-
-                          <CityFactorsCard
-                            cityFactors={result.city_factors}
-                            requestedCity={inputs.location_city}
-                          />
-
-                          <AssumptionsBox
-                            items={result.insights?.assumptions || []}
-                          />
-
-                          <RisksBox
-                            items={result.insights?.risks || []}
-                          />
-
-                          <OptimizationsBox
-                            items={result.insights?.optimizations || []}
-                          />
-
-                        </div>
-
-                        {/* ROW 3: Utility demand cards */}
-                        <div className="min-w-0 xl:col-span-12">
-                          <UtilityCards
-                            demand={result.utility_demand || []}
-                          />
-                        </div>
-
-                      </div>
-
+                      <ProjectOverview
+                        inputs={inputs}
+                        totals={result.totals}
+                        onEdit={() => setEditOpen(true)}
+                      />
                     </div>
                   )}
+
 
 
                   {/* COST BREAKDOWN */}
