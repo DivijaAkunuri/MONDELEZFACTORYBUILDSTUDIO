@@ -157,10 +157,10 @@ export default function InfraExternal() {
 
             <div>
               <h1 className="text-xl font-bold text-slate-900 font-['Manrope']">
-                Infra &amp; External
+                External & Site Development
               </h1>
               <p className="text-xs text-slate-500">
-                Infrastructure and external works cost breakdown
+                External & Site Development works cost breakdown
               </p>
             </div>
           </div>
@@ -361,10 +361,10 @@ export default function InfraExternal() {
           <section className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200">
               <h2 className="text-sm font-semibold text-slate-800">
-                Complete Infrastructure &amp; External BOQ
+                Complete External & Site Development BOQ
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                All matching infrastructure and external items from the estimate.
+                All matching external and site development items from the estimate.
               </p>
             </div>
 
@@ -430,7 +430,7 @@ export default function InfraExternal() {
                         colSpan={8}
                         className="px-5 py-10 text-center text-slate-500"
                       >
-                        No infrastructure or external BOQ items were returned
+                        No External & Site Development BOQ items were returned
                         by the current estimate.
                       </td>
                     </tr>
@@ -444,7 +444,7 @@ export default function InfraExternal() {
                         colSpan={6}
                         className="px-5 py-4 text-right font-semibold"
                       >
-                        Total Infrastructure &amp; External
+                        Total External & Site Development
                       </td>
                       <td className="px-5 py-4 text-right font-bold">
                         {formatAmount(infraTotal)}
