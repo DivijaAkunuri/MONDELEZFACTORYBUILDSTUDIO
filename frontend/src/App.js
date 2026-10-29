@@ -49,10 +49,8 @@ function App() {
             element={<ReportsExport />}
           />
 
-          <Route
-            path="/compare-options"
-            element={<CompareOptions />}
-          />
+
+          <Route path="/compare" element={<CompareOptions />} />
         </Routes>
       </BrowserRouter>
 
