@@ -1415,7 +1415,7 @@ def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
             "hvac_scope": "Not applicable",
         }
 
-    lockers = employees
+    lockers = employees * 2
 
     # Individual locker module. Germany ASR A4.1 provides a 0.30 m x 0.50 m
     # reference locker footprint; other countries are treated as planning basis
@@ -1473,7 +1473,7 @@ def calculate_employee_facilities(inp: ProjectInputs) -> Dict[str, Any]:
     rates = get_employee_facility_rates(country)
     cost_civil_finish = round(total_area * rates["civil_finish"], 2)
     cost_mep = round(total_area * rates["mep"], 2)
-    cost_lockers = round(employees * rates["locker"], 2)
+    cost_lockers = round(lockers * rates["locker"], 2)
     cost_shoe_storage = round((street_shoe_positions + work_shoe_positions) * rates["shoe_rack"], 2) if shoes else 0
     cost_benches = round(seating * rates["bench"], 2)
     estimated_cost = round(cost_civil_finish + cost_mep + cost_lockers + cost_shoe_storage + cost_benches, 2)
