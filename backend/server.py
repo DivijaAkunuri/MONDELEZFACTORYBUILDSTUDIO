@@ -1181,7 +1181,7 @@ class ProjectInputs(BaseModel):
     cooling_tunnel_load_tr: float = 180.0
     tempering_utility_demand: str = "Medium"
     humidity_controlled_pct: float = 40.0
-    chocolate_storage_temp_c: float = 16.0
+    chocolate_storage_temp_c: float = 19.0
     process_hot_water_lph: float = 2500.0
     # Biscuit-specific
     oven_capacity_kg_hr: float = 1200.0
@@ -1194,7 +1194,7 @@ class ProjectInputs(BaseModel):
     include_roads: bool = True
     include_landscaping: bool = True
     include_fence: bool = True
-    land_area_sqm: float = 32000.0
+    land_area_sqm: float = 8880.0
     ground_coverage_pct: float = 58.0
     far_fsi: float = 1.2
     water_availability: str = "Municipal + Borewell"
@@ -1202,9 +1202,9 @@ class ProjectInputs(BaseModel):
     ambient_temp_range: str = "Temperate (5°C - 30°C)"
     relative_humidity_pct: float = 70.0
     # Employee & Staff Facilities
-    num_employees: int = 0
     male_employees: int = 0
     female_employees: int = 0
+    num_employees: int = 0
     special_work_clothing: str = "Yes"
     work_shoes_required: str = "Yes" 
     work_shoes_required: str = "Yes"
@@ -1236,9 +1236,9 @@ class ProjectInputs(BaseModel):
     @model_validator(mode="after")
     def validate_employee_counts(self):
         if min(
-            self.num_employees,
             self.male_employees,
             self.female_employees,
+            self.num_employees,
         ) < 0:
             raise ValueError(
                 "Employee counts cannot be negative."

@@ -28,9 +28,9 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
       location_country: country,
       location_tier: validTiers.includes(inputs.location_tier) ? inputs.location_tier : "Metro",
       sbc_soil_type: inputs.sbc_soil_type === "Hard Stone" ? "Hard" : (inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard"),
-      num_employees: inputs.num_employees ?? 0,
       male_employees: inputs.male_employees ?? 0,
       female_employees: inputs.female_employees ?? 0,
+      num_employees: inputs.num_employees ?? 0,
       special_work_clothing: inputs.special_work_clothing ?? "Yes",
       work_shoes_required: inputs.work_shoes_required ?? "Yes",
       canteen_dining_required: inputs.canteen_dining_required ?? "Yes",
@@ -62,9 +62,9 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
     onSave({
       ...draft,
-      num_employees: employeeTotal,
       male_employees: maleEmployees,
       female_employees: femaleEmployees,
+      num_employees: employeeTotal,
       special_work_clothing: draft.special_work_clothing || "Yes",
       work_shoes_required: draft.work_shoes_required || "Yes",
       canteen_dining_required: draft.canteen_dining_required || "Yes",
@@ -320,14 +320,6 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
           {/* ---- Employee & Staff Facilities ---- */}
           {(draft.building_components ?? []).includes("Admin Building") && (
             <Section title="Employee & Staff Facilities">
-              <Field label="Total Employees">
-                <InputF
-                  id="num_employees"
-                  type="number"
-                  value={draft.num_employees ?? 0}
-                  onChange={(v) => patch("num_employees", Math.max(0, v))}
-                />
-              </Field>
 
               <Field label="Male Employees">
                 <InputF
@@ -344,6 +336,14 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                   type="number"
                   value={draft.female_employees ?? 0}
                   onChange={(v) => patch("female_employees", Math.max(0, v))}
+                />
+              </Field>
+              <Field label="Total Employees">
+                <InputF
+                  id="num_employees"
+                  type="number"
+                  value={draft.num_employees ?? 0}
+                  onChange={(v) => patch("num_employees", Math.max(0, v))}
                 />
               </Field>
 

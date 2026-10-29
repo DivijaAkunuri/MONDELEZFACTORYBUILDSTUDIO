@@ -120,7 +120,7 @@ const DEFAULT_INPUTS = {
   cooling_tunnel_load_tr: 180,
   tempering_utility_demand: "Medium",
   humidity_controlled_pct: 40,
-  chocolate_storage_temp_c: 16,
+  chocolate_storage_temp_c: 19,
   process_hot_water_lph: 2500,
 
   oven_capacity_kg_hr: 1200,
@@ -134,7 +134,7 @@ const DEFAULT_INPUTS = {
   include_landscaping: true,
   include_fence: true,
 
-  land_area_sqm: 4440,
+  land_area_sqm: 8880,
   ground_coverage_pct: 58,
   far_fsi: 1.2,
 
@@ -155,9 +155,9 @@ const DEFAULT_INPUTS = {
   base_unit: "mm",
   contingency_pct: 8.0,
 
-  num_employees: 0,
   male_employees: 0,
   female_employees: 0,
+  num_employees: 0,
   special_work_clothing: "Yes",
   work_shoes_required: "Yes",
   canteen_dining_required: "Yes",

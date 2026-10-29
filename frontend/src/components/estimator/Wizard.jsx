@@ -1312,17 +1312,6 @@ function Step5({
     <>
       {(inputs.building_components || []).includes("Admin Building") && (
         <Section title="Employee & Staff Facilities">
-          <Field label="Total Employees">
-            <InputF
-              id="num_employees"
-              type="number"
-              min="0"
-              value={inputs.num_employees ?? 0}
-              onChange={(value) =>
-                patch("num_employees", Math.max(0, Number(value) || 0))
-              }
-            />
-          </Field>
 
           <Field label="Male Employees">
             <InputF
@@ -1344,6 +1333,17 @@ function Step5({
               value={inputs.female_employees ?? 0}
               onChange={(value) =>
                 patch("female_employees", Math.max(0, Number(value) || 0))
+              }
+            />
+          </Field>
+          <Field label="Total Employees">
+            <InputF
+              id="num_employees"
+              type="number"
+              min="0"
+              value={inputs.num_employees ?? 0}
+              onChange={(value) =>
+                patch("num_employees", Math.max(0, Number(value) || 0))
               }
             />
           </Field>
