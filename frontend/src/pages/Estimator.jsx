@@ -170,7 +170,7 @@ const TABS = [
   { key: "utilities", label: "Utilities Summary" },
   { key: "process", label: "Process Data" },
   { key: "infra", label: "Infra Summary" },
-  { key: "cashflow", label: "Cash Flow" },
+  { key: "cashflow", label: "Cost Trend" },
   { key: "sensitivity", label: "Sensitivity" },
   { key: "assumptions", label: "Assumptions" },
 ];
