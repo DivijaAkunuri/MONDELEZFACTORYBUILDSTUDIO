@@ -30,7 +30,6 @@ export function BoqTable({ rows, currency, fxRates, testid }) {
     <div data-testid={testid} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
       <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">Top {rows.length} Cost Items</h3>
-        <button className="text-xs text-blue-600 border border-slate-200 rounded px-2 py-1 hover:bg-blue-50">View Full BOQ</button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -149,7 +148,6 @@ export function AssumptionsBox({ items }) {
           </li>
         ))}
       </ul>
-      <button className="text-xs text-blue-600 hover:underline mt-3">View all assumptions</button>
     </div>
   );
 }
@@ -166,7 +164,6 @@ export function RisksBox({ items }) {
           </li>
         ))}
       </ul>
-      <button className="text-xs text-blue-600 hover:underline mt-3">View all risk factors</button>
     </div>
   );
 }

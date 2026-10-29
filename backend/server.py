@@ -1755,13 +1755,13 @@ def _relative_structural_factor(inp: ProjectInputs) -> float:
         return raw ** (1.0 / 2.5)
 
     requested = raw_factor(
-        inp.foundation_type[0] if inp.foundation_type else "Raft Foundation",
+        inp.foundation_type[0] if inp.foundation_type else "Isolated Footing",
         inp.sbc_soil_type, inp.gwt_depth, inp.wind_zone, inp.seismic_zone,
         inp.column_type, inp.roof_type, inp.building_type, inp.bay_spacing_m,
         inp.wind_speed_ms, inp.far_fsi, inp.num_floors, inp.roof_types_by_floor,
     )
     reference = raw_factor(
-        "Raft Foundation", "Hard", "Medium (3-8 m)", "Zone 2",
+        "Isolated Footing", "Hard", "Medium (3-8 m)", "Zone 2",
         "Zone 0 (Very Low)", "Steel", "PEB + Insulated Panel",
         "Industrial Building (RCC + PEB)", 8.0, 24.0, 1.2, 1,
         [["PEB + Insulated Panel"]],
@@ -2384,7 +2384,6 @@ def _fallback_insights(inp: ProjectInputs, result: Dict[str, Any]) -> Dict[str, 
             f"Total project cost is USD {result['totals']['total_project_cost']:,.0f} "
             f"with {result['totals']['confidence_label'].lower()} confidence."
         ),
-        "source": "fallback",
     }
 
 
