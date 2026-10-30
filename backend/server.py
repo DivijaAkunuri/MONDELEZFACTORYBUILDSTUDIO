@@ -2048,6 +2048,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         k: w for k, w in OTHER_SCOPE_WEIGHTS.items()
         if scope_flags.get(k, True)
         }
+    weight_total = sum(active_weights.values()) or 1.0
 
     
     other_rows = []
