@@ -665,7 +665,6 @@ return (
     )}
   </>
 );
-}
 
 /* ---------- Step 2 : Building Geometry ---------- */
 
