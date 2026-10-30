@@ -641,8 +641,10 @@ function Step1({ inputs, patch, reference }) {
       )}
     </>
   );
+}
 
   /* ---------- Step 2 : Building Geometry ---------- */
+
 
   function Step2({ inputs, patch, reference, showErrors }) {
     const toggle = (item) => {
@@ -659,7 +661,6 @@ function Step1({ inputs, patch, reference }) {
 
     const length = Number(inputs.length_m);
     const width = Number(inputs.width_m);
-    const minimumArea = length * width;
 
     const lengthError =
       inputs.length_m === "" ||
@@ -676,7 +677,6 @@ function Step1({ inputs, patch, reference }) {
         width <= 0
         ? "Width must be greater than 0."
         : "";
-
 
     return (
       <>
@@ -697,9 +697,7 @@ function Step1({ inputs, patch, reference }) {
               min="0"
               value={inputs.length_m}
               onChange={(value) => patch("length_m", value)}
-              aria-invalid={!!lengthError && showErrors}
             />
-
             {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
           </Field>
 
@@ -710,11 +708,10 @@ function Step1({ inputs, patch, reference }) {
               min="0"
               value={inputs.width_m}
               onChange={(value) => patch("width_m", value)}
-              aria-invalid={!!widthError && showErrors}
             />
-
             {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
           </Field>
+
           <Field label="Number of Floors">
             <InputF
               id="num_floors"
@@ -724,7 +721,7 @@ function Step1({ inputs, patch, reference }) {
             />
           </Field>
 
-          <Field label="Floor Height(m)">
+          <Field label="Floor Height (m)">
             <InputF
               id="height_m"
               type="number"
@@ -742,18 +739,17 @@ function Step1({ inputs, patch, reference }) {
             />
           </Field>
 
-
-          <Field label="Built-up Area (Length × Width × No. of Floors) (m²)">
+          <Field label="Built-up Area (m²)">
             <InputF
               id="built_up_area_display"
               type="text"
               value={
-                Number(inputs.length_m) > 0 &&
-                  Number(inputs.width_m) > 0 &&
+                length > 0 &&
+                  width > 0 &&
                   Number(inputs.num_floors) > 0
                   ? (
-                    Number(inputs.length_m) *
-                    Number(inputs.width_m) *
+                    length *
+                    width *
                     Number(inputs.num_floors)
                   ).toLocaleString()
                   : "Enter dimensions and floors"
@@ -762,8 +758,6 @@ function Step1({ inputs, patch, reference }) {
               onChange={() => { }}
             />
           </Field>
-
-
         </Section>
 
         <div>
@@ -777,110 +771,10 @@ function Step1({ inputs, patch, reference }) {
             onToggle={toggle}
             idPrefix="comp"
           />
-
-          <Section title="Warehouses Geometry">
-            <div className="col-span-full">
-              <h3 className="text-sm font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3">
-                RM Warehouse (Raw Material)
-              </h3>
-            </div>
-
-            <Field label="RM Warehouse Length (m)">
-              <InputF
-                id="rm_warehouse_length_m"
-                type="number"
-                min="0"
-                value={inputs.rm_warehouse_length_m ?? ""}
-                onChange={(value) => patch("rm_warehouse_length_m", value)}
-              />
-            </Field>
-
-            <Field label="RM Warehouse Width (m)">
-              <InputF
-                id="rm_warehouse_width_m"
-                type="number"
-                min="0"
-                value={inputs.rm_warehouse_width_m ?? ""}
-                onChange={(value) => patch("rm_warehouse_width_m", value)}
-              />
-            </Field>
-
-            <Field label="RM Warehouse Height (m)">
-              <InputF
-                id="rm_warehouse_height_m"
-                type="number"
-                min="0"
-                value={inputs.rm_warehouse_height_m ?? ""}
-                onChange={(value) => patch("rm_warehouse_height_m", value)}
-              />
-            </Field>
-
-            <Field label="RM Warehouse Built-up Area (m²)">
-              <InputF
-                id="rm_warehouse_built_up_area_sqm"
-                type="number"
-                min="0"
-                value={inputs.rm_warehouse_built_up_area_sqm ?? ""}
-                onChange={(value) =>
-                  patch("rm_warehouse_built_up_area_sqm", value)
-                }
-              />
-            </Field>
-
-            <div className="col-span-full mt-4">
-              <h3 className="text-sm font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3">
-                FG Warehouse (Finished Goods)
-              </h3>
-            </div>
-
-            <Field label="FG Warehouse Length (m)">
-              <InputF
-                id="fg_warehouse_length_m"
-                type="number"
-                min="0"
-                value={inputs.fg_warehouse_length_m ?? ""}
-                onChange={(value) => patch("fg_warehouse_length_m", value)}
-              />
-            </Field>
-
-            <Field label="FG Warehouse Width (m)">
-              <InputF
-                id="fg_warehouse_width_m"
-                type="number"
-                min="0"
-                value={inputs.fg_warehouse_width_m ?? ""}
-                onChange={(value) => patch("fg_warehouse_width_m", value)}
-              />
-            </Field>
-
-            <Field label="FG Warehouse Height (m)">
-              <InputF
-                id="fg_warehouse_height_m"
-                type="number"
-                min="0"
-                value={inputs.fg_warehouse_height_m ?? ""}
-                onChange={(value) => patch("fg_warehouse_height_m", value)}
-              />
-            </Field>
-
-            <Field label="FG Warehouse Built-up Area (m²)">
-              <InputF
-                id="fg_warehouse_built_up_area_sqm"
-                type="number"
-                min="0"
-                value={inputs.fg_warehouse_built_up_area_sqm ?? ""}
-                onChange={(value) =>
-                  patch("fg_warehouse_built_up_area_sqm", value)
-                }
-              />
-            </Field>
-          </Section>
-
         </div>
 
         {(inputs.building_components || []).includes("Admin Building") && (
           <Section title="Employee & Staff Facilities">
-
             <Field label="Male Employees">
               <InputF
                 id="male_employees"
@@ -953,13 +847,12 @@ function Step1({ inputs, patch, reference }) {
                 options={["Yes", "No"]}
               />
             </Field>
-
           </Section>
         )}
-
       </>
     );
   }
+
 
   /* ---------- Step 3 : Structural & Site ---------- */
 
@@ -1546,4 +1439,3 @@ function Step1({ inputs, patch, reference }) {
       </>
     );
   }
-}
