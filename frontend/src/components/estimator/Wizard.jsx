@@ -505,14 +505,6 @@ function Step1({ inputs, patch, reference }) {
     setLocationError("");
   };
 
-
-  // Match the returned country against your existing country-to-region mapping.
-  const matchedRegion = availableRegions.find((region) =>
-    (regions[region] || []).some(
-      (country) => country === inputs.location_country
-    )
-  );
-
   return (
     <>
       <Section title="Project Identification">
