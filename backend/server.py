@@ -2056,79 +2056,82 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     other_total = 0.0
 
     for name, weight in active_weights.items():
-        amount = round(precont_other * weight / weight_total, 2)
-
-        # Replace the combined external scope with individual activities.
+        amount = round(
+            precont_other * weight / weight_total,2
+    )
         if name == "External / Site Development":
-            external_items = []
+           external_items = []
 
-            if inp.include_roads:
-                external_items.append({
-                    "activity": "Roads, Pathways & Parking",
-                    "unit": "m2",
-                    "quantity": max(0.0, float(inp.land_area_sqm) * 0.30),
-                    "category": "Infra",
-                })
+        if inp.include_roads:
+            external_items.append({
+                "activity": "Roads, Pathways & Parking",
+                "unit": "m2",
+                "quantity": max(
+                    0.0, float(inp.land_area_sqm) * 0.30
+                ),
+                "category": "Infra",
+            })
 
-            if inp.include_fence:
-                external_items.append({
-                    "activity": "Compound Wall / Fence",
-                    "unit": "m",
-                    "quantity": max(
-                        0.0,
-                        4 * (float(inp.land_area_sqm) ** 0.5),
-                    ),
-                    "category": "Infra",
-                })
+        if inp.include_fence:
+            external_items.append({
+                "activity": "Compound Wall / Fence",
+                "unit": "m",
+                "quantity": max(
+                    0.0,
+                    4 * (float(inp.land_area_sqm) ** 0.5),
+                ),
+                "category": "Infra",
+            })
 
-            if inp.include_landscaping:
-                external_items.append({
-                    "activity": "Landscaping",
-                    "unit": "m2",
-                    "quantity": max(0.0, float(inp.land_area_sqm) * 0.15),
-                    "category": "Infra",
-                })
+        if inp.include_landscaping:
+            external_items.append({
+                "activity": "Landscaping",
+                "unit": "m2",
+                "quantity": max(
+                    0.0, float(inp.land_area_sqm) * 0.15
+                ),
+                "category": "Infra",
+            })
 
-            total_quantity = sum(item["quantity"] for item in external_items)
+        total_quantity = sum(
+            item["quantity"] for item in external_items
+        )
 
-            for item in external_items:
-                # Allocate the existing external-scope amount across
-                # enabled activities in proportion to their quantities.
-                share = (
-                    item["quantity"] / total_quantity
-                    if total_quantity > 0
-                    else 0
-                )
-                item_amount = round(amount * share, 2)
+        for item in external_items:
+            share = (
+                item["quantity"] / total_quantity
+                if total_quantity > 0 else 0
+            )
 
-                other_rows.append({
-                    **item,
-                    "quantity": round(item["quantity"], 2),
-                    "rate": (
-                        round(item_amount / item["quantity"], 2)
-                        if item["quantity"] > 0
-                        else 0
-                    ),
-                    "amount": item_amount,
-                    "cost_basis": (
-                        "Allocated share of existing external/site "
-                        "development estimate; quantity is indicative"
-                    ),
-                })
+            item_amount = round(amount * share, 2)
 
-            # Preserve the original external amount in the project total.
-            other_total += amount
-            continue
+            other_rows.append({
+                **item,
+                "quantity": round(item["quantity"], 2),
+                "rate": (
+                    round(item_amount / item["quantity"], 2)
+                    if item["quantity"] > 0 else 0
+                ),
+                "amount": item_amount,
+                "cost_basis": (
+                    "Allocated share of existing external/site "
+                    "development estimate; quantity is indicative"
+                ),
+            })
 
         other_total += amount
-        other_rows.append({
-            "activity": name,
-            "unit": "LS",
-            "quantity": 1,
-            "rate": amount,
-            "amount": amount,
-            "category": "Project Indirect / Scope",
-        })
+        continue
+
+    other_total += amount
+
+    other_rows.append({
+        "activity": name,
+        "unit": "LS",
+        "quantity": 1,
+        "rate": amount,
+        "amount": amount,
+        "category": "Project Indirect / Scope",
+    })
 
 
     # Employee facilities are an explicit additional scope driven by employee count.
