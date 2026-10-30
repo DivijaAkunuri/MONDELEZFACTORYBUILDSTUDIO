@@ -11,11 +11,10 @@ export function TabsBar({ tabs, active, onChange }) {
           key={t.key}
           data-testid={TID.tab(t.key)}
           onClick={() => onChange(t.key)}
-          className={`py-3 text-sm font-semibold whitespace-nowrap ${
-            active === t.key
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-slate-500 hover:text-slate-800"
-          }`}
+          className={`py-3 text-sm font-semibold whitespace-nowrap ${active === t.key
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-slate-500 hover:text-slate-800"
+            }`}
         >
           {t.label}
         </button>
@@ -97,9 +96,9 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     ["GWT Depth", inputs.gwt_depth],
     ["Roof Type", inputs.roof_type],
     ["No. of Floors", inputs.num_floors],
-    ["Floor Height(m)", `${(inputs.height_m * 1000).toFixed(0)} mm`],
-    ["Bay Spacing(Column) (m)", `${(inputs.bay_spacing_m * 1000).toFixed(0)} mm`],
     ["Production Capacity", `${inputs.production_capacity_tpd} TPD`],
+    ["Floor Height (m)", `${Number(inputs.floor_height_mm || 0) / 1000} m`],
+    ["Bay Spacing (Column) (m)", `${Number(inputs.bay_spacing_mm || 0) / 1000} m`],
     ["Annual Output", `${fmtNumber(inputs.annual_output_mt)} MT`],
     ["Water Availability", inputs.water_availability],
     ["Electrical Grid Reliability", inputs.grid_reliability],
