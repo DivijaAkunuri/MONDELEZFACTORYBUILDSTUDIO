@@ -8,15 +8,24 @@ export default function KpiCards({ totals, currency, fxRates }) {
   const t = totals;
   const cards = [
     {
-      key: "total-cost", label: "TOTAL PROJECT COST",
-      value: fmtMoney(t.total_project_cost, currency, fxRates),
-      value: `${fmtMoney(t.total_project_cost, "USD", fxRates)}`,
-      icon: DollarSign, iconBg: "bg-slate-900", iconClr: "text-white",
+      key: "total-cost",
+      label: "TOTAL PROJECT COST",
+      value: (
+        <>
+          <div>{fmtMoney(t.total_project_cost, "USD", fxRates)}</div>
+          <div className="text-xs font-normal text-slate-500">
+            {fmtMoney(t.total_project_cost, currency, fxRates)}
+          </div>
+        </>
+      ),
+      icon: DollarSign,
+      iconBg: "bg-slate-900",
+      iconClr: "text-white",
     },
     {
       key: "cost-per-sqm", label: "COST / m² (BUILT-UP)",
       value: `${fmtMoney(t.cost_per_sqm, "USD", fxRates)} /m²`,
-      sub: `${fmtMoney(t.cost_per_sqm, currency, fxRates)} /m² : ${fmtNumber(t.built_up_area_sqm)} m²`,
+      sub: `${fmtMoney(t.cost_per_sqm, currency, fxRates)} /m²`,
       icon: Grid3x3, iconBg: "bg-purple-100", iconClr: "text-purple-700",
     },
     {
@@ -64,8 +73,8 @@ export default function KpiCards({ totals, currency, fxRates }) {
 
             <div
               className={`font-bold text-slate-900 font-['Manrope'] leading-tight ${key === "total"
-                  ? "text-xs sm:text-sm whitespace-normal break-words"
-                  : "text-base truncate"
+                ? "text-xs sm:text-sm whitespace-normal break-words"
+                : "text-base truncate"
                 }`}
               title={String(value)}
             >
