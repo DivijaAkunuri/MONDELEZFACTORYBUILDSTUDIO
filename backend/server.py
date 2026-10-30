@@ -2170,10 +2170,19 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     })
 
     # Keep a separate external total for UI compatibility.
+    external_activities = {
+    "Roads, Pathways & Parking",
+    "Compound Wall / Fence",
+    "Landscaping",
+}
     external_total = round(
-        sum(r["amount"] for r in other_rows if r["activity"] == "External / Site Development"),
+        sum(
+            r["amount"]
+            for r in other_rows
+            if r["activity"] in external_activities
+            ),
         2,
-    )
+        )
 
     confidence = 88
     if not market["country_known"]:
