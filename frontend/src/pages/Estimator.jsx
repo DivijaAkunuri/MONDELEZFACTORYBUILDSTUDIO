@@ -665,8 +665,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
           }),
         }}
 
-      />
-
+/>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER */}
@@ -1260,7 +1259,14 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
                       setEditOpen(false);
                     }}
-                  />
-                </div >
-              );
+                />
+                </>
+              )}
+            </>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
 }
