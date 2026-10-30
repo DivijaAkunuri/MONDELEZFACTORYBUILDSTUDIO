@@ -643,114 +643,293 @@ function Step1({ inputs, patch, reference }) {
   );
 }
 
-  /* ---------- Step 2 : Building Geometry ---------- */
+/* ---------- Step 2 : Building Geometry ---------- */
 
 
-  function Step2({ inputs, patch, reference, showErrors }) {
-    const toggle = (item) => {
-      const current = inputs.building_components || [];
-      const has = current.includes(item);
 
-      patch(
-        "building_components",
-        has
-          ? current.filter((component) => component !== item)
-          : [...current, item]
-      );
-    };
+function Step2({ inputs, patch, reference, showErrors }) {
+  const toggle = (item) => {
+    const current = inputs.building_components || [];
+    const has = current.includes(item);
 
-    const length = Number(inputs.length_m);
-    const width = Number(inputs.width_m);
+    patch(
+      "building_components",
+      has
+        ? current.filter((component) => component !== item)
+        : [...current, item]
+    );
+  };
 
-    const lengthError =
-      inputs.length_m === "" ||
-        inputs.length_m == null ||
-        !Number.isFinite(length) ||
-        length <= 0
-        ? "Length must be greater than 0."
-        : "";
+  const length = Number(inputs.length_m);
+  const width = Number(inputs.width_m);
 
-    const widthError =
-      inputs.width_m === "" ||
-        inputs.width_m == null ||
-        !Number.isFinite(width) ||
-        width <= 0
-        ? "Width must be greater than 0."
-        : "";
+  const selectedComponents = inputs.building_components || [];
 
-    return (
-      <>
-        <Section title="Building Envelope">
-          <Field label="Building Type" span={3}>
-            <SelectF
-              id="building_type"
-              value={inputs.building_type}
-              onChange={(value) => patch("building_type", value)}
-              options={reference?.building_types}
+  const showRMWarehouse =
+    selectedComponents.includes("RM Warehouse");
+
+  const showFGWarehouse =
+    selectedComponents.includes("WH-Bakery") ||
+    selectedComponents.includes("WH-Chocolate");
+
+  const lengthError =
+    inputs.length_m === "" ||
+      inputs.length_m == null ||
+      !Number.isFinite(length) ||
+      length <= 0
+      ? "Length must be greater than 0."
+      : "";
+
+  const widthError =
+    inputs.width_m === "" ||
+      inputs.width_m == null ||
+      !Number.isFinite(width) ||
+      width <= 0
+      ? "Width must be greater than 0."
+      : "";
+
+  return (
+    <>
+      {/* 1. BUILDING ENVELOPE */}
+      <Section title="Building Envelope">
+        <Field label="Building Type" span={3}>
+          <SelectF
+            id="building_type"
+            value={inputs.building_type}
+            onChange={(value) => patch("building_type", value)}
+            options={reference?.building_types}
+          />
+        </Field>
+
+        <Field label="Length (m)">
+          <InputF
+            id="length_m"
+            type="number"
+            min="0"
+            value={inputs.length_m}
+            onChange={(value) => patch("length_m", value)}
+          />
+          {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
+        </Field>
+
+        <Field label="Width (m)">
+          <InputF
+            id="width_m"
+            type="number"
+            min="0"
+            value={inputs.width_m}
+            onChange={(value) => patch("width_m", value)}
+          />
+          {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
+        </Field>
+
+        <Field label="Number of Floors">
+          <InputF
+            id="num_floors"
+            type="number"
+            value={inputs.num_floors}
+            onChange={(value) => patch("num_floors", value)}
+          />
+        </Field>
+
+        <Field label="Floor Height (m)">
+          <InputF
+            id="height_m"
+            type="number"
+            value={inputs.height_m}
+            onChange={(value) => patch("height_m", value)}
+          />
+        </Field>
+
+        <Field label="Bay Spacing (Column) (m)">
+          <InputF
+            id="bay_spacing_m"
+            type="number"
+            value={inputs.bay_spacing_m}
+            onChange={(value) => patch("bay_spacing_m", value)}
+          />
+        </Field>
+
+        <Field label="Built-up Area (m²)">
+          <InputF
+            id="built_up_area_display"
+            type="text"
+            value={
+              length > 0 &&
+                width > 0 &&
+                Number(inputs.num_floors) > 0
+                ? (
+                  length *
+                  width *
+                  Number(inputs.num_floors)
+                ).toLocaleString()
+                : "Enter dimensions and floors"
+            }
+            disabled
+            onChange={() => { }}
+          />
+        </Field>
+      </Section>
+
+      {/* 2. BUILDING COMPONENTS */}
+      <div>
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Building Components
+        </div>
+
+        <CheckboxGrid
+          list={reference?.building_components || []}
+          selected={selectedComponents}
+          onToggle={toggle}
+          idPrefix="comp"
+        />
+      </div>
+
+      {/* 3. EMPLOYEE & STAFF FACILITIES */}
+      {selectedComponents.includes("Admin Building") && (
+        <Section title="Employee & Staff Facilities">
+          <Field label="Male Employees">
+            <InputF
+              id="male_employees"
+              type="number"
+              min="0"
+              value={inputs.male_employees ?? 0}
+              onChange={(value) => {
+                const male = Math.max(0, Number(value) || 0);
+                const female = Math.max(
+                  0,
+                  Number(inputs.female_employees) || 0
+                );
+
+                patch("male_employees", male);
+                patch("num_employees", male + female);
+              }}
             />
           </Field>
 
-          <Field label="Length (m)">
+          <Field label="Female Employees">
             <InputF
-              id="length_m"
+              id="female_employees"
               type="number"
               min="0"
-              value={inputs.length_m}
-              onChange={(value) => patch("length_m", value)}
+              value={inputs.female_employees ?? 0}
+              onChange={(value) => {
+                const female = Math.max(0, Number(value) || 0);
+                const male = Math.max(
+                  0,
+                  Number(inputs.male_employees) || 0
+                );
+
+                patch("female_employees", female);
+                patch("num_employees", male + female);
+              }}
             />
-            {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
+          </Field>
+
+          <Field label="Total Employees">
+            <InputF
+              id="num_employees"
+              type="number"
+              value={
+                (Number(inputs.male_employees) || 0) +
+                (Number(inputs.female_employees) || 0)
+              }
+              readOnly
+              className="bg-slate-100 cursor-not-allowed"
+            />
+          </Field>
+
+          <Field label="Special / Work Clothing Required?">
+            <SelectF
+              id="special_work_clothing"
+              value={inputs.special_work_clothing ?? "Yes"}
+              onChange={(value) =>
+                patch("special_work_clothing", value)
+              }
+              options={["Yes", "No"]}
+            />
+          </Field>
+
+          <Field label="Work Shoes / Boots Required?">
+            <SelectF
+              id="work_shoes_required"
+              value={inputs.work_shoes_required ?? "Yes"}
+              onChange={(value) =>
+                patch("work_shoes_required", value)
+              }
+              options={["Yes", "No"]}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {/* 4. RM WAREHOUSE GEOMETRY */}
+      {showRMWarehouse && (
+        <Section title="RM Warehouse Geometry">
+          <Field label="Length (m)">
+            <InputF
+              id="rm_wh_length_m"
+              type="number"
+              min="0"
+              value={inputs.rm_wh_length_m ?? ""}
+              onChange={(value) => patch("rm_wh_length_m", value)}
+            />
           </Field>
 
           <Field label="Width (m)">
             <InputF
-              id="width_m"
+              id="rm_wh_width_m"
               type="number"
               min="0"
-              value={inputs.width_m}
-              onChange={(value) => patch("width_m", value)}
+              value={inputs.rm_wh_width_m ?? ""}
+              onChange={(value) => patch("rm_wh_width_m", value)}
             />
-            {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
           </Field>
 
           <Field label="Number of Floors">
             <InputF
-              id="num_floors"
+              id="rm_wh_num_floors"
               type="number"
-              value={inputs.num_floors}
-              onChange={(value) => patch("num_floors", value)}
+              min="1"
+              value={inputs.rm_wh_num_floors ?? 1}
+              onChange={(value) => patch("rm_wh_num_floors", value)}
             />
           </Field>
 
           <Field label="Floor Height (m)">
             <InputF
-              id="height_m"
+              id="rm_wh_height_m"
               type="number"
-              value={inputs.height_m}
-              onChange={(value) => patch("height_m", value)}
+              min="0"
+              value={inputs.rm_wh_height_m ?? ""}
+              onChange={(value) => patch("rm_wh_height_m", value)}
             />
           </Field>
 
           <Field label="Bay Spacing (Column) (m)">
             <InputF
-              id="bay_spacing_m"
+              id="rm_wh_bay_spacing_m"
               type="number"
-              value={inputs.bay_spacing_m}
-              onChange={(value) => patch("bay_spacing_m", value)}
+              min="0"
+              value={inputs.rm_wh_bay_spacing_m ?? ""}
+              onChange={(value) =>
+                patch("rm_wh_bay_spacing_m", value)
+              }
             />
           </Field>
 
           <Field label="Built-up Area (m²)">
             <InputF
-              id="built_up_area_display"
+              id="rm_wh_built_up_area"
               type="text"
               value={
-                length > 0 &&
-                  width > 0 &&
-                  Number(inputs.num_floors) > 0
+                Number(inputs.rm_wh_length_m) > 0 &&
+                  Number(inputs.rm_wh_width_m) > 0 &&
+                  Number(inputs.rm_wh_num_floors) > 0
                   ? (
-                    length *
-                    width *
-                    Number(inputs.num_floors)
+                    Number(inputs.rm_wh_length_m) *
+                    Number(inputs.rm_wh_width_m) *
+                    Number(inputs.rm_wh_num_floors)
                   ).toLocaleString()
                   : "Enter dimensions and floors"
               }
@@ -759,683 +938,672 @@ function Step1({ inputs, patch, reference }) {
             />
           </Field>
         </Section>
+      )}
 
-        <div>
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-            Building Components
+      {/* 5. FG WAREHOUSE GEOMETRY */}
+      {showFGWarehouse && (
+        <Section title="FG Warehouse Geometry">
+          <Field label="Length (m)">
+            <InputF
+              id="fg_wh_length_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_length_m ?? ""}
+              onChange={(value) => patch("fg_wh_length_m", value)}
+            />
+          </Field>
+
+          <Field label="Width (m)">
+            <InputF
+              id="fg_wh_width_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_width_m ?? ""}
+              onChange={(value) => patch("fg_wh_width_m", value)}
+            />
+          </Field>
+
+          <Field label="Number of Floors">
+            <InputF
+              id="fg_wh_num_floors"
+              type="number"
+              min="1"
+              value={inputs.fg_wh_num_floors ?? 1}
+              onChange={(value) => patch("fg_wh_num_floors", value)}
+            />
+          </Field>
+
+          <Field label="Floor Height (m)">
+            <InputF
+              id="fg_wh_height_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_height_m ?? ""}
+              onChange={(value) => patch("fg_wh_height_m", value)}
+            />
+          </Field>
+
+          <Field label="Bay Spacing (Column) (m)">
+            <InputF
+              id="fg_wh_bay_spacing_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_bay_spacing_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_bay_spacing_m", value)
+              }
+            />
+          </Field>
+
+          <Field label="Built-up Area (m²)">
+            <InputF
+              id="fg_wh_built_up_area"
+              type="text"
+              value={
+                Number(inputs.fg_wh_length_m) > 0 &&
+                  Number(inputs.fg_wh_width_m) > 0 &&
+                  Number(inputs.fg_wh_num_floors) > 0
+                  ? (
+                    Number(inputs.fg_wh_length_m) *
+                    Number(inputs.fg_wh_width_m) *
+                    Number(inputs.fg_wh_num_floors)
+                  ).toLocaleString()
+                  : "Enter dimensions and floors"
+              }
+              disabled
+              onChange={() => { }}
+            />
+          </Field>
+        </Section>
+      )}
+    </>
+  );
+}
+
+
+
+/* ---------- Step 3 : Structural & Site ---------- */
+
+function Step3({ inputs, patch, reference }) {
+  const toggleFoundation = (item) => {
+    const current = inputs.foundation_type || [];
+    const has = current.includes(item);
+
+    patch(
+      "foundation_type",
+      has
+        ? current.filter((value) => value !== item)
+        : [...current, item]
+    );
+  };
+
+  return (
+    <>
+      <Section title="Structural & Design">
+        <div className="md:col-span-3">
+          <div className="text-xs font-semibold text-slate-600 mb-1">
+            Foundation Type
           </div>
 
           <CheckboxGrid
-            list={reference?.building_components || []}
-            selected={inputs.building_components || []}
-            onToggle={toggle}
-            idPrefix="comp"
+            list={reference?.foundation_types || []}
+            selected={inputs.foundation_type || []}
+            onToggle={toggleFoundation}
+            idPrefix="foundation"
           />
         </div>
 
-        {(inputs.building_components || []).includes("Admin Building") && (
-          <Section title="Employee & Staff Facilities">
-            <Field label="Male Employees">
-              <InputF
-                id="male_employees"
-                type="number"
-                min="0"
-                value={inputs.male_employees ?? 0}
-                onChange={(value) => {
-                  const male = Math.max(0, Number(value) || 0);
-                  const female = Math.max(
-                    0,
-                    Number(inputs.female_employees) || 0
-                  );
+        <Field label="SBC / Soil Type">
+          <SelectF
+            id="sbc_soil_type"
+            value={inputs.sbc_soil_type}
+            onChange={(value) => patch("sbc_soil_type", value)}
+            options={reference?.sbc_soil_types}
+          />
+        </Field>
 
-                  patch("male_employees", male);
-                  patch("num_employees", male + female);
-                }}
-              />
-            </Field>
+        <Field label="Column Type">
+          <SelectF
+            id="column_type"
+            value={inputs.column_type}
+            onChange={(value) => patch("column_type", value)}
+            options={reference?.column_types}
+          />
+        </Field>
 
-            <Field label="Female Employees">
-              <InputF
-                id="female_employees"
-                type="number"
-                min="0"
-                value={inputs.female_employees ?? 0}
-                onChange={(value) => {
-                  const female = Math.max(0, Number(value) || 0);
-                  const male = Math.max(
-                    0,
-                    Number(inputs.male_employees) || 0
-                  );
+        <Field label="Roof Type">
+          <SelectF
+            id="roof_type"
+            value={inputs.roof_type}
+            onChange={(value) => patch("roof_type", value)}
+            options={reference?.roof_types}
+          />
+        </Field>
 
-                  patch("female_employees", female);
-                  patch("num_employees", male + female);
-                }}
-              />
-            </Field>
+      </Section>
 
-            <Field label="Total Employees">
-              <InputF
-                id="num_employees"
-                type="number"
-                value={
-                  (Number(inputs.male_employees) || 0) +
-                  (Number(inputs.female_employees) || 0)
-                }
-                readOnly
-                className="bg-slate-100 cursor-not-allowed"
-              />
-            </Field>
+      <Section title="Site Conditions">
+        <Field label="Seismic Zone">
+          <SelectF
+            id="seismic_zone"
+            value={inputs.seismic_zone}
+            onChange={(value) => patch("seismic_zone", value)}
+            options={reference?.seismic_zones}
+          />
+        </Field>
 
-            <Field label="Special / Work Clothing Required?">
-              <SelectF
-                id="special_work_clothing"
-                value={inputs.special_work_clothing ?? "Yes"}
-                onChange={(value) =>
-                  patch("special_work_clothing", value)
-                }
-                options={["Yes", "No"]}
-              />
-            </Field>
+        <Field label="Wind Zone">
+          <SelectF
+            id="wind_zone"
+            value={inputs.wind_zone}
+            onChange={(value) => patch("wind_zone", value)}
+            options={reference?.wind_zones}
+          />
+        </Field>
 
-            <Field label="Work Shoes / Boots Required?">
-              <SelectF
-                id="work_shoes_required"
-                value={inputs.work_shoes_required ?? "Yes"}
-                onChange={(value) =>
-                  patch("work_shoes_required", value)
-                }
-                options={["Yes", "No"]}
-              />
-            </Field>
-          </Section>
-        )}
-      </>
+
+        <Field label="Wind Speed (m/s)">
+          <InputF
+            id="wind_speed_ms"
+            type="number"
+            min="45"
+            step="1"
+            value={Math.max(
+              45,
+              Number(inputs.wind_speed_ms) || 45
+            )}
+            onChange={(value) => {
+              if (value === "") {
+                patch("wind_speed_ms", 45);
+                return;
+              }
+
+              const number = Number(value);
+
+              if (Number.isFinite(number)) {
+                patch("wind_speed_ms", Math.max(45, number));
+              }
+            }}
+          />
+        </Field>
+
+
+        <Field label="Ground Water Table Depth">
+          <SelectF
+            id="gwt_depth"
+            value={inputs.gwt_depth}
+            onChange={(value) => patch("gwt_depth", value)}
+            options={reference?.gwt_depths}
+          />
+        </Field>
+      </Section>
+    </>
+  );
+}
+
+/* ---------- Step 4 : Utilities & Process ---------- */
+
+function Step4({ inputs, patch, patchComplexity, reference }) {
+  const toggleScope = (scope) => {
+    const current = inputs.utility_scope || [];
+    const has = current.includes(scope);
+
+    patch(
+      "utility_scope",
+      has
+        ? current.filter((item) => item !== scope)
+        : [...current, scope]
     );
-  }
+  };
 
+  const isChocolate = /chocolate|combo/i.test(
+    inputs.product_category || ""
+  );
 
-  /* ---------- Step 3 : Structural & Site ---------- */
+  const isBiscuit = /biscuit|wafer|cookie|combo/i.test(
+    inputs.product_category || ""
+  );
 
-  function Step3({ inputs, patch, reference }) {
-    const toggleFoundation = (item) => {
-      const current = inputs.foundation_type || [];
-      const has = current.includes(item);
+  const processComplexity = (reference?.complexity || []).filter((item) =>
+    [
+      "explosion_risk",
+      "utility_redundancy",
+    ].includes(item.key)
+  );
 
-      patch(
-        "foundation_type",
-        has
-          ? current.filter((value) => value !== item)
-          : [...current, item]
-      );
-    };
+  return (
+    <>
+      <Section title="Production Capacity">
+        <Field label="Production Capacity (TPD)">
+          <InputF
+            id="production_capacity_tpd"
+            type="number"
+            value={inputs.production_capacity_tpd}
+            onChange={(value) => patch("production_capacity_tpd", value)}
+          />
+        </Field>
 
-    return (
-      <>
-        <Section title="Structural & Design">
-          <div className="md:col-span-3">
-            <div className="text-xs font-semibold text-slate-600 mb-1">
-              Foundation Type
-            </div>
+        <Field label="Annual Output (MT)">
+          <InputF
+            id="annual_output_mt"
+            type="number"
+            value={inputs.annual_output_mt}
+            onChange={(value) => patch("annual_output_mt", value)}
+          />
+        </Field>
+      </Section>
 
-            <CheckboxGrid
-              list={reference?.foundation_types || []}
-              selected={inputs.foundation_type || []}
-              onToggle={toggleFoundation}
-              idPrefix="foundation"
-            />
-          </div>
+      <div className="mb-5">
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Utility Scope
+        </div>
 
-          <Field label="SBC / Soil Type">
-            <SelectF
-              id="sbc_soil_type"
-              value={inputs.sbc_soil_type}
-              onChange={(value) => patch("sbc_soil_type", value)}
-              options={reference?.sbc_soil_types}
-            />
-          </Field>
+        <CheckboxGrid
+          list={reference?.utility_scope || []}
+          selected={inputs.utility_scope || []}
+          onToggle={toggleScope}
+          idPrefix="scope"
+        />
+      </div>
 
-          <Field label="Column Type">
-            <SelectF
-              id="column_type"
-              value={inputs.column_type}
-              onChange={(value) => patch("column_type", value)}
-              options={reference?.column_types}
-            />
-          </Field>
-
-          <Field label="Roof Type">
-            <SelectF
-              id="roof_type"
-              value={inputs.roof_type}
-              onChange={(value) => patch("roof_type", value)}
-              options={reference?.roof_types}
-            />
-          </Field>
-
-        </Section>
-
-        <Section title="Site Conditions">
-          <Field label="Seismic Zone">
-            <SelectF
-              id="seismic_zone"
-              value={inputs.seismic_zone}
-              onChange={(value) => patch("seismic_zone", value)}
-              options={reference?.seismic_zones}
-            />
-          </Field>
-
-          <Field label="Wind Zone">
-            <SelectF
-              id="wind_zone"
-              value={inputs.wind_zone}
-              onChange={(value) => patch("wind_zone", value)}
-              options={reference?.wind_zones}
-            />
-          </Field>
-
-
-          <Field label="Wind Speed (m/s)">
+      {isChocolate && (
+        <Section title="Chocolate Process Utilities">
+          <Field label="Cooling Tunnel Load (TR)">
             <InputF
-              id="wind_speed_ms"
+              id="cooling_tunnel_load_tr"
               type="number"
-              min="45"
+              value={inputs.cooling_tunnel_load_tr}
+              onChange={(value) => patch("cooling_tunnel_load_tr", value)}
+            />
+          </Field>
+
+          <Field label="Tempering Utility Demand">
+            <SelectF
+              id="tempering_utility_demand"
+              value={inputs.tempering_utility_demand}
+              onChange={(value) =>
+                patch("tempering_utility_demand", value)
+              }
+              options={reference?.tempering_utility_demand}
+            />
+          </Field>
+
+
+          <Field label="Humidity Controlled Areas (%)">
+            <InputF
+              id="humidity_controlled_pct"
+              type="number"
+              min="0"
+              max="100"
               step="1"
-              value={Math.max(
-                45,
-                Number(inputs.wind_speed_ms) || 45
+              value={Math.min(
+                100,
+                Math.max(0, Number(inputs.humidity_controlled_pct) || 0)
               )}
               onChange={(value) => {
                 if (value === "") {
-                  patch("wind_speed_ms", 45);
+                  patch("humidity_controlled_pct", "");
                   return;
                 }
 
                 const number = Number(value);
 
                 if (Number.isFinite(number)) {
-                  patch("wind_speed_ms", Math.max(45, number));
+                  patch(
+                    "humidity_controlled_pct",
+                    Math.min(100, Math.max(0, number))
+                  );
                 }
               }}
             />
           </Field>
 
 
-          <Field label="Ground Water Table Depth">
-            <SelectF
-              id="gwt_depth"
-              value={inputs.gwt_depth}
-              onChange={(value) => patch("gwt_depth", value)}
-              options={reference?.gwt_depths}
-            />
-          </Field>
-        </Section>
-      </>
-    );
-  }
-
-  /* ---------- Step 4 : Utilities & Process ---------- */
-
-  function Step4({ inputs, patch, patchComplexity, reference }) {
-    const toggleScope = (scope) => {
-      const current = inputs.utility_scope || [];
-      const has = current.includes(scope);
-
-      patch(
-        "utility_scope",
-        has
-          ? current.filter((item) => item !== scope)
-          : [...current, scope]
-      );
-    };
-
-    const isChocolate = /chocolate|combo/i.test(
-      inputs.product_category || ""
-    );
-
-    const isBiscuit = /biscuit|wafer|cookie|combo/i.test(
-      inputs.product_category || ""
-    );
-
-    const processComplexity = (reference?.complexity || []).filter((item) =>
-      [
-        "explosion_risk",
-        "utility_redundancy",
-      ].includes(item.key)
-    );
-
-    return (
-      <>
-        <Section title="Production Capacity">
-          <Field label="Production Capacity (TPD)">
+          <Field label="Chocolate FG Storage Temp (°C)">
             <InputF
-              id="production_capacity_tpd"
+              id="chocolate_storage_temp_c"
               type="number"
-              value={inputs.production_capacity_tpd}
-              onChange={(value) => patch("production_capacity_tpd", value)}
-            />
-          </Field>
-
-          <Field label="Annual Output (MT)">
-            <InputF
-              id="annual_output_mt"
-              type="number"
-              value={inputs.annual_output_mt}
-              onChange={(value) => patch("annual_output_mt", value)}
-            />
-          </Field>
-        </Section>
-
-        <div className="mb-5">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-            Utility Scope
-          </div>
-
-          <CheckboxGrid
-            list={reference?.utility_scope || []}
-            selected={inputs.utility_scope || []}
-            onToggle={toggleScope}
-            idPrefix="scope"
-          />
-        </div>
-
-        {isChocolate && (
-          <Section title="Chocolate Process Utilities">
-            <Field label="Cooling Tunnel Load (TR)">
-              <InputF
-                id="cooling_tunnel_load_tr"
-                type="number"
-                value={inputs.cooling_tunnel_load_tr}
-                onChange={(value) => patch("cooling_tunnel_load_tr", value)}
-              />
-            </Field>
-
-            <Field label="Tempering Utility Demand">
-              <SelectF
-                id="tempering_utility_demand"
-                value={inputs.tempering_utility_demand}
-                onChange={(value) =>
-                  patch("tempering_utility_demand", value)
+              min="19"
+              value={inputs.chocolate_storage_temp_c}
+              onChange={(value) => {
+                if (value === "") {
+                  patch("chocolate_storage_temp_c", "");
+                  return;
                 }
-                options={reference?.tempering_utility_demand}
-              />
-            </Field>
 
-
-            <Field label="Humidity Controlled Areas (%)">
-              <InputF
-                id="humidity_controlled_pct"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={Math.min(
-                  100,
-                  Math.max(0, Number(inputs.humidity_controlled_pct) || 0)
-                )}
-                onChange={(value) => {
-                  if (value === "") {
-                    patch("humidity_controlled_pct", "");
-                    return;
-                  }
-
-                  const number = Number(value);
-
-                  if (Number.isFinite(number)) {
-                    patch(
-                      "humidity_controlled_pct",
-                      Math.min(100, Math.max(0, number))
-                    );
-                  }
-                }}
-              />
-            </Field>
-
-
-            <Field label="Chocolate FG Storage Temp (°C)">
-              <InputF
-                id="chocolate_storage_temp_c"
-                type="number"
-                min="19"
-                value={inputs.chocolate_storage_temp_c}
-                onChange={(value) => {
-                  if (value === "") {
-                    patch("chocolate_storage_temp_c", "");
-                    return;
-                  }
-
-                  patch(
-                    "chocolate_storage_temp_c",
-                    Math.max(19, Number(value))
-                  );
-                }}
-              />
-            </Field>
-
-            <Field label="Process Hot Water (L/hr)">
-              <InputF
-                id="process_hot_water_lph"
-                type="number"
-                value={inputs.process_hot_water_lph}
-                onChange={(value) =>
-                  patch("process_hot_water_lph", value)
-                }
-              />
-            </Field>
-          </Section>
-        )}
-
-        {isBiscuit && (
-          <Section title="Biscuit Process Utilities">
-            <Field label="Oven Capacity (kg/hr)">
-              <InputF
-                id="oven_capacity_kg_hr"
-                type="number"
-                value={inputs.oven_capacity_kg_hr}
-                onChange={(value) =>
-                  patch("oven_capacity_kg_hr", value)
-                }
-              />
-            </Field>
-
-            <Field label="Fuel Type">
-              <SelectF
-                id="fuel_type"
-                value={inputs.fuel_type}
-                onChange={(value) => patch("fuel_type", value)}
-                options={reference?.fuel_types}
-              />
-            </Field>
-
-            <Field label="Baking Line Quantity">
-              <InputF
-                id="baking_line_qty"
-                type="number"
-                value={inputs.baking_line_qty}
-                onChange={(value) => patch("baking_line_qty", value)}
-              />
-            </Field>
-
-            <Field label="Compressed Air Demand (CFM)">
-              <InputF
-                id="compressed_air_demand_cfm"
-                type="number"
-                value={inputs.compressed_air_demand_cfm}
-                onChange={(value) =>
-                  patch("compressed_air_demand_cfm", value)
-                }
-              />
-            </Field>
-
-            <Field label="Cooling Conveyor Load">
-              <SelectF
-                id="cooling_conveyor_load"
-                value={inputs.cooling_conveyor_load}
-                onChange={(value) =>
-                  patch("cooling_conveyor_load", value)
-                }
-                options={reference?.cooling_conveyor_load}
-              />
-            </Field>
-
-            <Field label="Dust Collection Required">
-              <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-                <Checkbox
-                  data-testid={TID.wizardField("dust_collection_required")}
-                  checked={!!inputs.dust_collection_required}
-                  onCheckedChange={(value) =>
-                    patch("dust_collection_required", !!value)
-                  }
-                />
-
-                <span>Yes</span>
-              </label>
-            </Field>
-          </Section>
-        )}
-
-        <div className="mb-2">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-            Process Complexity
-          </div>
-
-          <CheckboxGrid
-            list={processComplexity}
-            selected={Object.keys(inputs.complexity || {}).filter(
-              (key) => inputs.complexity[key]
-            )}
-            onToggle={(key) =>
-              patchComplexity(key, !inputs.complexity?.[key])
-            }
-            idPrefix="complexity"
-          />
-        </div>
-      </>
-    );
-  }
-
-  /* ---------- Step 5 : Infra & Site Inputs ---------- */
-
-  function Step5({
-    inputs,
-    patch,
-    patchComplexity,
-    reference,
-    showErrors,
-  }) {
-    const siteComplexity = (reference?.complexity || []).filter((item) =>
-      [
-        "remote_site",
-        "brownfield",
-        "high_floor_load",
-      ].includes(item.key)
-    );
-
-    const length = Number(inputs.length_m);
-    const width = Number(inputs.width_m);
-    const landArea = Number(inputs.land_area_sqm);
-    const minimumArea = length * width;
-
-    const dimensionsValid =
-      inputs.length_m !== "" &&
-      inputs.length_m != null &&
-      Number.isFinite(length) &&
-      length > 0 &&
-      inputs.width_m !== "" &&
-      inputs.width_m != null &&
-      Number.isFinite(width) &&
-      width > 0;
-
-    const landAreaError = !dimensionsValid
-      ? ""
-      : inputs.land_area_sqm === "" ||
-        inputs.land_area_sqm == null ||
-        !Number.isFinite(landArea) ||
-        landArea <= 0
-        ? "Land Area must be greater than 0."
-        : landArea < minimumArea
-          ? `Land Area must be at least ${minimumArea} m² (Built-up Area).`
-          : "";
-
-    const toggleBoolean = (key, value) => {
-      patch(key, !!value);
-    };
-
-    return (
-      <>
-        <Section title="External Works Scope">
-          <Field label="Roads,Pathways & Parking Bays">
-            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-              <Checkbox
-                data-testid={TID.wizardField("include_roads")}
-                checked={!!inputs.include_roads}
-                onCheckedChange={(value) =>
-                  toggleBoolean("include_roads", value)
-                }
-              />
-
-              <span>Include</span>
-            </label>
-          </Field>
-
-          <Field label="Landscaping">
-            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-              <Checkbox
-                data-testid={TID.wizardField("include_landscaping")}
-                checked={!!inputs.include_landscaping}
-                onCheckedChange={(value) =>
-                  toggleBoolean("include_landscaping", value)
-                }
-              />
-
-              <span>Include</span>
-            </label>
-          </Field>
-
-          <Field label="Compound Wall / Fence">
-            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-              <Checkbox
-                data-testid={TID.wizardField("include_fence")}
-                checked={!!inputs.include_fence}
-                onCheckedChange={(value) =>
-                  toggleBoolean("include_fence", value)
-                }
-              />
-
-              <span>Include</span>
-            </label>
-          </Field>
-        </Section>
-
-        <Section title="Site Inputs">
-          <Field label="Land Area (m²)">
-            <InputF
-              id="land_area_sqm"
-              type="number"
-              min="0"
-              value={inputs.land_area_sqm}
-              onChange={(value) => patch("land_area_sqm", value)}
-              aria-invalid={!!landAreaError && showErrors}
-            />
-
-            {showErrors && <ErrorMessage>{landAreaError}</ErrorMessage>}
-          </Field>
-
-          <Field label="Ground Coverage (%)">
-            <InputF
-              id="ground_coverage_pct"
-              type="number"
-              value={inputs.ground_coverage_pct}
-              onChange={(value) => patch("ground_coverage_pct", value)}
-            />
-          </Field>
-
-          <Field label="FAR / FSI">
-            <InputF
-              id="far_fsi"
-              type="number"
-              value={inputs.far_fsi}
-              onChange={(value) => patch("far_fsi", value)}
-            />
-          </Field>
-
-          <Field label="Water Availability">
-            <SelectF
-              id="water_availability"
-              value={inputs.water_availability}
-              onChange={(value) => patch("water_availability", value)}
-              options={reference?.water_availability}
-            />
-          </Field>
-
-          <Field label="Electrical Grid Reliability">
-            <SelectF
-              id="grid_reliability"
-              value={inputs.grid_reliability}
-              onChange={(value) => patch("grid_reliability", value)}
-              options={reference?.grid_reliability}
-            />
-          </Field>
-
-          <Field label="Ambient Temperature Range">
-            <SelectF
-              id="ambient_temp_range"
-              value={inputs.ambient_temp_range}
-              onChange={(value) => patch("ambient_temp_range", value)}
-              options={reference?.ambient_temp_ranges}
-            />
-          </Field>
-
-
-
-
-
-          <Field label="Relative Humidity (%)">
-            <InputF
-              id="relative_humidity_pct"
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={Math.min(
-                100,
-                Math.max(0, Number(inputs.relative_humidity_pct) || 0)
-              )}
-              onChange={(value) =>
                 patch(
-                  "relative_humidity_pct",
-                  Math.min(100, Math.max(0, Number(value) || 0))
-                )
-              }
+                  "chocolate_storage_temp_c",
+                  Math.max(19, Number(value))
+                );
+              }}
             />
-            <span className="text-sm text-slate-600">
-              {Math.min(
-                100,
-                Math.max(0, Number(inputs.relative_humidity_pct) || 0)
-              )}%
-            </span>
           </Field>
 
-
-
-
+          <Field label="Process Hot Water (L/hr)">
+            <InputF
+              id="process_hot_water_lph"
+              type="number"
+              value={inputs.process_hot_water_lph}
+              onChange={(value) =>
+                patch("process_hot_water_lph", value)
+              }
+            />
+          </Field>
         </Section>
+      )}
 
-        <div className="mb-5">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-            Site Complexity
-          </div>
+      {isBiscuit && (
+        <Section title="Biscuit Process Utilities">
+          <Field label="Oven Capacity (kg/hr)">
+            <InputF
+              id="oven_capacity_kg_hr"
+              type="number"
+              value={inputs.oven_capacity_kg_hr}
+              onChange={(value) =>
+                patch("oven_capacity_kg_hr", value)
+              }
+            />
+          </Field>
 
-          <CheckboxGrid
-            list={siteComplexity}
-            selected={Object.keys(inputs.complexity || {}).filter(
-              (key) => inputs.complexity[key]
-            )}
-            onToggle={(key) =>
-              patchComplexity(key, !inputs.complexity?.[key])
-            }
-            idPrefix="complexity"
-          />
+          <Field label="Fuel Type">
+            <SelectF
+              id="fuel_type"
+              value={inputs.fuel_type}
+              onChange={(value) => patch("fuel_type", value)}
+              options={reference?.fuel_types}
+            />
+          </Field>
+
+          <Field label="Baking Line Quantity">
+            <InputF
+              id="baking_line_qty"
+              type="number"
+              value={inputs.baking_line_qty}
+              onChange={(value) => patch("baking_line_qty", value)}
+            />
+          </Field>
+
+          <Field label="Compressed Air Demand (CFM)">
+            <InputF
+              id="compressed_air_demand_cfm"
+              type="number"
+              value={inputs.compressed_air_demand_cfm}
+              onChange={(value) =>
+                patch("compressed_air_demand_cfm", value)
+              }
+            />
+          </Field>
+
+          <Field label="Cooling Conveyor Load">
+            <SelectF
+              id="cooling_conveyor_load"
+              value={inputs.cooling_conveyor_load}
+              onChange={(value) =>
+                patch("cooling_conveyor_load", value)
+              }
+              options={reference?.cooling_conveyor_load}
+            />
+          </Field>
+
+          <Field label="Dust Collection Required">
+            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+              <Checkbox
+                data-testid={TID.wizardField("dust_collection_required")}
+                checked={!!inputs.dust_collection_required}
+                onCheckedChange={(value) =>
+                  patch("dust_collection_required", !!value)
+                }
+              />
+
+              <span>Yes</span>
+            </label>
+          </Field>
+        </Section>
+      )}
+
+      <div className="mb-2">
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Process Complexity
         </div>
 
-        <Section title="Contingency">
-          <Field
-            label={`Contingency (%): ${inputs.contingency_pct}%`}
-            span={3}
-          >
-            <input
-              type="range"
-              min="4"
-              max="20"
-              step="0.5"
-              value={inputs.contingency_pct ?? 4}
-              onChange={(event) =>
-                patch("contingency_pct", Number(event.target.value))
+        <CheckboxGrid
+          list={processComplexity}
+          selected={Object.keys(inputs.complexity || {}).filter(
+            (key) => inputs.complexity[key]
+          )}
+          onToggle={(key) =>
+            patchComplexity(key, !inputs.complexity?.[key])
+          }
+          idPrefix="complexity"
+        />
+      </div>
+    </>
+  );
+}
+
+/* ---------- Step 5 : Infra & Site Inputs ---------- */
+
+function Step5({
+  inputs,
+  patch,
+  patchComplexity,
+  reference,
+  showErrors,
+}) {
+  const siteComplexity = (reference?.complexity || []).filter((item) =>
+    [
+      "remote_site",
+      "brownfield",
+      "high_floor_load",
+    ].includes(item.key)
+  );
+
+  const length = Number(inputs.length_m);
+  const width = Number(inputs.width_m);
+  const landArea = Number(inputs.land_area_sqm);
+  const minimumArea = length * width;
+
+  const dimensionsValid =
+    inputs.length_m !== "" &&
+    inputs.length_m != null &&
+    Number.isFinite(length) &&
+    length > 0 &&
+    inputs.width_m !== "" &&
+    inputs.width_m != null &&
+    Number.isFinite(width) &&
+    width > 0;
+
+  const landAreaError = !dimensionsValid
+    ? ""
+    : inputs.land_area_sqm === "" ||
+      inputs.land_area_sqm == null ||
+      !Number.isFinite(landArea) ||
+      landArea <= 0
+      ? "Land Area must be greater than 0."
+      : landArea < minimumArea
+        ? `Land Area must be at least ${minimumArea} m² (Built-up Area).`
+        : "";
+
+  const toggleBoolean = (key, value) => {
+    patch(key, !!value);
+  };
+
+  return (
+    <>
+      <Section title="External Works Scope">
+        <Field label="Roads,Pathways & Parking Bays">
+          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+            <Checkbox
+              data-testid={TID.wizardField("include_roads")}
+              checked={!!inputs.include_roads}
+              onCheckedChange={(value) =>
+                toggleBoolean("include_roads", value)
               }
-              data-testid={TID.wizardField("contingency_pct")}
-              className="w-full accent-blue-600"
             />
-          </Field>
-        </Section>
-      </>
-    );
-  }
+
+            <span>Include</span>
+          </label>
+        </Field>
+
+        <Field label="Landscaping">
+          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+            <Checkbox
+              data-testid={TID.wizardField("include_landscaping")}
+              checked={!!inputs.include_landscaping}
+              onCheckedChange={(value) =>
+                toggleBoolean("include_landscaping", value)
+              }
+            />
+
+            <span>Include</span>
+          </label>
+        </Field>
+
+        <Field label="Compound Wall / Fence">
+          <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+            <Checkbox
+              data-testid={TID.wizardField("include_fence")}
+              checked={!!inputs.include_fence}
+              onCheckedChange={(value) =>
+                toggleBoolean("include_fence", value)
+              }
+            />
+
+            <span>Include</span>
+          </label>
+        </Field>
+      </Section>
+
+      <Section title="Site Inputs">
+        <Field label="Land Area (m²)">
+          <InputF
+            id="land_area_sqm"
+            type="number"
+            min="0"
+            value={inputs.land_area_sqm}
+            onChange={(value) => patch("land_area_sqm", value)}
+            aria-invalid={!!landAreaError && showErrors}
+          />
+
+          {showErrors && <ErrorMessage>{landAreaError}</ErrorMessage>}
+        </Field>
+
+        <Field label="Ground Coverage (%)">
+          <InputF
+            id="ground_coverage_pct"
+            type="number"
+            value={inputs.ground_coverage_pct}
+            onChange={(value) => patch("ground_coverage_pct", value)}
+          />
+        </Field>
+
+        <Field label="FAR / FSI">
+          <InputF
+            id="far_fsi"
+            type="number"
+            value={inputs.far_fsi}
+            onChange={(value) => patch("far_fsi", value)}
+          />
+        </Field>
+
+        <Field label="Water Availability">
+          <SelectF
+            id="water_availability"
+            value={inputs.water_availability}
+            onChange={(value) => patch("water_availability", value)}
+            options={reference?.water_availability}
+          />
+        </Field>
+
+        <Field label="Electrical Grid Reliability">
+          <SelectF
+            id="grid_reliability"
+            value={inputs.grid_reliability}
+            onChange={(value) => patch("grid_reliability", value)}
+            options={reference?.grid_reliability}
+          />
+        </Field>
+
+        <Field label="Ambient Temperature Range">
+          <SelectF
+            id="ambient_temp_range"
+            value={inputs.ambient_temp_range}
+            onChange={(value) => patch("ambient_temp_range", value)}
+            options={reference?.ambient_temp_ranges}
+          />
+        </Field>
+
+
+
+
+
+        <Field label="Relative Humidity (%)">
+          <InputF
+            id="relative_humidity_pct"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={Math.min(
+              100,
+              Math.max(0, Number(inputs.relative_humidity_pct) || 0)
+            )}
+            onChange={(value) =>
+              patch(
+                "relative_humidity_pct",
+                Math.min(100, Math.max(0, Number(value) || 0))
+              )
+            }
+          />
+          <span className="text-sm text-slate-600">
+            {Math.min(
+              100,
+              Math.max(0, Number(inputs.relative_humidity_pct) || 0)
+            )}%
+          </span>
+        </Field>
+
+
+
+
+      </Section>
+
+      <div className="mb-5">
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Site Complexity
+        </div>
+
+        <CheckboxGrid
+          list={siteComplexity}
+          selected={Object.keys(inputs.complexity || {}).filter(
+            (key) => inputs.complexity[key]
+          )}
+          onToggle={(key) =>
+            patchComplexity(key, !inputs.complexity?.[key])
+          }
+          idPrefix="complexity"
+        />
+      </div>
+
+      <Section title="Contingency">
+        <Field
+          label={`Contingency (%): ${inputs.contingency_pct}%`}
+          span={3}
+        >
+          <input
+            type="range"
+            min="4"
+            max="20"
+            step="0.5"
+            value={inputs.contingency_pct ?? 4}
+            onChange={(event) =>
+              patch("contingency_pct", Number(event.target.value))
+            }
+            data-testid={TID.wizardField("contingency_pct")}
+            className="w-full accent-blue-600"
+          />
+        </Field>
+      </Section>
+    </>
+  );
+}
