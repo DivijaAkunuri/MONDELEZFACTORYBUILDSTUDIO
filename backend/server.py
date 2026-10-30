@@ -2022,18 +2022,32 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         / (1.0 + BENCHMARK_CONTINGENCY_RATE),
     )
 
+    components = [
+    str(component).strip().lower()
+    for component in (inp.building_components or [])
+]
+    warehouse_selected = any(
+        "warehouse" in component or component.startswith("wh-")
+        for component in components
+)
     scope_flags = {
-        "Warehouse / ASRS": "Warehouse" in (inp.building_components or []) or inp.product_category == "Warehouse",
-        "External / Site Development": bool(inp.include_roads or inp.include_landscaping or inp.include_fence),
+        "Warehouse / ASRS": (
+            warehouse_selected
+            or str(inp.product_category).strip().lower() == "warehouse"
+            ),
+        "External / Site Development": bool(
+            inp.include_roads
+            or inp.include_landscaping
+            or inp.include_fence
+            ),
         "EPCM & Project Management": True,
         "Permits & Insurance / Statutory": True,
         "Safety & Working Dynamics": True,
-    }
-
+        }
     active_weights = {
-        k: w for k, w in OTHER_SCOPE_WEIGHTS.items() if scope_flags.get(k, True)
-    }
-    weight_total = sum(active_weights.values()) or 1.0
+        k: w for k, w in OTHER_SCOPE_WEIGHTS.items()
+        if scope_flags.get(k, True)
+        }
 
     
     other_rows = []

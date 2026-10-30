@@ -952,14 +952,6 @@ function Step3({ inputs, patch, reference }) {
           />
         </Field>
 
-        <Field label="Floor Load (kN/m²)">
-          <InputF
-            id="floor_load_kn"
-            type="number"
-            value={inputs.floor_load_kn}
-            onChange={(value) => patch("floor_load_kn", value)}
-          />
-        </Field>
       </Section>
 
       <Section title="Site Conditions">
