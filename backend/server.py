@@ -2027,14 +2027,15 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     for component in (inp.building_components or [])
 ]
     warehouse_selected = any(
-        "warehouse" in component or component.startswith("wh-")
-        for component in components
+        str(inp.product_category or "").strip().lower() == "warehouse"
+        or any(
+            "warehouse" in component
+            or component.startswith("wh-")
+            for component in components
+    )
 )
     scope_flags = {
-        "Warehouse / ASRS": (
-            warehouse_selected
-            or str(inp.product_category).strip().lower() == "warehouse"
-            ),
+        "Warehouse / ASRS": warehouse_selected,
         "External / Site Development": bool(
             inp.include_roads
             or inp.include_landscaping
@@ -2049,10 +2050,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         if scope_flags.get(k, True)
         }
     weight_total = sum(active_weights.values()) or 1.0
-    logging.warning("DEBUG building_components: %s", inp.building_components)
-    logging.warning("DEBUG warehouse_selected: %s", warehouse_selected)
-    logging.warning("DEBUG precont_other: %s", precont_other)
-    logging.warning("DEBUG active_weights: %s", active_weights)
 
     
     other_rows = []
