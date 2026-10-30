@@ -1157,67 +1157,110 @@ export default function Estimator({ initialView = "new-estimate" }) {
                     </div>
                   )}
 
+
                   {/* ASSUMPTIONS AND INSIGHTS */}
 
-                  {activeTab === "assumptions" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                      <AssumptionsBox
-                        items={result.insights?.assumptions || []}
-                      />
+                  {activeTab === "assumptions" && (() => {
+                    const fallbackInsights = {
+                      assumptions: [
+                        "All dimensions are considered in the selected measurement units.",
+                        "Cost estimates are based on available regional and country benchmarks.",
+                        "Rates are inclusive of basic taxes, excluding VAT.",
+                        "Quantities are based on the submitted project dimensions and scope.",
+                        "No night-shift construction premium is considered.",
+                        "Statutory approvals and financing costs are excluded."
+                      ],
 
-                      <RisksBox
-                        items={result.insights?.risks || []}
-                      />
+                      risks: [
+                        "Steel and construction material price fluctuations.",
+                        "Long lead times for imported utility equipment.",
+                        "Environmental and statutory compliance requirements.",
+                        "Import duties and transportation cost variations.",
+                        "Availability of skilled construction labour."
+                      ],
 
-                      <OptimizationsBox
-                        items={result.insights?.optimizations || []}
-                      />
+                      optimizations: [
+                        "Evaluate PEB alternatives to optimize structural costs.",
+                        "Consider bulk procurement of utility equipment.",
+                        "Compare alternative cooling systems to reduce capital expenditure.",
+                        "Evaluate rooftop solar to reduce long-term energy costs."
+                      ]
+                    };
 
-                      {result.insights?.executive_summary && (
+                    const insights = result?.insights || {};
+
+                    const assumptions =
+                      Array.isArray(insights.assumptions) && insights.assumptions.length > 0
+                        ? insights.assumptions
+                        : fallbackInsights.assumptions;
+
+                    const risks =
+                      Array.isArray(insights.risks) && insights.risks.length > 0
+                        ? insights.risks
+                        : fallbackInsights.risks;
+
+                    const optimizations =
+                      Array.isArray(insights.optimizations) && insights.optimizations.length > 0
+                        ? insights.optimizations
+                        : fallbackInsights.optimizations;
+
+                    const executiveSummary =
+                      insights.executive_summary ||
+                      `This is a concept-stage estimate for ${inputs?.project_name || "the project"} in ${inputs?.location_city || "the selected city"}, ${inputs?.location_country || "the selected country"}. The estimated total project cost is ${fmtMoney(
+                        result?.totals?.total_project_cost || 0,
+                        currency,
+                        fxRates
+                      )}. Actual costs may vary depending on detailed engineering, material prices, site conditions and local requirements.`;
+
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                        <AssumptionsBox items={assumptions} />
+
+                        <RisksBox items={risks} />
+
+                        <OptimizationsBox items={optimizations} />
+
                         <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                           <h3 className="text-sm font-semibold text-slate-800 mb-3 font-['Manrope']">
                             Executive Summary
                           </h3>
 
                           <p className="text-sm text-slate-700 leading-relaxed">
-                            {result.insights.executive_summary}
+                            {executiveSummary}
                           </p>
 
-                          {result.insights?.source && (
+                          {insights.source && (
                             <div className="text-[10px] text-slate-400 mt-2 uppercase">
-                              Source: {result.insights.source}
+                              Source: {insights.source}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+
+                      </div>
+                    );
+                  })()}
 
 
-      <EditProjectDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        inputs={inputs}
-        reference={reference}
-        onSave={async (updated) => {
-          setInputs((current) => ({
-            ...current,
-            ...updated,
-            complexity: {
-              ...current.complexity,
-              ...(updated.complexity || {}),
-            },
-          }));
 
-          setEditOpen(false);
-        }}
-      />
-    </div >
-  );
+                  <EditProjectDialog
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    inputs={inputs}
+                    reference={reference}
+                    onSave={async (updated) => {
+                      setInputs((current) => ({
+                        ...current,
+                        ...updated,
+                        complexity: {
+                          ...current.complexity,
+                          ...(updated.complexity || {}),
+                        },
+                      }));
+
+                      setEditOpen(false);
+                    }}
+                  />
+                </div >
+              );
 }

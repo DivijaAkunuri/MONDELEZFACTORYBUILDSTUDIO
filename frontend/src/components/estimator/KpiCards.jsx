@@ -44,24 +44,41 @@ export default function KpiCards({ totals, currency, fxRates }) {
       icon: TrendingUp, iconBg: "bg-blue-100", iconClr: "text-blue-700",
     },
   ];
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
       {cards.map(({ key, label, value, sub, icon: Icon, iconBg, iconClr }) => (
         <div
           key={key}
           data-testid={TID.kpiCard(key)}
-          className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-lg shadow-sm"
+          className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-lg shadow-sm min-w-0"
         >
-          <div className={`w-11 h-11 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
-            <Icon className={`w-5 h-5 ${iconClr}`} />
+          <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+            <Icon className={`w-4 h-4 ${iconClr}`} />
           </div>
-          <div className="min-w-0">
-            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{label}</div>
-            <div className="text-lg font-bold text-slate-900 truncate font-['Manrope']">{value}</div>
-            <div className="text-[10px] text-slate-500 truncate">{sub}</div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+              {label}
+            </div>
+
+            <div
+              className={`font-bold text-slate-900 font-['Manrope'] leading-tight ${key === "total"
+                  ? "text-xs sm:text-sm whitespace-normal break-words"
+                  : "text-base truncate"
+                }`}
+              title={String(value)}
+            >
+              {value}
+            </div>
+
+            <div className="text-[10px] text-slate-500 truncate">
+              {sub}
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
+
 }
