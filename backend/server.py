@@ -1083,6 +1083,7 @@ from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from location_data import lookup_city_location
 import os
 import logging
 import json
@@ -2554,114 +2555,25 @@ async def list_estimates():
 
 @api_router.get("/estimator/location-lookup")
 async def location_lookup(city: str):
-    import logging
-
     city = city.strip()
 
-    if len(city) < 2:
+    if not city:
         raise HTTPException(
             status_code=400,
-            detail="Please enter a valid city name."
+            detail="Please enter a city name."
         )
 
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            response = await client.get(
-                "https://nominatim.openstreetmap.org/search",
-                params={
-                    "q": city,
-                    "format": "jsonv2",
-                    "addressdetails": 1,
-                    "limit": 5,
-                },
-                headers={
-                    "User-Agent": "ConstructionEstimator/1.0 (location lookup)"
-                },
-            )
+    location = lookup_city_location(city)
 
-            if response.status_code == 429:
-                logging.warning(
-                    "OpenStreetMap rate limit reached for city: %s",
-                    city
-                )
-                raise HTTPException(
-                    status_code=503,
-                    detail=(
-                        "The location service is temporarily busy. "
-                        "Please wait a minute and try again."
-                    )
-                )
-
-            response.raise_for_status()
-            results = response.json()
-
-    except HTTPException:
-        raise
-    except httpx.HTTPError:
-        logging.exception("Location lookup request failed")
-        raise HTTPException(
-            status_code=502,
-            detail="Could not contact the location service. Please try again."
-        )
-
-    locations = []
-    seen = set()
-
-    for item in results:
-        address = item.get("address", {})
-        country = address.get("country")
-
-        if not country:
-            continue
-
-        city_name = (
-            address.get("city")
-            or address.get("town")
-            or address.get("village")
-            or address.get("municipality")
-            or city
-        )
-
-        country_code = address.get("country_code", "").upper()
-
-        key = (city_name.casefold(), country.casefold())
-        if key in seen:
-            continue
-        seen.add(key)
-
-        matched_region = next(
-            (
-                region_name
-                for region_name, countries in REGION_MULTIPLIERS.items()
-                if any(
-                    str(mapped_country).casefold() == country.casefold()
-                    for mapped_country in countries
-                )
-            ),
-            None,
-        )
-
-        locations.append({
-            "city": city_name,
-            "state": (
-                address.get("state")
-                or address.get("province")
-                or address.get("region")
-                or ""
-            ),
-            "country": country,
-            "country_code": country_code,
-            "region": matched_region,
-            "formatted": item.get("display_name", ""),
-        })
-
-    if not locations:
+    if not location:
         raise HTTPException(
             status_code=404,
-            detail="No matching location found. Try entering the city and country."
+            detail=f"{city} is not available in our location database. Please select a supported city."
         )
 
-    return {"locations": locations}
+    return {
+        "locations": [location]
+    }
 
 
 
