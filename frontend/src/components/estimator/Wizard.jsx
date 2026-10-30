@@ -877,6 +877,86 @@ function Step1({ inputs, patch, reference }) {
           </Section>
 
         </div>
+
+        {(inputs.building_components || []).includes("Admin Building") && (
+          <Section title="Employee & Staff Facilities">
+
+            <Field label="Male Employees">
+              <InputF
+                id="male_employees"
+                type="number"
+                min="0"
+                value={inputs.male_employees ?? 0}
+                onChange={(value) => {
+                  const male = Math.max(0, Number(value) || 0);
+                  const female = Math.max(
+                    0,
+                    Number(inputs.female_employees) || 0
+                  );
+
+                  patch("male_employees", male);
+                  patch("num_employees", male + female);
+                }}
+              />
+            </Field>
+
+            <Field label="Female Employees">
+              <InputF
+                id="female_employees"
+                type="number"
+                min="0"
+                value={inputs.female_employees ?? 0}
+                onChange={(value) => {
+                  const female = Math.max(0, Number(value) || 0);
+                  const male = Math.max(
+                    0,
+                    Number(inputs.male_employees) || 0
+                  );
+
+                  patch("female_employees", female);
+                  patch("num_employees", male + female);
+                }}
+              />
+            </Field>
+
+            <Field label="Total Employees">
+              <InputF
+                id="num_employees"
+                type="number"
+                value={
+                  (Number(inputs.male_employees) || 0) +
+                  (Number(inputs.female_employees) || 0)
+                }
+                readOnly
+                className="bg-slate-100 cursor-not-allowed"
+              />
+            </Field>
+
+            <Field label="Special / Work Clothing Required?">
+              <SelectF
+                id="special_work_clothing"
+                value={inputs.special_work_clothing ?? "Yes"}
+                onChange={(value) =>
+                  patch("special_work_clothing", value)
+                }
+                options={["Yes", "No"]}
+              />
+            </Field>
+
+            <Field label="Work Shoes / Boots Required?">
+              <SelectF
+                id="work_shoes_required"
+                value={inputs.work_shoes_required ?? "Yes"}
+                onChange={(value) =>
+                  patch("work_shoes_required", value)
+                }
+                options={["Yes", "No"]}
+              />
+            </Field>
+
+          </Section>
+        )}
+
       </>
     );
   }
@@ -1289,78 +1369,6 @@ function Step1({ inputs, patch, reference }) {
 
     return (
       <>
-        {(inputs.building_components || []).includes("Admin Building") && (
-          <Section title="Employee & Staff Facilities">
-
-            <Field label="Male Employees">
-              <InputF
-                id="male_employees"
-                type="number"
-                min="0"
-                value={inputs.male_employees ?? 0}
-                onChange={(value) =>
-                  patch("male_employees", Math.max(0, Number(value) || 0))
-                }
-              />
-            </Field>
-
-            <Field label="Female Employees">
-              <InputF
-                id="female_employees"
-                type="number"
-                min="0"
-                value={inputs.female_employees ?? 0}
-                onChange={(value) =>
-                  patch("female_employees", Math.max(0, Number(value) || 0))
-                }
-              />
-            </Field>
-            <Field label="Total Employees">
-              <InputF
-                id="num_employees"
-                type="number"
-                min="0"
-                value={inputs.num_employees ?? 0}
-                onChange={(value) =>
-                  patch("num_employees", Math.max(0, Number(value) || 0))
-                }
-              />
-            </Field>
-
-            <Field label="Special / Work Clothing Required?">
-              <SelectF
-                id="special_work_clothing"
-                value={inputs.special_work_clothing ?? "Yes"}
-                onChange={(value) =>
-                  patch("special_work_clothing", value)
-                }
-                options={["Yes", "No"]}
-              />
-            </Field>
-
-            <Field label="Street & Safety Shoes Lockers Required?">
-              <SelectF
-                id="work_shoes_required"
-                value={inputs.work_shoes_required ?? "Yes"}
-                onChange={(value) =>
-                  patch("work_shoes_required", value)
-                }
-                options={["Yes", "No"]}
-              />
-            </Field>
-            <Field label="Canteen/Dining Facilities Required?">
-              <SelectF
-                id="canteen_dining_required"
-                value={inputs.canteen_dining_required ?? "Yes"}
-                onChange={(value) =>
-                  patch("canteen_dining_required", value)
-                }
-                options={["Yes", "No"]}
-              />
-            </Field>
-          </Section>
-        )}
-
         <Section title="External Works Scope">
           <Field label="Roads,Pathways & Parking Bays">
             <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
@@ -1537,4 +1545,5 @@ function Step1({ inputs, patch, reference }) {
         </Section>
       </>
     );
-  }}
+  }
+}

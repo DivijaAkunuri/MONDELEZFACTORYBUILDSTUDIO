@@ -642,6 +642,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
         fxRates={fxRates}
         result={result}
         inputs={inputs}
+        activeKey={step === 5 ? "dashboard" : "new-estimate"}
         liveRateIndex={result?.live_rate_index}
         onDashboard={() => {
           setStep(5);
