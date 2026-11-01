@@ -23,12 +23,12 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
   const location = useLocation();
 
   const active =
-  items.find((item) => location.pathname === item.path)?.key ||
-  (location.pathname.startsWith("/dashboard")
-    ? "dashboard"
-    : location.pathname.startsWith("/estimator")
-    ? "new-estimate"
-    : "");
+    items.find((item) => location.pathname === item.path)?.key ||
+    (location.pathname.startsWith("/dashboard")
+      ? "dashboard"
+      : location.pathname.startsWith("/estimator")
+        ? "new-estimate"
+        : "");
 
   const localCurrency = inputs?.currency || "EUR";
   const localRate = fxRates?.[localCurrency] ?? 0;
@@ -46,22 +46,23 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
     if (key === "new-estimate") {
       if (onNewEstimate) {
         onNewEstimate();
-      } else {
-        navigate("/estimator");
       }
+
+      navigate("/estimator");
       return;
     }
 
     if (key === "dashboard") {
       if (onDashboard) {
         onDashboard();
-      } else {
-        navigate("/dashboard", {
-          state: { result, inputs, currency, fxRates },
-        });
       }
+
+      navigate("/dashboard", {
+        state: { result, inputs, currency, fxRates },
+      });
       return;
     }
+
 
     if (key === "civil-scope") {
       navigate("/civil-scope", { state: { result, inputs, currency, fxRates } });
