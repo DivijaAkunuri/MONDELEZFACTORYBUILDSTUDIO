@@ -22,7 +22,13 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
   const navigate = useNavigate();
   const location = useLocation();
 
-  const active = items.find((item) => location.pathname === item.path)?.key || "new-estimate";
+  const active =
+  items.find((item) => location.pathname === item.path)?.key ||
+  (location.pathname.startsWith("/dashboard")
+    ? "dashboard"
+    : location.pathname.startsWith("/estimator")
+    ? "new-estimate"
+    : "");
 
   const localCurrency = inputs?.currency || "EUR";
   const localRate = fxRates?.[localCurrency] ?? 0;
