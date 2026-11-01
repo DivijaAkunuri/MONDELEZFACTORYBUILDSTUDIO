@@ -954,7 +954,16 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
       {/* 4. RM WAREHOUSE GEOMETRY */}
       {showRMWarehouse && (
-        <Section title="RM Warehouse Geometry">
+        <Section
+          title={
+            <>
+              RM Warehouse Geometry
+              <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
+                (Please enter all required dimensions)
+              </span>
+            </>
+          }
+        >
           <Field label="Length (m)">
             <InputF
               id="rm_wh_length_m"
@@ -1033,7 +1042,16 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
       {/* 5. FG WAREHOUSE GEOMETRY */}
       {showFGWarehouse && (
-        <Section title="FG Warehouse Geometry">
+        <Section
+          title={
+            <>
+              FG Warehouse Geometry
+              <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
+                (Please enter all required dimensions)
+              </span>
+            </>
+          }
+        >
           <Field label="Length (m)">
             <InputF
               id="fg_wh_length_m"
