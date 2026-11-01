@@ -516,13 +516,16 @@ function Step1({ inputs, patch, reference }) {
           />
         </Field>
 
+
         <Field label="Project Type">
-          <InputF
+          <SelectF
             id="project_type"
-            value={inputs.project_type}
+            value={inputs.project_type ?? "Greenfield"}
             onChange={(value) => patch("project_type", value)}
+            options={["Greenfield", "Brownfield"]}
           />
         </Field>
+
 
         <Field label="Industry Type">
           <InputF id="industry_type" value="FMCG" readOnly />
