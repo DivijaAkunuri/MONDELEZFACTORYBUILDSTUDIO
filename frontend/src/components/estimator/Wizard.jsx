@@ -975,15 +975,17 @@ function Step2({ inputs, patch, reference, showErrors }) {
             />
           </Field>
 
+
           <Field label="Number of Floors">
             <InputF
               id="rm_wh_num_floors"
               type="number"
               min="1"
-              value={inputs.rm_wh_num_floors ?? 1}
+              value={inputs.rm_wh_num_floors ?? ""}
               onChange={(value) => patch("rm_wh_num_floors", value)}
             />
           </Field>
+
 
           <Field label="Floor Height (m)">
             <InputF
