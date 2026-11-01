@@ -988,7 +988,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                   {/* UTILITIES */}
 
                   {activeTab === "utilities" && (
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                    <div className="flex flex-col gap-6 w-full">
                       <UtilitiesSummary
                         utilities={result.utilities || []}
                         total={result.utilities_total || 0}
@@ -996,13 +996,18 @@ export default function Estimator({ initialView = "new-estimate" }) {
                         fxRates={fxRates}
                       />
 
-                      <UtilityCards
-                        demand={result.utility_demand || {}}
-                        selectedScopes={inputs.utility_scope || []}
-                      />
+                      <div className="w-full">
+                        <h3 className="text-sm font-semibold text-slate-800 mb-4">
+                          Utility Demand Summary
+                        </h3>
+
+                        <UtilityCards
+                          demand={result.utility_demand || {}}
+                          selectedScopes={inputs?.utility_scope || []}
+                        />
+                      </div>
                     </div>
                   )}
-
                   {/* PROCESS DATA */}
 
                   {activeTab === "process" && (

@@ -16,7 +16,7 @@ const CARDS = [
 export default function UtilityCards({ demand }) {
   if (!demand) return null;
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full">
       {CARDS.map(({ key, label, unit, field, icon: Icon, color, bg }) => (
         <div key={key} data-testid={TID.utilityCard(key)} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-center gap-3">
           <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
