@@ -146,7 +146,7 @@ const DEFAULT_INPUTS = {
     remote_site: false,
   },
 
-  currency: "USD",
+  currency: "EUR",
   base_unit: "mm",
   contingency_pct: 8.0,
 
