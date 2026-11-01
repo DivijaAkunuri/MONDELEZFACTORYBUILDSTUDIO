@@ -329,7 +329,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = React.useState(initialView === "dashboard" ? 5 : 0);
-  const [activeTab, setActiveTab] = React.useState("summary");
+  const [activeTab, setActiveTab] = React.useState("breakdown");
   const [editOpen, setEditOpen] = React.useState(false);
 
   const isFirstInputsChange = React.useRef(true);
@@ -646,7 +646,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
         liveRateIndex={result?.live_rate_index}
         onDashboard={() => {
           setStep(5);
-          setActiveTab("summary");
+          setActiveTab("breakdown");
         }}
         onNewEstimate={() => {
           setStep(0);
