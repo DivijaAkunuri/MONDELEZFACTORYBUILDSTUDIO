@@ -232,9 +232,9 @@ export default function ReportsExport() {
                         <div className="p-10 border-b border-slate-200">
                             <div className="flex justify-end mb-6 pr-2">
                                 <img
-                                    src="/mondelez-logo.png"
-                                    alt="Mondelez International"
-                                    className="w-40 h-auto object-contain"
+                                    src="/factory-logo.png"
+                                    alt="Factory Logo"
+                                    className="w-40 h-24 object-contain"
                                 />
                             </div>
 

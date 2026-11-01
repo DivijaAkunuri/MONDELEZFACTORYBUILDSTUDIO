@@ -94,8 +94,12 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
       {/* Logo */}
       <div className="px-5 pt-5 pb-6 border-b border-slate-800/60 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-md bg-slate-800/80 flex items-center justify-center flex-shrink-0">
-          <Building2 className="w-6 h-6 text-white" />
+        <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+          <img
+            src="/factory-logo.png"
+            alt="Factory Logo"
+            className="w-10 h-10 object-contain"
+          />
         </div>
 
         <div>
