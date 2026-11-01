@@ -469,9 +469,76 @@ function Step1({ inputs, patch, reference }) {
     }
   };
 
+  const countryCurrencyMap = {
+    // AMEA
+    "India": "INR",
+    "China": "CNY",
+    "UAE": "AED",
+    "Saudi Arabia": "SAR",
+    "South Africa": "ZAR",
+    "Egypt": "EGP",
+    "Thailand": "THB",
+    "Vietnam": "VND",
+    "Indonesia": "IDR",
+    "Australia": "AUD",
+    "New Zealand": "NZD",
+    "Japan": "JPY",
+    "South Korea": "KRW",
+    "Singapore": "SGD",
+    "Malaysia": "MYR",
+    "Philippines": "PHP",
+    "Bangladesh": "BDT",
+    "Pakistan": "PKR",
+    "Sri Lanka": "LKR",
 
+    // MEU
+    "Germany": "EUR",
+    "France": "EUR",
+    "UK": "GBP",
+    "United Kingdom": "GBP",
+    "Netherlands": "EUR",
+    "Belgium": "EUR",
+    "Switzerland": "CHF",
+    "Austria": "EUR",
+    "Poland": "PLN",
+    "Czech Republic": "CZK",
+    "Slovakia": "EUR",
+    "Hungary": "HUF",
+    "Romania": "RON",
+    "Bulgaria": "BGN",
+    "Italy": "EUR",
+    "Spain": "EUR",
+    "Portugal": "EUR",
+    "Greece": "EUR",
+    "Turkey": "TRY",
+    "Norway": "NOK",
+    "Sweden": "SEK",
+    "Denmark": "DKK",
+    "Finland": "EUR",
+    "Ireland": "EUR",
 
+    // North America
+    "USA": "USD",
+    "United States": "USD",
+    "Canada": "CAD",
+    "Mexico": "MXN",
 
+    // Latin America
+    "Brazil": "BRL",
+    "Argentina": "ARS",
+    "Colombia": "COP",
+    "Chile": "CLP",
+    "Peru": "PEN",
+    "Ecuador": "USD",
+    "Uruguay": "UYU",
+
+    // Africa
+    "Nigeria": "NGN",
+    "Kenya": "KES",
+    "Ghana": "GHS",
+    "Morocco": "MAD",
+    "Tunisia": "TND"
+  };
 
   const selectLocation = (location) => {
     if (!location.country || !location.region || !location.city) {
@@ -497,13 +564,32 @@ function Step1({ inputs, patch, reference }) {
       return;
     }
 
+    const currency = countryCurrencyMap[location.country];
+
+    if (
+      currency &&
+      !(reference?.currencies || []).some((item) =>
+        (typeof item === "string" ? item : item.key) === currency
+      )
+    ) {
+      setLocationError(
+        `Currency ${currency} is not available in the estimator.`
+      );
+      return;
+    }
+
     patch("location_city", location.city);
     patch("region", location.region);
     patch("location_country", location.country);
 
+    if (currency) {
+      patch("currency", currency);
+    }
+
     setLocations([]);
     setLocationError("");
   };
+
 
   return (
     <>
