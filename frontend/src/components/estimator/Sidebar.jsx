@@ -133,7 +133,10 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
       <div className="mx-3 mb-4 p-3 rounded-md bg-slate-900/70 border border-slate-800 text-[12px]">
         <Row label="Units" value="All dimensions in mm" />
         <Row label="Currency" value={currency ?? "USD"} />
-        <Row label="FX Rate (EUR/USD)" value={eurUsd} />
+        <Row
+          label={`FX Rate (USD/${inputs.currency || "USD"})`}
+          value={fxRate}
+        />
 
         <div className="text-[10px] text-slate-500 mt-1">
           ({new Date().toLocaleDateString("en-GB")})
