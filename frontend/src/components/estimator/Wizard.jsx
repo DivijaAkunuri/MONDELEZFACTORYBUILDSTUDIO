@@ -1054,15 +1054,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
             />
           </Field>
 
-          <Field label="Number of Floors">
-            <InputF
-              id="fg_wh_num_floors"
-              type="number"
-              min="1"
-              value={inputs.fg_wh_num_floors ?? 1}
-              onChange={(value) => patch("fg_wh_num_floors", value)}
-            />
-          </Field>
 
 
           <Field label="Number of Floors">
