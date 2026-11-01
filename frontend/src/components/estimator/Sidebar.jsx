@@ -24,8 +24,11 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
   const active = items.find((item) => location.pathname === item.path)?.key || "new-estimate";
 
-  const eurRate = fxRates?.EUR ?? 0.919;
-  const eurUsd = (1 / eurRate).toFixed(4);
+  const localCurrency = inputs?.currency || "EUR";
+  const localRate = fxRates?.[localCurrency] ?? 0;
+  const localUsd = localRate > 0
+    ? (1 / localRate).toFixed(4)
+    : "N/A";
 
   const idx = liveRateIndex || {};
   const idxPct = idx.delta_pct;
@@ -134,8 +137,8 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         <Row label="Units" value="All dimensions in mm" />
         <Row label="Currency" value={currency ?? "USD"} />
         <Row
-          label={`FX Rate (USD/${inputs.currency || "USD"})`}
-          value={fxRate}
+          label={`FX Rate (${localCurrency}/USD)`}
+          value={localUsd}
         />
 
         <div className="text-[10px] text-slate-500 mt-1">
