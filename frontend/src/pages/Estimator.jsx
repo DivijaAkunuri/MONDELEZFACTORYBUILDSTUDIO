@@ -666,7 +666,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
           }),
         }}
 
-/>
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* HEADER */}
@@ -991,13 +991,14 @@ export default function Estimator({ initialView = "new-estimate" }) {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                       <UtilitiesSummary
                         utilities={result.utilities || []}
-                        total={result.utilities_total}
+                        total={result.utilities_total || 0}
                         currency={currency}
                         fxRates={fxRates}
                       />
 
                       <UtilityCards
-                        demand={result.utility_demand || []}
+                        demand={result.utility_demand || {}}
+                        selectedScopes={inputs.utility_scope || []}
                       />
                     </div>
                   )}
@@ -1260,7 +1261,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
                       setEditOpen(false);
                     }}
-                />
+                  />
                 </>
               )}
             </>

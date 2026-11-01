@@ -518,6 +518,7 @@ UTILITY_SCOPE_MAP = {
     "HVAC System": "HVAC",
     "Air Compressors": "Compressed Air System",
     "Process Piping": "Utility Piping",
+    "WTP": "Water Supply System",
     "Water Treatment Plant": "Water Supply System",
     "Fire Fighting System": "Fire Fighting System",
     "Electrical Substation": "Electrical Infrastructure",
@@ -720,28 +721,14 @@ def _product_utility_multiplier(inp: ProjectInputs, system_name: str) -> float:
         elif system_name == "Compressed Air System":
             base *= 1.0 + max(0.0, inp.compressed_air_demand_cfm - 1500.0) / 15000.0
     return max(0.50, min(2.50, base))
+
 def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
     selected = {
         UTILITY_SCOPE_MAP[label]
         for label in (inp.utility_scope or [])
         if label in UTILITY_SCOPE_MAP
-    
     }
-    product = str(inp.product_category or "").lower()
-    # Food manufacturing baseline: the benchmark basket includes the core
-    # utility/process systems. The UI selection can add optional systems,
-    # but it must not silently remove core scope from a food plant.
-    if product in {"chocolate","bakery", "bakery + chocolate combo"}:
-        return True
-    if product == "warehouse":
-        core = {
-            "Electrical Infrastructure",
-            "Fire Fighting System",
-            "Water Supply System",
-            "HVAC",
-            "IT/OT System",
-        }
-        return canonical_name in (core | selected)
+
     return canonical_name in selected
 
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
