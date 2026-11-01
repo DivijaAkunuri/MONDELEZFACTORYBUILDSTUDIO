@@ -27,7 +27,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
       region: Object.keys(regions).includes(inputs.region) ? inputs.region : matchedRegion,
       location_country: country,
       location_tier: validTiers.includes(inputs.location_tier) ? inputs.location_tier : "Metro",
-      sbc_soil_type: inputs.sbc_soil_type === "Hard Stone" ? "Hard" : (inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard"),
+      sbc_soil_type: inputs.sbc_soil_type === "Soft" ? "Soft" : "Hard",
       male_employees: inputs.male_employees ?? 0,
       female_employees: inputs.female_employees ?? 0,
       num_employees: inputs.num_employees ?? 0,

@@ -87,12 +87,12 @@ const DEFAULT_INPUTS = {
   ],
 
   soil_type: "Medium Dense Sand",
-  sbc_soil_type: "Hard Stone",
+  sbc_soil_type: "Soft",
   soil_hardness: "Medium",
   foundation_type: ["Isolated Footing"],
 
-  column_type: "Steel",
-  roof_type: "PEB + Insulated Panel",
+  column_type: "RCC",
+  roof_type: "RCC Slab",
   seismic_zone: "Zone 0 (Very Low)",
   wind_zone: "Zone 2",
   wind_speed_ms: 45,

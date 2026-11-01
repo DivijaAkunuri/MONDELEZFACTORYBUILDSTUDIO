@@ -82,11 +82,11 @@ class ProjectInputs(BaseModel):
     ])
     # Step 3 - structural & site
     
-    sbc_soil_type: str = "Hard"           # Bearing capacity type               # Hard / Medium / Soft
+    sbc_soil_type: str = "Soft"           # Bearing capacity type               # Hard / Medium / Soft
     foundation_type: List[str] = Field(default_factory=lambda: ["Isolated Footing"])
-    column_type: str = "Steel"
-    roof_type: str = "PEB + Insulated Panel"
-    roof_types_by_floor: List[List[str]] = Field(default_factory=lambda: [["PEB + Insulated Panel"]])
+    column_type: str = "RCC"
+    roof_type: str = "RCC Slab"
+    roof_types_by_floor: List[List[str]] = Field(default_factory=lambda: [["RCC Slab"]])
     seismic_zone: str = "Zone 0 (Very Low)"
     wind_zone: str = "Zone 2"
     wind_speed_ms: float = 45.0
