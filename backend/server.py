@@ -1470,20 +1470,38 @@ async def location_lookup(city: str):
             detail="Please enter a city name."
         )
 
-    location = lookup_city_location(city)
+    try:
+        locations = await lookup_city_location(city)
 
-    if not location:
+        if not locations:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No matching city found for '{city}'."
+            )
+
+        return {"locations": locations}
+
+    except HTTPException:
+        raise
+
+    except httpx.TimeoutException:
         raise HTTPException(
-            status_code=404,
-            detail=f"{city} is not available in our location database. Please select a supported city."
+            status_code=504,
+            detail="Location search timed out. Please try again."
         )
 
-    return {
-        "locations": [location]
-    }
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=502,
+            detail="Could not connect to the location service."
+        )
 
-
-
+    except Exception:
+        logging.exception("Location lookup failed")
+        raise HTTPException(
+            status_code=500,
+            detail="Location lookup failed. Please try again."
+        )
 
 @api_router.get("/estimator/{est_id}")
 async def get_estimate(est_id: str):

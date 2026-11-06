@@ -452,12 +452,12 @@ function Step1({ inputs, patch, reference }) {
       const results = data.locations || [];
 
       if (results.length === 0) {
-        setLocationError("City not found in our location database.");
+        setLocationError("No matching city found. Please check the spelling.");
         return;
       }
 
-      // Automatically select the city and fill Country and Region.
-      selectLocation(results[0]);
+      // Show matching cities so the user can select the correct one.
+      setLocations(results);
 
     } catch (error) {
       setLocationError(
@@ -546,43 +546,22 @@ function Step1({ inputs, patch, reference }) {
       return;
     }
 
-    const availableRegions = Object.keys(reference?.regions || {});
-
-    if (!availableRegions.includes(location.region)) {
-      setLocationError(
-        `Region ${location.region} is not available in the estimator.`
-      );
-      return;
-    }
-
-    const availableCountries = reference?.regions?.[location.region] || [];
-
-    if (!availableCountries.includes(location.country)) {
-      setLocationError(
-        `Country ${location.country} is not available under ${location.region}.`
-      );
-      return;
-    }
-
-    const currency = countryCurrencyMap[location.country];
-
-    if (
-      currency &&
-      !(reference?.currencies || []).some((item) =>
-        (typeof item === "string" ? item : item.key) === currency
-      )
-    ) {
-      setLocationError(
-        `Currency ${currency} is not available in the estimator.`
-      );
-      return;
-    }
+    // Accept both supported cost regions and the new "Other" region.
+    const selectedRegion = location.region || "Other";
 
     patch("location_city", location.city);
-    patch("region", location.region);
     patch("location_country", location.country);
+    patch("region", selectedRegion);
 
-    if (currency) {
+    // Keep the existing local-currency behavior for now.
+    // USD-only conversion will be handled in a separate change.
+    const currency = countryCurrencyMap[location.country];
+
+    const supportedCurrencies = (reference?.currencies || []).map(
+      (item) => typeof item === "string" ? item : item.key
+    );
+
+    if (currency && supportedCurrencies.includes(currency)) {
       patch("currency", currency);
     }
 
@@ -655,7 +634,10 @@ function Step1({ inputs, patch, reference }) {
             id="location_country"
             value={inputs.location_country}
             onChange={(value) => patch("location_country", value)}
-            options={reference?.regions?.[inputs.region] || []}
+            options={[
+              ...(reference?.regions?.[inputs.region] || []),
+              ...(inputs.location_country ? [inputs.location_country] : [])
+            ].filter((value, index, array) => array.indexOf(value) === index)}
           />
         </Field>
 
@@ -676,7 +658,7 @@ function Step1({ inputs, patch, reference }) {
               patch("region", value);
               patch("location_country", "");
             }}
-            options={Object.keys(reference?.regions || {})}
+            options={[...Object.keys(reference?.regions || {}), "Other"]}
           />
         </Field>
 
@@ -689,6 +671,15 @@ function Step1({ inputs, patch, reference }) {
           />
         </Field>
       </Section>
+
+      {inputs.region === "Other" && inputs.location_country && (
+        <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          <strong>Cost data not configured for this country.</strong>
+          The city has been found, but country-specific construction cost
+          factors are not available. The current estimator may use USA
+          fallback rates. Treat the estimate as preliminary.
+        </div>
+      )}
 
       {locationError && (
         <p className="mb-3 text-sm text-red-600" role="alert">

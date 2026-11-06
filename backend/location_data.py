@@ -1,156 +1,91 @@
+import httpx
+from rate_data import REGION_MULTIPLIERS
 
-"""
-Static city -> country -> region mapping for Construction Estimator.
-No geocoding API or internet connection is required.
-Country names match COUNTRY_COST_FACTORS in rate_data.py.
-"""
 
-# Every city below is taken from the latest CITY_FACTORS table.
-# Format: city: (country, region)
+GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
-CITY_TO_COUNTRY_REGION = {
-    # INDIA
-    "mumbai": ("India", "AMEA"),
-    "navi mumbai": ("India", "AMEA"),
-    "delhi": ("India", "AMEA"),
-    "gurgaon": ("India", "AMEA"),
-    "noida": ("India", "AMEA"),
-    "bangalore": ("India", "AMEA"),
-    "bengaluru": ("India", "AMEA"),
-    "chennai": ("India", "AMEA"),
-    "hyderabad": ("India", "AMEA"),
-    "pune": ("India", "AMEA"),
-    "kolkata": ("India", "AMEA"),
-    "ahmedabad": ("India", "AMEA"),
-    "sricity": ("India", "AMEA"),
-    "sri city": ("India", "AMEA"),
-    "bhubaneswar": ("India", "AMEA"),
-    "indore": ("India", "AMEA"),
-    "coimbatore": ("India", "AMEA"),
-    "kochi": ("India", "AMEA"),
-    "jaipur": ("India", "AMEA"),
-    "lucknow": ("India", "AMEA"),
-
-    # EUROPE - CZECH REPUBLIC
-    "opava": ("Czech Republic", "MEU"),
-    "prague": ("Czech Republic", "MEU"),
-    "brno": ("Czech Republic", "MEU"),
-
-    # EUROPE - POLAND
-    "plonsk": ("Poland", "MEU"),
-    "warsaw": ("Poland", "MEU"),
-    "krakow": ("Poland", "MEU"),
-    "wroclaw": ("Poland", "MEU"),
-    "gdansk": ("Poland", "MEU"),
-
-    # EUROPE - GERMANY
-    "berlin": ("Germany", "MEU"),
-    "munich": ("Germany", "MEU"),
-    "hamburg": ("Germany", "MEU"),
-    "frankfurt": ("Germany", "MEU"),
-
-    # EUROPE - FRANCE
-    "paris": ("France", "MEU"),
-    "lyon": ("France", "MEU"),
-
-    # EUROPE - UNITED KINGDOM
-    "london": ("UK", "MEU"),
-    "manchester": ("UK", "MEU"),
-
-    # EUROPE - NETHERLANDS
-    "amsterdam": ("Netherlands", "MEU"),
-
-    # EUROPE - ITALY
-    "milan": ("Italy", "MEU"),
-    "rome": ("Italy", "MEU"),
-
-    # EUROPE - SPAIN
-    "madrid": ("Spain", "MEU"),
-    "barcelona": ("Spain", "MEU"),
-
-    # NORTH AMERICA - USA
-    "new york": ("USA", "North America"),
-    "los angeles": ("USA", "North America"),
-    "chicago": ("USA", "North America"),
-    "houston": ("USA", "North America"),
-    "dallas": ("USA", "North America"),
-    "atlanta": ("USA", "North America"),
-
-    # NORTH AMERICA - CANADA
-    "toronto": ("Canada", "North America"),
-    "vancouver": ("Canada", "North America"),
-    "montreal": ("Canada", "North America"),
-
-    # NORTH AMERICA - MEXICO
-    "mexico city": ("Mexico", "North America"),
-
-    # MIDDLE EAST
-    "dubai": ("UAE", "AMEA"),
-    "abu dhabi": ("UAE", "AMEA"),
-    "riyadh": ("Saudi Arabia", "AMEA"),
-
-    # ASIA / ASEAN
-    "singapore": ("Singapore", "AMEA"),
-    "kuala lumpur": ("Malaysia", "AMEA"),
-    "jakarta": ("Indonesia", "AMEA"),
-    "bangkok": ("Thailand", "AMEA"),
-    "shanghai": ("China", "AMEA"),
-    "tokyo": ("Japan", "AMEA"),
-    "hong kong": ("China", "AMEA"),
-
-    # OCEANIA
-    "sydney": ("Australia", "AMEA"),
-    "melbourne": ("Australia", "AMEA"),
-
-    # AFRICA
-    "cairo": ("Egypt", "AMEA"),
-    "johannesburg": ("South Africa", "AMEA"),
-
-    # LATIN AMERICA
-    "sao paulo": ("Brazil", "Latin America"),
-    "buenos aires": ("Argentina", "Latin America"),
+# Match Open-Meteo country names to the names used by rate_data.py.
+COUNTRY_ALIASES = {
+    "United States": "USA",
+    "United States of America": "USA",
+    "United Kingdom": "UK",
+    "Czechia": "Czech Republic",
+    "United Arab Emirates": "UAE",
 }
 
+# Countries outside the estimator's current cost database
+# will be assigned to "Other".
+def get_estimator_region(country: str) -> str:
+    country = COUNTRY_ALIASES.get(country, country)
 
-# Alternative spellings and commonly used city names
-CITY_ALIASES = {
-    "new delhi": "delhi",
-    "gurugram": "gurgaon",
-    "bangalore city": "bangalore",
-    "bengaluru city": "bengaluru",
-    "sri-city": "sri city",
-    "sri city chittoor": "sri city",
-    "cochin": "kochi",
-    "bombay": "mumbai",
-    "madras": "chennai",
-    "calcutta": "kolkata",
-    "baroda": "vadodara",
-}
+    for region, countries in REGION_MULTIPLIERS.items():
+        if country in countries:
+            return region
+
+    return "Other"
 
 
-def normalize_city(city: str) -> str:
-    """Normalize city input and resolve known aliases."""
-    if not city:
-        return ""
-
-    key = " ".join(city.strip().casefold().split())
-    return CITY_ALIASES.get(key, key)
+def normalize_country(country: str) -> str:
+    return COUNTRY_ALIASES.get(country, country)
 
 
-def lookup_city_location(city: str):
+async def lookup_city_location(city: str):
     """
-    Return the city, country and region.
-    Returns None if the city is not in the database.
+    Search worldwide cities using Open-Meteo Geocoding API.
+
+    Returns a list of locations containing:
+    city, country, country_code, region, state and formatted.
     """
-    key = normalize_city(city)
 
-    if key not in CITY_TO_COUNTRY_REGION:
-        return None
+    if not city or not city.strip():
+        return []
 
-    country, region = CITY_TO_COUNTRY_REGION[key]
-
-    return {
-        "city": key.title(),
-        "country": country,
-        "region": region,
+    params = {
+        "name": city.strip(),
+        "count": 10,
+        "language": "en",
+        "format": "json",
     }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(
+            GEOCODING_URL,
+            params=params,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+    results = data.get("results", []) or []
+    locations = []
+
+    for item in results:
+        city_name = item.get("name")
+        country_name = item.get("country")
+
+        if not city_name or not country_name:
+            continue
+
+        country_name = normalize_country(country_name)
+        state = item.get("admin1") or ""
+
+        region = get_estimator_region(country_name)
+
+        formatted_parts = [city_name]
+
+        if state and state.casefold() != city_name.casefold():
+            formatted_parts.append(state)
+
+        formatted_parts.append(country_name)
+
+        locations.append({
+            "city": city_name,
+            "country": country_name,
+            "country_code": item.get("country_code", ""),
+            "region": region,
+            "state": state,
+            "formatted": ", ".join(formatted_parts),
+            "latitude": item.get("latitude"),
+            "longitude": item.get("longitude"),
+        })
+
+    return locations
