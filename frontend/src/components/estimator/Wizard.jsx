@@ -409,7 +409,16 @@ function InputF({ id, value, onChange, type = "text", ...props }) {
 }
 
 
+
 function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
+  const displayLabels = {
+    "HVAC System":
+      "HVAC System (Heating, Ventilation and Air Conditioning)",
+    "WTP": "WTP (Water Treatment Plant)",
+    "DG Backup": "DG Backup (Diesel Generator)",
+    "WWTP": "WWTP (Wastewater Treatment Plant)",
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-1">
       {(list || []).map((item) => {
@@ -428,13 +437,14 @@ function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
               onCheckedChange={() => onToggle(key)}
             />
 
-            <span>{label}</span>
+            <span>{displayLabels[key] || label}</span>
           </label>
         );
       })}
     </div>
   );
 }
+
 
 function ErrorMessage({ children }) {
   if (!children) return null;
