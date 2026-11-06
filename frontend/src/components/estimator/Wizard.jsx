@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { lookupLocation } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,11 +33,30 @@ export default function Wizard({
   const [attemptedNext, setAttemptedNext] = useState(false);
   const [attemptedFinish, setAttemptedFinish] = useState(false);
 
+  const manuallyEditedFields = useRef(new Set());
+
   const patch = (key, value) => {
+    manuallyEditedFields.current.add(key);
+
     setInputs((current) => ({
       ...current,
       [key]: value,
     }));
+  };
+
+  const applySmartDefaults = (category) => {
+    setInputs((current) => {
+      const updated = { ...current };
+
+      if (
+        category === "Warehouse" &&
+        !manuallyEditedFields.current.has("building_type")
+      ) {
+        updated.building_type = "Warehouse-PEB";
+      }
+
+      return updated;
+    });
   };
 
   const patchComplexity = (key, value) => {
@@ -121,6 +140,7 @@ export default function Wizard({
           <Step1
             inputs={inputs}
             patch={patch}
+            applySmartDefaults={applySmartDefaults}
             reference={reference}
           />
         );
@@ -428,7 +448,7 @@ function ErrorMessage({ children }) {
 
 /* ---------- Step 1 : Project Identification ---------- */
 
-function Step1({ inputs, patch, reference }) {
+function Step1({ inputs, patch, applySmartDefaults, reference }) {
   const [locations, setLocations] = useState([]);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
@@ -600,7 +620,10 @@ function Step1({ inputs, patch, reference }) {
           <SelectF
             id="product_category"
             value={inputs.product_category}
-            onChange={(value) => patch("product_category", value)}
+            onChange={(value) => {
+              patch("product_category", value);
+              applySmartDefaults(value);
+            }}
             options={reference?.product_categories}
           />
         </Field>
