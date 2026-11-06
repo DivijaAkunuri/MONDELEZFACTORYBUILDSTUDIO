@@ -190,7 +190,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             </Field>
 
 
-            <Field label="Built-up Area (Length × Width × No. of Floors) (m²)">
+            <Field label="Built-up Area (Length × Width × Number of Floors) (square metres, m²)">
               <InputF
                 id="built_up_area_display"
                 type="text"
@@ -232,8 +232,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               />
             </div>
 
-            <Field label="SBC / Soil Type">
-              <SelectF id="sbc_soil_type" value={draft.sbc_soil_type} onChange={(v) => patch("sbc_soil_type", v)} options={reference?.sbc_soil_types} />
+            <Field label="Safe Bearing Capacity (SBC) / Soil Type">
+              <SelectF
+                id="sbc_soil_type"
+                value={draft.sbc_soil_type}
+                onChange={(v) => patch("sbc_soil_type", v)}
+                options={reference?.sbc_soil_types}
+              />
             </Field>
 
             <Field label="Column Type">
@@ -298,18 +303,34 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               />
             </Field>
             f
-            <Field label="GWT Depth">
-              <SelectF id="gwt_depth" value={draft.gwt_depth} onChange={(v) => patch("gwt_depth", v)} options={reference?.gwt_depths} />
+            <Field label="Groundwater Table Depth">
+              <SelectF
+                id="gwt_depth"
+                value={draft.gwt_depth}
+                onChange={(v) => patch("gwt_depth", v)}
+                options={reference?.gwt_depths}
+              />
             </Field>
           </Section>
 
           {/* ---- Utilities & Process ---- */}
           <Section title="Production Capacity">
-            <Field label="Production Capacity (TPD)">
-              <InputF id="production_capacity_tpd" type="number" value={draft.production_capacity_tpd} onChange={(v) => patch("production_capacity_tpd", v)} />
+            <Field label="Production Capacity (tons per day)">
+              <InputF
+                id="production_capacity_tpd"
+                type="number"
+                value={draft.production_capacity_tpd}
+                onChange={(v) => patch("production_capacity_tpd", v)}
+              />
             </Field>
-            <Field label="Annual Output (MT)">
-              <InputF id="annual_output_mt" type="number" value={draft.annual_output_mt} onChange={(v) => patch("annual_output_mt", v)} />
+
+            <Field label="Annual Output (metric tons)">
+              <InputF
+                id="annual_output_mt"
+                type="number"
+                value={draft.annual_output_mt}
+                onChange={(v) => patch("annual_output_mt", v)}
+              />
             </Field>
           </Section>
 
@@ -386,8 +407,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
           {isChocolate && (
             <Section title="Chocolate Process Utilities">
-              <Field label="Cooling Tunnel Load (TR)">
-                <InputF id="cooling_tunnel_load_tr" type="number" value={draft.cooling_tunnel_load_tr} onChange={(v) => patch("cooling_tunnel_load_tr", v)} />
+              <Field label="Cooling Tunnel Load (tons of refrigeration)">
+                <InputF
+                  id="cooling_tunnel_load_tr"
+                  type="number"
+                  value={draft.cooling_tunnel_load_tr}
+                  onChange={(v) => patch("cooling_tunnel_load_tr", v)}
+                />
               </Field>
               <Field label="Tempering Utility Demand">
                 <SelectF id="tempering_utility_demand" value={draft.tempering_utility_demand} onChange={(v) => patch("tempering_utility_demand", v)} options={reference?.tempering_utility_demand} />
@@ -410,7 +436,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
                 />
               </Field>
 
-              <Field label="Chocolate FG Storage Temp (°C)">
+              <Field label="Chocolate Finished Goods Storage Temperature (°C)">
                 <InputF
                   id="chocolate_storage_temp_c"
                   type="number"
@@ -437,8 +463,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
           {isBiscuit && (
             <Section title="Biscuit Process Utilities">
-              <Field label="Oven Capacity (kg/hr)">
-                <InputF id="oven_capacity_kg_hr" type="number" value={draft.oven_capacity_kg_hr} onChange={(v) => patch("oven_capacity_kg_hr", v)} />
+              <Field label="Oven Capacity (kilograms per hour)">
+                <InputF
+                  id="oven_capacity_kg_hr"
+                  type="number"
+                  value={draft.oven_capacity_kg_hr}
+                  onChange={(v) => patch("oven_capacity_kg_hr", v)}
+                />
               </Field>
               <Field label="Fuel Type">
                 <SelectF id="fuel_type" value={draft.fuel_type} onChange={(v) => patch("fuel_type", v)} options={reference?.fuel_types} />
@@ -446,8 +477,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
               <Field label="Baking Line Qty">
                 <InputF id="baking_line_qty" type="number" value={draft.baking_line_qty} onChange={(v) => patch("baking_line_qty", v)} />
               </Field>
-              <Field label="Compressed Air (CFM)">
-                <InputF id="compressed_air_demand_cfm" type="number" value={draft.compressed_air_demand_cfm} onChange={(v) => patch("compressed_air_demand_cfm", v)} />
+              <Field label="Compressed Air Demand (cubic feet per minute)">
+                <InputF
+                  id="compressed_air_demand_cfm"
+                  type="number"
+                  value={draft.compressed_air_demand_cfm}
+                  onChange={(v) => patch("compressed_air_demand_cfm", v)}
+                />
               </Field>
               <Field label="Cooling Conveyor Load">
                 <SelectF id="cooling_conveyor_load" value={draft.cooling_conveyor_load} onChange={(v) => patch("cooling_conveyor_load", v)} options={reference?.cooling_conveyor_load} />
@@ -472,14 +508,23 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
           </Section>
 
           <Section title="Site Inputs">
-            <Field label="Land Area (m²)">
-              <InputF id="land_area_sqm" type="number" value={draft.land_area_sqm} onChange={(v) => patch("land_area_sqm", v)} />
+            <Field label="Land Area (square metres, m²)">
+              <InputF
+                id="land_area_sqm"
+                type="number"
+                value={draft.land_area_sqm}
+                onChange={(v) => patch("land_area_sqm", v)}
+              />
             </Field>
-            <Field label="Ground Coverage (%)">
-              <InputF id="ground_coverage_pct" type="number" value={draft.ground_coverage_pct} onChange={(v) => patch("ground_coverage_pct", v)} />
-            </Field>
-            <Field label="FAR / FSI">
-              <InputF id="far_fsi" type="number" value={draft.far_fsi} onChange={(v) => patch("far_fsi", v)} />
+
+
+            <Field label="Floor Area Ratio (FAR) / Floor Space Index (FSI)">
+              <InputF
+                id="far_fsi"
+                type="number"
+                value={draft.far_fsi}
+                onChange={(v) => patch("far_fsi", v)}
+              />
             </Field>
             <Field label="Water Availability">
               <SelectF id="water_availability" value={draft.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} />

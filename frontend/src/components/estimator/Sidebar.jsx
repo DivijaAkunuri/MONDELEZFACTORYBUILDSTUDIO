@@ -145,10 +145,10 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
       {/* Units / Currency / Live Rate Card */}
       <div className="mx-3 mb-4 p-3 rounded-md bg-slate-900/70 border border-slate-800 text-[12px]">
-        <Row label="Units" value="All dimensions in mm" />
+        <Row label="Units" value="All dimensions in millimetres (mm)" />
         <Row label="Currency" value={currency ?? "USD"} />
         <Row
-          label={`FX Rate (${localCurrency}/USD)`}
+          label={`Foreign Exchange (FX) Rate (${localCurrency}/USD)`}
           value={localUsd}
         />
 

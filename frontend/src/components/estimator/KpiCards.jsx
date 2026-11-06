@@ -49,7 +49,7 @@ export default function KpiCards({ totals, currency, fxRates }) {
     {
       key: "benchmark", label: "REGION BENCHMARK",
       value: `${t.region_benchmark_delta_pct >= 0 ? "+" : ""}${t.region_benchmark_delta_pct}%`,
-      sub: "vs Global Average",
+      sub: "Compared with the Global Average",
       icon: TrendingUp, iconBg: "bg-blue-100", iconClr: "text-blue-700",
     },
   ];

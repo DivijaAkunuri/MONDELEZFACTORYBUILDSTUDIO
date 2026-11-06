@@ -335,8 +335,6 @@ export default function ReportsExport() {
                                 <Info label="Height" value={`${inputs.height_m || 0} m`} />
                                 <Info label="Floors" value={inputs.num_floors} />
                                 <Info label="Plot Area" value={`${inputs.plot_area_sqm || 0} m²`} />
-                                <Info label="Ground Coverage" value={`${inputs.ground_coverage_pct || 0}%`} />
-                                <Info label="FAR / FSI" value={inputs.far_fsi} />
                             </div>
                         </section>
 
@@ -771,7 +769,17 @@ function ReportTable({ headers, rows }) {
 }
 
 function formatLabel(key) {
-    return String(key)
+    const labels = {
+        water_kld: "Water Demand (kilolitres per day)",
+        steam_kg_hr: "Steam Demand (kilograms per hour)",
+        chiller_tr: "Chiller Load (tons of refrigeration)",
+        power_kva: "Electrical Power Load (kilovolt-amperes)",
+        compressed_air_cfm: "Compressed Air Demand (cubic feet per minute)",
+        etp_kld: "Effluent Treatment Plant (ETP) Capacity (kilolitres per day)",
+        fire_water_m3: "Fire Water Tank Capacity (cubic metres)"
+    };
+
+    return labels[key] || String(key)
         .replace(/_/g, " ")
         .replace(/\b\w/g, (character) =>
             character.toUpperCase()

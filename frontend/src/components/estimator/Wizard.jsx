@@ -971,7 +971,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
         <Section
           title={
             <>
-              RM Warehouse Geometry
+              Raw Material (RM) Warehouse Geometry
               <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
                 (Please enter all required dimensions)
               </span>
@@ -1059,7 +1059,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
         <Section
           title={
             <>
-              FG Warehouse Geometry
+              Finished Goods (FG) Warehouse Geometry
               <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
                 (Please enter all required dimensions)
               </span>
@@ -1169,7 +1169,7 @@ function Step3({ inputs, patch, reference }) {
           />
         </div>
 
-        <Field label="SBC / Soil Type">
+        <Field label="Safe Bearing Capacity (SBC) / Soil Type">
           <SelectF
             id="sbc_soil_type"
             value={inputs.sbc_soil_type}
@@ -1244,7 +1244,7 @@ function Step3({ inputs, patch, reference }) {
         </Field>
 
 
-        <Field label="Ground Water Table Depth">
+        <Field label="GroundWater Table Depth">
           <SelectF
             id="gwt_depth"
             value={inputs.gwt_depth}
@@ -1290,7 +1290,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
   return (
     <>
       <Section title="Production Capacity">
-        <Field label="Production Capacity (TPD)">
+        <Field label="Production Capacity (tons per day)">
           <InputF
             id="production_capacity_tpd"
             type="number"
@@ -1299,7 +1299,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
           />
         </Field>
 
-        <Field label="Annual Output (MT)">
+        <Field label="Annual Output (metric tons)">
           <InputF
             id="annual_output_mt"
             type="number"
@@ -1324,7 +1324,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
       {isChocolate && (
         <Section title="Chocolate Process Utilities">
-          <Field label="Cooling Tunnel Load (TR)">
+          <Field label="Cooling Tunnel Load (tons of refrigeration)">
             <InputF
               id="cooling_tunnel_load_tr"
               type="number"
@@ -1375,7 +1375,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
           </Field>
 
 
-          <Field label="Chocolate FG Storage Temp (°C)">
+          <Field label="Chocolate Finished Goods Storage Temperature (°C)">
             <InputF
               id="chocolate_storage_temp_c"
               type="number"
@@ -1395,7 +1395,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
             />
           </Field>
 
-          <Field label="Process Hot Water (L/hr)">
+          <Field label="Process Hot Water (litres per hour)">
             <InputF
               id="process_hot_water_lph"
               type="number"
@@ -1410,7 +1410,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
       {isBiscuit && (
         <Section title="Biscuit Process Utilities">
-          <Field label="Oven Capacity (kg/hr)">
+          <Field label="Oven Capacity (kilograms per hour)">
             <InputF
               id="oven_capacity_kg_hr"
               type="number"
@@ -1439,7 +1439,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
             />
           </Field>
 
-          <Field label="Compressed Air Demand (CFM)">
+          <Field label="Compressed Air Demand (cubic feet per minute)">
             <InputF
               id="compressed_air_demand_cfm"
               type="number"
@@ -1591,7 +1591,7 @@ function Step5({
       </Section>
 
       <Section title="Site Inputs">
-        <Field label="Land Area (m²)">
+        <Field label="Land Area (square metres, m²)">
           <InputF
             id="land_area_sqm"
             type="number"
@@ -1604,16 +1604,8 @@ function Step5({
           {showErrors && <ErrorMessage>{landAreaError}</ErrorMessage>}
         </Field>
 
-        <Field label="Ground Coverage (%)">
-          <InputF
-            id="ground_coverage_pct"
-            type="number"
-            value={inputs.ground_coverage_pct}
-            onChange={(value) => patch("ground_coverage_pct", value)}
-          />
-        </Field>
 
-        <Field label="FAR / FSI">
+        <Field label="Floor Area Ratio (FAR) / Floor Space Index (FSI)">
           <InputF
             id="far_fsi"
             type="number"

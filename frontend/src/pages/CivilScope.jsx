@@ -16,6 +16,18 @@ const CIVIL_ACTIVITIES = [
   "Plumbing & Sanitary",
 ];
 
+const formatCivilActivity = (activity) => {
+  const labels = {
+    "PCC (M10)": "Plain Cement Concrete (PCC – M10 Grade)",
+    "RCC Foundation (Raft)": "Reinforced Cement Concrete (RCC) Foundation (Raft)",
+    "Structural Steel (PEB)": "Structural Steel (Pre-Engineered Building – PEB)",
+    "RCC Superstructure": "Reinforced Cement Concrete (RCC) Superstructure",
+    "Flooring (Epoxy + PU)": "Flooring (Epoxy + Polyurethane – PU)",
+  };
+
+  return labels[activity] || activity;
+};
+
 export default function CivilScope() {
   const location = useLocation();
 
@@ -258,7 +270,7 @@ export default function CivilScope() {
                         </td>
 
                         <td className="px-5 py-3 text-slate-800 font-medium">
-                          {row.activity}
+                          {formatCivilActivity(row.activity)}
                         </td>
 
                         <td className="px-5 py-3 text-right text-slate-700">

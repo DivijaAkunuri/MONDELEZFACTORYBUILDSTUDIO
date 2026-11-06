@@ -130,8 +130,6 @@ const DEFAULT_INPUTS = {
   include_fence: true,
 
   land_area_sqm: 8880,
-  ground_coverage_pct: 58,
-  far_fsi: 1.2,
 
   water_availability: "Municipal + Borewell",
   grid_reliability: "Good",
@@ -1135,7 +1133,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                               ["Cement +10%", 0.015],
                               ["Utilities +8%", 0.025],
                               ["Labor +6%", 0.018],
-                              ["FX +3%", 0.012],
+                              ["Foreign Exchange (FX) +3%", 0.012],
                             ].map(([label, delta]) => (
                               <tr
                                 key={label}
@@ -1186,7 +1184,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                       ],
 
                       optimizations: [
-                        "Evaluate PEB alternatives to optimize structural costs.",
+                        "Evaluate Pre-Engineered Building (PEB) alternatives to optimize structural costs.",
                         "Consider bulk procurement of utility equipment.",
                         "Compare alternative cooling systems to reduce capital expenditure.",
                         "Evaluate rooftop solar to reduce long-term energy costs."
