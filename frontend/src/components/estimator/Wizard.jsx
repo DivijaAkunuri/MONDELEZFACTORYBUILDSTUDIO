@@ -415,7 +415,7 @@ function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
     "HVAC System":
       "HVAC System (Heating, Ventilation and Air Conditioning)",
     "WTP": "WTP (Water Treatment Plant)",
-    "DG Backup": "DG Backup (Diesel Generator)",
+    "DG Backup": "DG(Diesel Generator)",
     "WWTP": "WWTP (Wastewater Treatment Plant)",
     "BMS/EMS": "BMS/EMS (Building Management/System)",
     "WMS": "WMS (Warehouse Management System)",
