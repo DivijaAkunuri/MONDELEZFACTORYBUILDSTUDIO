@@ -12,7 +12,7 @@ import uuid
 import asyncio
 import math
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict,Any,Tuple
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 import httpx
@@ -839,7 +839,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             / _safe_factor(AMBIENT_HVAC_M.get("Temperate (5°C - 30°C)", 1.0))
         ) ** 0.35
         * (grid_requested / grid_reference)
-        * (1.0 + max(0.0, inp.relative_humidity_pct - 70.0) * 0.0025)
     )
     utility_environment_m = max(0.65, min(1.60, utility_environment_m))
 
@@ -903,16 +902,20 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 
             # Apply current humidity only to chocolate HVAC.
             humidity_factor = 1.0
-
-            product_lower = str(inp.product_category or "").lower()
-
-            if name == "HVAC" and (
-                "chocolate" in product_lower or "combo" in product_lower
-            ):
-                humidity_factor = (
+            if name == "HVAC":
+                
+                ambient_humidity_factor = (
                     1.0
-                    + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
-                )
+                    + max(0.0, inp.relative_humidity_pct - 70.0) * 0.0025
+                    )
+                humidity_factor *= ambient_humidity_factor
+                product_lower = str(inp.product_category or "").lower()
+                if "chocolate" in product_lower or "combo" in product_lower:
+                    controlled_humidity_factor = (
+                        1.0
+                        + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
+        )
+                    humidity_factor *= controlled_humidity_factor
 
             amount = (
                 util_base
@@ -1223,8 +1226,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "employee_facilities": employee_facilities,
         "totals": {
             "total_project_cost": total,
-            "total_project_cost_min": total_project_cost_min,
-            "total_project_cost_max": total_project_cost_max,
             "cost_per_sqm": round(total / built_up, 2) if built_up else 0,
             "cost_per_mt": round(total / inp.annual_output_mt, 2) if inp.annual_output_mt else 0,
             "duration_months": duration,

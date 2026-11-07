@@ -30,13 +30,6 @@ export default function UtilitiesProcess() {
 
   const utilityRows = result.utilities || [];
   const utilityTotal = Number(result.utilities_total || 0);
-  const utilityTotalMin = Number(
-    result.utilities_total_min ?? utilityTotal
-  );
-
-  const utilityTotalMax = Number(
-    result.utilities_total_max ?? utilityTotal
-  );
 
   const builtUpArea = Number(
     result.totals?.built_up_area_sqm || 0
@@ -237,24 +230,10 @@ export default function UtilitiesProcess() {
                         <td className="px-5 py-3 text-slate-500">
                           {row.discipline}
                         </td>
-
                         <td className="px-5 py-3 text-right text-slate-900 font-semibold">
-                          {row.name === "HVAC" &&
-                            Number(row.amount_min) !== Number(row.amount_max) ? (
-                            <div>
-                              <div className="font-semibold">
-                                {fmtMoney(row.amount_min, currency, fxRates)}
-                                {" – "}
-                                {fmtMoney(row.amount_max, currency, fxRates)}
-                              </div>
-                              <div className="text-xs text-slate-500">
-                                Estimated cost range
-                              </div>
-                            </div>
-                          ) : (
-                            fmtMoney(row.amount, currency, fxRates)
-                          )}
+                          {fmtMoney(row.amount, currency, fxRates)}
                         </td>
+
 
                         <td className="px-5 py-3 text-right text-slate-600">
                           {pct}%
