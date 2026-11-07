@@ -30,6 +30,13 @@ export default function UtilitiesProcess() {
 
   const utilityRows = result.utilities || [];
   const utilityTotal = Number(result.utilities_total || 0);
+  const utilityTotalMin = Number(
+    result.utilities_total_min ?? utilityTotal
+  );
+
+  const utilityTotalMax = Number(
+    result.utilities_total_max ?? utilityTotal
+  );
 
   const builtUpArea = Number(
     result.totals?.built_up_area_sqm || 0
@@ -41,11 +48,10 @@ export default function UtilitiesProcess() {
 
   const activeProject = {
     name: inputs?.project_name ?? "—",
-    location: `${inputs?.location_city ?? ""}${
-      inputs?.location_country
-        ? `, ${inputs.location_country}`
-        : ""
-    }`,
+    location: `${inputs?.location_city ?? ""}${inputs?.location_country
+      ? `, ${inputs.location_country}`
+      : ""
+      }`,
     builtUp: `${fmtNumber(builtUpArea)} m²`,
     plot: `${fmtNumber(inputs?.plot_area_sqm || 0)} m²`,
     lastSaved: "—",
@@ -209,10 +215,10 @@ export default function UtilitiesProcess() {
                   {utilityRows.map((row, index) => {
                     const pct = utilityTotal
                       ? (
-                          (Number(row.amount || 0) /
-                            utilityTotal) *
-                          100
-                        ).toFixed(2)
+                        (Number(row.amount || 0) /
+                          utilityTotal) *
+                        100
+                      ).toFixed(2)
                       : "0.00";
 
                     return (
@@ -233,10 +239,20 @@ export default function UtilitiesProcess() {
                         </td>
 
                         <td className="px-5 py-3 text-right text-slate-900 font-semibold">
-                          {fmtMoney(
-                            row.amount,
-                            currency,
-                            fxRates
+                          {row.name === "HVAC" &&
+                            Number(row.amount_min) !== Number(row.amount_max) ? (
+                            <div>
+                              <div className="font-semibold">
+                                {fmtMoney(row.amount_min, currency, fxRates)}
+                                {" – "}
+                                {fmtMoney(row.amount_max, currency, fxRates)}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                Estimated cost range
+                              </div>
+                            </div>
+                          ) : (
+                            fmtMoney(row.amount, currency, fxRates)
                           )}
                         </td>
 

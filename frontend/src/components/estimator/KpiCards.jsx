@@ -12,9 +12,32 @@ export default function KpiCards({ totals, currency, fxRates }) {
       label: "TOTAL PROJECT COST",
       value: (
         <>
-          <div>{fmtMoney(t.total_project_cost, "USD", fxRates)}</div>
+          <div>
+            {fmtMoney(
+              t.total_project_cost_min ?? t.total_project_cost,
+              "USD",
+              fxRates
+            )}
+            {" – "}
+            {fmtMoney(
+              t.total_project_cost_max ?? t.total_project_cost,
+              "USD",
+              fxRates
+            )}
+          </div>
+
           <div className="text-xs font-normal text-slate-500">
-            {fmtMoney(t.total_project_cost, currency, fxRates)}
+            {fmtMoney(
+              t.total_project_cost_min ?? t.total_project_cost,
+              currency,
+              fxRates
+            )}
+            {" – "}
+            {fmtMoney(
+              t.total_project_cost_max ?? t.total_project_cost,
+              currency,
+              fxRates
+            )}
           </div>
         </>
       ),
@@ -72,7 +95,7 @@ export default function KpiCards({ totals, currency, fxRates }) {
             </div>
 
             <div
-              className={`font-bold text-slate-900 font-['Manrope'] leading-tight ${key === "total"
+              className={`font-bold text-slate-900 font-['Manrope'] leading-tight ${key === "total-cost"
                 ? "text-xs sm:text-sm whitespace-normal break-words"
                 : "text-base truncate"
                 }`}
