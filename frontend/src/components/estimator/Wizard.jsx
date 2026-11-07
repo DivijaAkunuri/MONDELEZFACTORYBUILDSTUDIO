@@ -348,9 +348,9 @@ function SelectF({ id, value, onChange, options }) {
 function InputF({ id, value, onChange, type = "text", ...props }) {
   const limits = {
     relative_humidity_pct: { min: 0, max: 100 },
-    humidity_controlled_pct: { min: 0, max: 100 },
-    humidity_controlled_min_pct: { min: 0, max: 100 },
-    humidity_controlled_max_pct: { min: 0, max: 100 },
+    humidity_controlled_pct: { min: 40, max: 100 },
+    humidity_controlled_min_pct: { min: 40, max: 100 },
+    humidity_controlled_max_pct: { min: 40, max: 100 },
     wind_speed_ms: { min: 45, max: Infinity },
   };
 
@@ -1366,7 +1366,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
                 <InputF
                   id="humidity_controlled_min_pct"
                   type="number"
-                  min="0"
+                  min="40"
                   max="100"
                   step="10"
                   value={inputs.humidity_controlled_min_pct ?? 40}
@@ -1381,7 +1381,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
                 <InputF
                   id="humidity_controlled_max_pct"
                   type="number"
-                  min="0"
+                  min="40"
                   max="100"
                   step="10"
                   value={inputs.humidity_controlled_max_pct ?? 50}

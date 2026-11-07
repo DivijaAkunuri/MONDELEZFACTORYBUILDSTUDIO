@@ -116,7 +116,7 @@ const DEFAULT_INPUTS = {
   tempering_utility_demand: "Medium",
   humidity_controlled_pct: 40,
   humidity_controlled_min_pct: 40,
-  humidity_controlled_max_pct: 60,
+  humidity_controlled_max_pct: 50,
   chocolate_storage_temp_c: 19,
   process_hot_water_lph: 2500,
 
