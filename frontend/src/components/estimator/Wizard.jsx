@@ -418,6 +418,7 @@ function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
     "DG Backup": "DG Backup (Diesel Generator)",
     "WWTP": "WWTP (Wastewater Treatment Plant)",
     "BMS/EMS": "BMS/EMS (Building Management/System)",
+    "WMS": "WMS (Warehouse Management System)",
   };
 
   return (
