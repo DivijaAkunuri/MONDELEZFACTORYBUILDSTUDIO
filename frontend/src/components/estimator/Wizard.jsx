@@ -349,6 +349,8 @@ function InputF({ id, value, onChange, type = "text", ...props }) {
   const limits = {
     relative_humidity_pct: { min: 0, max: 100 },
     humidity_controlled_pct: { min: 0, max: 100 },
+    humidity_controlled_min_pct: { min: 0, max: 100 },
+    humidity_controlled_max_pct: { min: 0, max: 100 },
     wind_speed_ms: { min: 45, max: Infinity },
   };
 
@@ -1357,33 +1359,39 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
           </Field>
 
 
-          <Field label="Humidity Controlled Areas (%)">
-            <InputF
-              id="humidity_controlled_pct"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              value={Math.min(
-                100,
-                Math.max(0, Number(inputs.humidity_controlled_pct) || 0)
-              )}
-              onChange={(value) => {
-                if (value === "") {
-                  patch("humidity_controlled_pct", "");
-                  return;
-                }
+          <Field label="Humidity Controlled Area Range (%)" span={2}>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-slate-500">Minimum (%)</Label>
+                <InputF
+                  id="humidity_controlled_min_pct"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={inputs.humidity_controlled_min_pct ?? 40}
+                  onChange={(value) =>
+                    patch("humidity_controlled_min_pct", value)
+                  }
+                />
+              </div>
 
-                const number = Number(value);
-
-                if (Number.isFinite(number)) {
-                  patch(
-                    "humidity_controlled_pct",
-                    Math.min(100, Math.max(0, number))
-                  );
-                }
-              }}
-            />
+              <div>
+                <Label className="text-xs text-slate-500">Maximum (%)</Label>
+                <InputF
+                  id="humidity_controlled_max_pct"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={inputs.humidity_controlled_max_pct ?? 60}
+                  onChange={(value) =>
+                    patch("humidity_controlled_max_pct", value)
+                  }
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Enter the expected minimum and maximum area requiring humidity control.
+            </p>
           </Field>
 
 

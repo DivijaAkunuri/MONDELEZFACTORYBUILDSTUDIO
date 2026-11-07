@@ -101,7 +101,9 @@ class ProjectInputs(BaseModel):
     # Chocolate-specific
     cooling_tunnel_load_tr: float = 180.0
     tempering_utility_demand: str = "Medium"
-    humidity_controlled_pct: float = 40.0
+    humidity_controlled_pct: float = 40.0  # Backward compatibility
+    humidity_controlled_min_pct: float = 40.0
+    humidity_controlled_max_pct: float = 60.0
     chocolate_storage_temp_c: float = 19.0
     process_hot_water_lph: float = 2500.0
     # Biscuit-specific
@@ -703,24 +705,32 @@ def _relative_complexity_factor(inp: ProjectInputs) -> Tuple[float, List[str]]:
     rel = raw / BENCHMARK_COMPLEXITY_M
     return max(0.60, min(1.80, rel)), active
 
-def _product_utility_multiplier(inp: ProjectInputs, system_name: str) -> float:
+def _product_utility_multiplier(
+    inp: ProjectInputs,
+    system_name: str,
+    humidity_pct: Optional[float] = None,
+) -> float:
     product = str(inp.product_category or "")
     base = PRODUCT_UTILITY_INTENSITY.get(product, {}).get(system_name, 1.0)
 
-    # Preserve the existing user-provided process sizing inputs as secondary
-    # engineering modifiers for the systems they actually affect.
+    if humidity_pct is None:
+        humidity_pct = inp.humidity_controlled_pct
+
+    # Preserve the existing process sizing inputs.
     if "chocolate" in product.lower() or "combo" in product.lower():
         if system_name == "Refrigeration / Cold Chain":
             base *= 1.0 + max(0.0, inp.cooling_tunnel_load_tr - 180.0) / 1800.0
         elif system_name == "HVAC":
-            base *= 1.0 + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
+            base *= 1.0 + max(0.0, humidity_pct - 40.0) / 1000.0
         elif system_name == "Steam & Boiler System":
             base *= 1.0 + max(0.0, inp.process_hot_water_lph - 2500.0) / 50000.0
+
     if any(t in product.lower() for t in ("biscuit", "bakery", "wafer", "cookie")):
         if system_name == "Steam & Boiler System":
             base *= 1.0 + max(0.0, inp.oven_capacity_kg_hr - 1200.0) / 20000.0
         elif system_name == "Compressed Air System":
             base *= 1.0 + max(0.0, inp.compressed_air_demand_cfm - 1500.0) / 15000.0
+
     return max(0.50, min(2.50, base))
 
 def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
@@ -840,6 +850,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     util_base = USA_BASE_UTIL * util_factor
     utility_rows = []
     utilities_total = 0.0
+    utilities_total_min = 0.0
+    utilities_total_max = 0.0
 
     product_key = str(inp.product_category or "")
     preset = INDUSTRY_PRESETS.get(product_key,{"utilities_pct": 0.50})
@@ -861,12 +873,15 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         weighted_raw = sum(
             UTILITY_SYSTEM_WEIGHTS[name][0] * raw_product[name]
             for name in selected_systems
-        )
+
+)
         selected_weight = sum(
             UTILITY_SYSTEM_WEIGHTS[name][0]
             for name in selected_systems
+            )
+        product_normalizer = (
+            weighted_raw / selected_weight if selected_weight else 1.0
         )
-        product_normalizer = weighted_raw / selected_weight if selected_weight else 1.0
 
         for name, (weight, discipline, description) in UTILITY_SYSTEM_WEIGHTS.items():
             if name not in selected_systems:
@@ -880,7 +895,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 
             raw_product_m = raw_product[name]
             product_m = raw_product_m / product_normalizer if product_normalizer else 1.0
-
             amount = (
                 util_base
                 * built_up
@@ -893,21 +907,49 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 * project_type_rel
                 * complexity_rel
                 * cost_live_m
-            )
+                )
             amount = round(amount, 2)
+            amount_min = amount
+            amount_max = amount
+            product_lower = str(inp.product_category or "").lower()
+            if name == "HVAC" and (
+                "chocolate" in product_lower or "combo" in product_lower
+                ):
+                current_humidity_factor = (
+                    1.0 + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
+                    )
+                min_humidity_factor = (
+                    1.0 + max(0.0, inp.humidity_controlled_min_pct - 40.0) / 1000.0
+                    )
+                max_humidity_factor = (
+                    1.0 + max(0.0, inp.humidity_controlled_max_pct - 40.0) / 1000.0
+                    )
+                amount_min = round(
+                    amount * min_humidity_factor / current_humidity_factor, 2
+                    )
+                amount_max = round(
+                    amount * max_humidity_factor / current_humidity_factor, 2
+                    )
             utilities_total += amount
-            utility_rows.append({
-                "name": name,
-                "unit": "LS",
-                "amount": amount,
-                "discipline": discipline,
-                "description": description,
-                "country_factor": round(util_factor, 4),
-                "city_factor": round(discipline_m, 4),
-                "product_factor": round(product_total_m * product_m, 4),
-            })
+            utilities_total_min += amount_min
+            utilities_total_max += amount_max
+            utility_rows.append(
+                    {
+                        "name": name,
+                        "unit": "LS",
+                        "amount": amount,
+                        "amount_min": amount_min,
+                        "amount_max": amount_max,
+                        "discipline": discipline,
+                        "description": description,
+                        "country_factor": round(util_factor, 4),
+                        "city_factor": round(discipline_m, 4),
+                        "product_factor": round(product_total_m * product_m, 4),
+})
 
     utilities_total = round(utilities_total, 2)
+    utilities_total_min = round(utilities_total_min, 2)
+    utilities_total_max = round(utilities_total_max, 2)
     if utilities_total > 0:
         boq_rows.append({
             "activity": "Utilities & Process Systems",
@@ -1065,8 +1107,19 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         building_total + utilities_total + other_total + employee_facility_cost,
         2,
     )
-    contingency = round(pre_contingency_subtotal * max(0.0, inp.contingency_pct) / 100.0, 2)
+    contingency_pct = max(0.0, inp.contingency_pct) / 100.0
+    contingency = round(
+        pre_contingency_subtotal * contingency_pct, 2
+)
     total = round(pre_contingency_subtotal + contingency, 2)
+    utility_delta_min = utilities_total_min - utilities_total
+    utility_delta_max = utilities_total_max - utilities_total
+    total_project_cost_min = round(
+        total + utility_delta_min * (1 + contingency_pct), 2
+    )
+    total_project_cost_max = round(
+        total + utility_delta_max * (1 + contingency_pct), 2
+    )
 
     boq_rows.append({
         "activity": "Contingency",
@@ -1180,6 +1233,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "employee_facilities": employee_facilities,
         "totals": {
             "total_project_cost": total,
+            "total_project_cost_min": total_project_cost_min,
+            "total_project_cost_max": total_project_cost_max,
             "cost_per_sqm": round(total / built_up, 2) if built_up else 0,
             "cost_per_mt": round(total / inp.annual_output_mt, 2) if inp.annual_output_mt else 0,
             "duration_months": duration,
@@ -1201,6 +1256,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "top_cost_items": top12,
         "utilities": utility_rows,
         "utilities_total": utilities_total,
+        "utilities_total_min": utilities_total_min,
+        "utilities_total_max": utilities_total_max,
         "utility_demand": utility_demand,
         "cost_trend": trend,
         "multipliers": {
