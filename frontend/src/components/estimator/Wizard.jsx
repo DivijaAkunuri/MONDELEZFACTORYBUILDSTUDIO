@@ -1368,6 +1368,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
                   type="number"
                   min="0"
                   max="100"
+                  step="10"
                   value={inputs.humidity_controlled_min_pct ?? 40}
                   onChange={(value) =>
                     patch("humidity_controlled_min_pct", value)
@@ -1382,7 +1383,8 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
                   type="number"
                   min="0"
                   max="100"
-                  value={inputs.humidity_controlled_max_pct ?? 60}
+                  step="10"
+                  value={inputs.humidity_controlled_max_pct ?? 50}
                   onChange={(value) =>
                     patch("humidity_controlled_max_pct", value)
                   }
