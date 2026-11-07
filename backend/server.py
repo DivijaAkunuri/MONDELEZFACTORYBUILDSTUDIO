@@ -48,15 +48,11 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=(
-        r"https://constructionestimator-[a-z0-9-]+-"
-        r"divijaakunuri\.vercel\.app"
-    ),
+    allow_origin_regex=r"^https://constructionestimator-[a-z0-9-]+-divijaakunuri\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 api_router = APIRouter(prefix="/api")
 # ---------- Models ----------
 class ProjectInputs(BaseModel):
