@@ -678,13 +678,10 @@ function Step1({ inputs, patch, applySmartDefaults, reference }) {
           />
         </Field>
 
-        <Field label="Local Currency">
-          <SelectF
-            id="currency"
-            value={inputs.currency}
-            onChange={(value) => patch("currency", value)}
-            options={reference?.currencies}
-          />
+        <Field label="Currency">
+          <div className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-100 text-slate-700">
+            USD ($)
+          </div>
         </Field>
 
         <Field label="Region">

@@ -1,7 +1,10 @@
+
 import axios from "axios";
 
 const BACKEND_URL =
-  process.env.REACT_APP_BACKEND_URL || "https://constructionestimator-3iti.onrender.com";
+  process.env.REACT_APP_BACKEND_URL ||
+  "https://constructionestimator-3iti.onrender.com";
+
 export const API = `${BACKEND_URL}/api`;
 
 export const api = axios.create({
@@ -11,11 +14,6 @@ export const api = axios.create({
 
 export async function getReference() {
   const { data } = await api.get("/estimator/reference");
-  return data;
-}
-
-export async function getFxRates() {
-  const { data } = await api.get("/estimator/fx-rates");
   return data;
 }
 
@@ -44,7 +42,6 @@ export async function saveEstimate(inputs, result) {
   });
   return data;
 }
-
 
 export async function lookupLocation(city) {
   const { data } = await api.get("/estimator/location-lookup", {

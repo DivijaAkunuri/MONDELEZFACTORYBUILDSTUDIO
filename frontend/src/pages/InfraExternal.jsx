@@ -30,13 +30,42 @@ function isInfraRow(row) {
   );
 }
 
+function SummaryCard({ title, value, subtitle, icon: Icon, color }) {
+  const styles = {
+    orange: "bg-orange-100 text-orange-700",
+    blue: "bg-blue-100 text-blue-700",
+    green: "bg-emerald-100 text-emerald-700",
+  };
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+            styles[color] || styles.orange
+          }`}
+        >
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+            {title}
+          </div>
+          <div className="text-xl font-bold text-slate-900 font-['Manrope']">
+            {value}
+          </div>
+          <div className="text-sm text-slate-500">{subtitle}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function InfraExternal() {
   const location = useLocation();
 
   const result = location.state?.result;
   const inputs = location.state?.inputs;
-  const currency = location.state?.currency ?? "USD";
-  const fxRates = location.state?.fxRates ?? {};
 
   if (!result) {
     return (
@@ -86,10 +115,11 @@ export default function InfraExternal() {
 
   const activeProject = {
     name: inputs?.project_name ?? "—",
-    location: `${inputs?.location_city ?? ""}${inputs?.location_country
+    location: `${inputs?.location_city ?? ""}${
+      inputs?.location_country
         ? `, ${inputs.location_country}`
         : ""
-      }`,
+    }`,
     builtUp: `${fmtNumber(builtUpArea)} m²`,
     lastSaved: "—",
   };
@@ -104,15 +134,13 @@ export default function InfraExternal() {
     },
     {
       title: "Compound Wall / Fence",
-      description:
-        "Perimeter wall and fencing works.",
+      description: "Perimeter wall and fencing works.",
       icon: Fence,
       keywords: ["compound wall", "fence"],
     },
     {
       title: "Landscaping",
-      description:
-        "Landscaping and external green areas.",
+      description: "Landscaping and external green areas.",
       icon: Trees,
       keywords: ["landscaping"],
     },
@@ -133,13 +161,11 @@ export default function InfraExternal() {
   );
 
   const formatAmount = (value) =>
-    fmtMoney(Number(value || 0), currency, fxRates);
+    fmtMoney(Number(value || 0), "USD");
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar
-        currency={currency}
-        fxRates={fxRates}
         result={result}
         inputs={inputs}
         activeKey="infra-external"
@@ -148,7 +174,6 @@ export default function InfraExternal() {
       />
 
       <div className="flex-1 min-w-0 overflow-y-auto">
-        {/* Page Header */}
         <div className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
@@ -167,12 +192,11 @@ export default function InfraExternal() {
         </div>
 
         <main className="p-6 space-y-6">
-          {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SummaryCard
               title="EXTERNAL & SITE DEVELOPMENT COST"
               value={formatAmount(infraTotal)}
-              subtitle={`USD ${fmtNumber(infraTotal)}`}
+              subtitle="All amounts in USD ($)"
               icon={Wrench}
               color="orange"
             />
@@ -198,10 +222,10 @@ export default function InfraExternal() {
             />
           </div>
 
-          {/* Individual Activity Sections */}
           {activityGroups.map((group) => {
             const Icon = group.icon;
             const rows = getGroupRows(group);
+
             const groupTotal = rows.reduce(
               (sum, row) => sum + Number(row.amount || 0),
               0
@@ -243,9 +267,7 @@ export default function InfraExternal() {
                         <th className="text-right px-5 py-3">Quantity</th>
                         <th className="text-left px-5 py-3">Unit</th>
                         <th className="text-right px-5 py-3">Rate (USD)</th>
-                        <th className="text-right px-5 py-3">
-                          Amount ({currency})
-                        </th>
+                        <th className="text-right px-5 py-3">Amount (USD)</th>
                         <th className="text-right px-5 py-3">
                           % of Infra Cost
                         </th>
@@ -275,7 +297,7 @@ export default function InfraExternal() {
                               {row.unit || "—"}
                             </td>
                             <td className="px-5 py-3 text-right text-slate-700">
-                              {fmtMoney(row.rate, "USD", fxRates)}
+                              {fmtMoney(row.rate, "USD")}
                             </td>
                             <td className="px-5 py-3 text-right font-semibold text-slate-900">
                               {formatAmount(amount)}
@@ -305,7 +327,6 @@ export default function InfraExternal() {
             );
           })}
 
-          {/* Combined external cost, if the backend returns it */}
           {combinedRows.length > 0 && (
             <section className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-200">
@@ -325,9 +346,7 @@ export default function InfraExternal() {
                       <th className="text-right px-5 py-3">Quantity</th>
                       <th className="text-left px-5 py-3">Unit</th>
                       <th className="text-right px-5 py-3">Rate (USD)</th>
-                      <th className="text-right px-5 py-3">
-                        Amount ({currency})
-                      </th>
+                      <th className="text-right px-5 py-3">Amount (USD)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -344,7 +363,7 @@ export default function InfraExternal() {
                         </td>
                         <td className="px-5 py-3">{row.unit || "—"}</td>
                         <td className="px-5 py-3 text-right">
-                          {fmtMoney(row.rate, "USD", fxRates)}
+                          {fmtMoney(row.rate, "USD")}
                         </td>
                         <td className="px-5 py-3 text-right font-semibold">
                           {formatAmount(row.amount)}
@@ -357,7 +376,6 @@ export default function InfraExternal() {
             </section>
           )}
 
-          {/* Full matching BOQ */}
           <section className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200">
               <h2 className="text-sm font-semibold text-slate-800">
@@ -378,9 +396,7 @@ export default function InfraExternal() {
                     <th className="text-right px-5 py-3">Quantity</th>
                     <th className="text-left px-5 py-3">Unit</th>
                     <th className="text-right px-5 py-3">Rate (USD)</th>
-                    <th className="text-right px-5 py-3">
-                      Amount ({currency})
-                    </th>
+                    <th className="text-right px-5 py-3">Amount (USD)</th>
                     <th className="text-right px-5 py-3">% of Infra Cost</th>
                   </tr>
                 </thead>
@@ -412,7 +428,7 @@ export default function InfraExternal() {
                         </td>
                         <td className="px-5 py-3">{row.unit || "—"}</td>
                         <td className="px-5 py-3 text-right">
-                          {fmtMoney(row.rate, "USD", fxRates)}
+                          {fmtMoney(row.rate, "USD")}
                         </td>
                         <td className="px-5 py-3 text-right font-semibold">
                           {formatAmount(amount)}
@@ -463,34 +479,3 @@ export default function InfraExternal() {
     </div>
   );
 }
-
-function SummaryCard({ title, value, subtitle, icon: Icon, color }) {
-  const styles = {
-    orange: "bg-orange-100 text-orange-700",
-    blue: "bg-blue-100 text-blue-700",
-    green: "bg-emerald-100 text-emerald-700",
-  };
-
-  return (
-    <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center ${styles[color] || styles.orange
-            }`}
-        >
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            {title}
-          </div>
-          <div className="text-xl font-bold text-slate-900 font-['Manrope']">
-            {value}
-          </div>
-          <div className="text-sm text-slate-500">{subtitle}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-

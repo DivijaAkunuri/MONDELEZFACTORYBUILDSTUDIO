@@ -1,8 +1,15 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Plus, Building2, Zap, Wrench, GitCompareArrows,
-  FileOutput, Database, CheckSquare, Settings, HelpCircle,
+  LayoutDashboard,
+  Plus,
+  Building2,
+  Zap,
+  Wrench,
+  GitCompareArrows,
+  FileOutput,
+  Database,
 } from "lucide-react";
 import { TID } from "@/constants/testIds";
 
@@ -17,10 +24,18 @@ const items = [
   { key: "rates", label: "Rate Database", icon: Database, path: "/rates" },
 ];
 
-export default function Sidebar({ activeProject, fxRates, currency, result, inputs, liveRateIndex, onDashboard,
-  onNewEstimate, }) {
+export default function Sidebar({
+  activeProject,
+  result,
+  inputs,
+  liveRateIndex,
+  onDashboard,
+  onNewEstimate,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const currency = "USD";
 
   const active =
     items.find((item) => location.pathname === item.path)?.key ||
@@ -30,57 +45,57 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         ? "new-estimate"
         : "");
 
-  const localCurrency = inputs?.currency || "EUR";
-  const localRate = fxRates?.[localCurrency] ?? 0;
-  const localUsd = localRate > 0
-    ? (1 / localRate).toFixed(4)
-    : "N/A";
-
   const idx = liveRateIndex || {};
   const idxPct = idx.delta_pct;
 
-  const idxColor = idxPct > 0 ? "text-amber-400" : idxPct < 0 ? "text-emerald-400" : "text-slate-300";
-
+  const idxColor =
+    idxPct > 0
+      ? "text-amber-400"
+      : idxPct < 0
+        ? "text-emerald-400"
+        : "text-slate-300";
 
   const handleNavigation = (key) => {
     if (key === "new-estimate") {
-      if (onNewEstimate) {
-        onNewEstimate();
-      }
-
+      if (onNewEstimate) onNewEstimate();
       navigate("/estimator");
       return;
     }
 
     if (key === "dashboard") {
-      if (onDashboard) {
-        onDashboard();
-      }
+      if (onDashboard) onDashboard();
 
       navigate("/dashboard", {
-        state: { result, inputs, currency, fxRates },
+        state: { result, inputs, currency },
       });
       return;
     }
 
-
     if (key === "civil-scope") {
-      navigate("/civil-scope", { state: { result, inputs, currency, fxRates } });
+      navigate("/civil-scope", {
+        state: { result, inputs, currency },
+      });
       return;
     }
 
     if (key === "infra-external") {
-      navigate("/infra-external", { state: { result, inputs, currency, fxRates } });
+      navigate("/infra-external", {
+        state: { result, inputs, currency },
+      });
       return;
     }
 
     if (key === "utilities-process") {
-      navigate("/utilities-process", { state: { result, inputs, currency, fxRates } });
+      navigate("/utilities-process", {
+        state: { result, inputs, currency },
+      });
       return;
     }
 
     if (key === "reports") {
-      navigate("/reports", { state: { result, inputs, currency, fxRates } });
+      navigate("/reports", {
+        state: { result, inputs, currency },
+      });
       return;
     }
 
@@ -88,10 +103,11 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
     if (item?.path) navigate(item.path);
   };
 
-
   return (
-    <aside data-testid={TID.sidebar} className="sidebar-scroll w-[260px] flex-shrink-0 flex flex-col h-full bg-[#0B1120] text-slate-300 overflow-y-auto">
-
+    <aside
+      data-testid={TID.sidebar}
+      className="sidebar-scroll w-[260px] flex-shrink-0 flex flex-col h-full bg-[#0B1120] text-slate-300 overflow-y-auto"
+    >
       {/* Logo */}
       <div className="px-5 pt-5 pb-6 border-b border-slate-800/60 flex items-start gap-3">
         <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
@@ -104,9 +120,13 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
         <div>
           <div className="text-white font-extrabold text-[15px] leading-tight tracking-tight font-['Manrope']">
-            MONDELEZ FACTORY<br />BUILD STUDIO
+            MONDELEZ FACTORY
+            <br />
+            BUILD STUDIO
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Civil | Utilities | Infra | Food Industry</div>
+          <div className="text-[11px] text-slate-400 mt-1">
+            Civil | Utilities | Infra | Food Industry
+          </div>
         </div>
       </div>
 
@@ -120,10 +140,11 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
               key={key}
               data-testid={TID.navItem(key)}
               onClick={() => handleNavigation(key)}
-              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${isActive
-                ? "bg-blue-600 text-white"
-                : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
-                }`}
+              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${
+                isActive
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+              }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{label}</span>
@@ -134,8 +155,13 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
 
       {/* Active Project Card */}
       <div className="mx-3 mb-3 p-3 rounded-md bg-slate-900/70 border border-slate-800 text-[12px] leading-snug">
-        <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-1">Active Project</div>
-        <div className="text-white font-semibold mb-2">{activeProject?.name ?? "—"}</div>
+        <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-1">
+          Active Project
+        </div>
+
+        <div className="text-white font-semibold mb-2">
+          {activeProject?.name ?? "—"}
+        </div>
 
         <Row label="Location" value={activeProject?.location} />
         <Row label="Built-up Area (m²)" value={activeProject?.builtUp} />
@@ -143,14 +169,10 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         <Row label="Last Saved" value={activeProject?.lastSaved ?? "—"} />
       </div>
 
-      {/* Units / Currency / Live Rate Card */}
+      {/* Units and Currency Card */}
       <div className="mx-3 mb-4 p-3 rounded-md bg-slate-900/70 border border-slate-800 text-[12px]">
         <Row label="Units" value="All dimensions in millimetres (mm)" />
-        <Row label="Currency" value={currency ?? "USD"} />
-        <Row
-          label={`Foreign Exchange (FX) Rate (${localCurrency}/USD)`}
-          value={localUsd}
-        />
+        <Row label="Currency" value="USD ($)" />
 
         <div className="text-[10px] text-slate-500 mt-1">
           ({new Date().toLocaleDateString("en-GB")})
@@ -159,13 +181,19 @@ export default function Sidebar({ activeProject, fxRates, currency, result, inpu
         {/* Live Rate Index */}
         {idx.material_index != null && (
           <div className="mt-2 pt-2 border-t border-slate-800">
-            <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-1">Live Rate Index</div>
+            <div className="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-1">
+              Live Rate Index
+            </div>
 
             <div className="flex justify-between items-baseline">
-              <span className="text-slate-400 text-[11px]">Material Index</span>
+              <span className="text-slate-400 text-[11px]">
+                Material Index
+              </span>
 
               <span className={`font-bold ${idxColor}`}>
-                {idx.material_index?.toFixed(3)} ({idxPct >= 0 ? "+" : ""}{idxPct}%)
+                {idx.material_index?.toFixed(3)} (
+                {idxPct >= 0 ? "+" : ""}
+                {idxPct}%)
               </span>
             </div>
 
@@ -185,7 +213,9 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-2 py-0.5">
       <span className="text-slate-500">{label}</span>
-      <span className="text-slate-200 text-right truncate max-w-[140px]">{value ?? "—"}</span>
+      <span className="text-slate-200 text-right truncate max-w-[140px]">
+        {value ?? "—"}
+      </span>
     </div>
   );
 }

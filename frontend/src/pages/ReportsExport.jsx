@@ -1,10 +1,10 @@
+
 import React, { useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import html2pdf from "html2pdf.js";
 import { FileOutput, Download } from "lucide-react";
 import { fmtMoney, fmtNumber } from "@/lib/format";
 import Sidebar from "@/components/estimator/Sidebar";
-
 
 function findBreakdownCategory(breakdown, aliases) {
     const normalizedAliases = aliases.map((name) =>
@@ -18,7 +18,6 @@ function findBreakdownCategory(breakdown, aliases) {
     );
 }
 
-
 export default function ReportsExport() {
     const location = useLocation();
 
@@ -27,8 +26,6 @@ export default function ReportsExport() {
         () => location.state?.inputs || {},
         [location.state?.inputs]
     );
-    const currency = location.state?.currency ?? "USD";
-    const fxRates = location.state?.fxRates ?? {};
 
     // Hooks must always run before any conditional return.
     const printReport = useCallback(async () => {
@@ -183,8 +180,6 @@ export default function ReportsExport() {
         <div className="min-h-screen bg-slate-50 flex">
             <div>
                 <Sidebar
-                    currency={currency}
-                    fxRates={fxRates}
                     result={result}
                     inputs={inputs}
                     activeKey="reports"
@@ -288,19 +283,17 @@ export default function ReportsExport() {
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
                                 <ReportCard
-                                    label="Total Project Cost"
+                                    label="Total Project Cost (USD)"
                                     value={fmtMoney(
                                         totals.total_project_cost || 0,
-                                        currency,
-                                        fxRates
+                                        "USD"
                                     )}
                                 />
                                 <ReportCard
-                                    label="Cost / m²"
+                                    label="Cost / m² (USD)"
                                     value={`${fmtMoney(
                                         totals.cost_per_sqm || 0,
-                                        currency,
-                                        fxRates
+                                        "USD"
                                     )} / m²`}
                                 />
                                 <ReportCard
@@ -340,13 +333,13 @@ export default function ReportsExport() {
 
                         {/* Cost Breakdown */}
                         <section className="p-8 border-b border-slate-200">
-                            <SectionTitle title="Cost Breakdown" />
+                            <SectionTitle title="Cost Breakdown (USD)" />
 
                             <ReportTable
-                                headers={["Category", "Amount", "% of Total"]}
+                                headers={["Category", "Amount (USD)", "% of Total"]}
                                 rows={breakdown.map((b) => [
                                     b.name,
-                                    fmtMoney(b.value || 0, currency, fxRates),
+                                    fmtMoney(b.value || 0, "USD"),
                                     `${b.pct || 0}%`,
                                 ])}
                             />
@@ -354,13 +347,12 @@ export default function ReportsExport() {
                             <div className="flex justify-end mt-4">
                                 <div className="text-right">
                                     <div className="text-xs text-slate-500 uppercase">
-                                        Total Project Cost
+                                        Total Project Cost (USD)
                                     </div>
                                     <div className="text-xl font-bold text-slate-900">
                                         {fmtMoney(
                                             totals.total_project_cost || 0,
-                                            currency,
-                                            fxRates
+                                            "USD"
                                         )}
                                     </div>
                                 </div>
@@ -369,8 +361,7 @@ export default function ReportsExport() {
 
                         {/* Major Cost Categories */}
                         <section className="p-8 border-b border-slate-200">
-                            <SectionTitle title="Major Cost Categories" />
-
+                            <SectionTitle title="Major Cost Categories (USD)" />
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
                                 <CategoryCard
@@ -378,8 +369,6 @@ export default function ReportsExport() {
                                     data={breakdown.find(
                                         (b) => b.name?.trim().toLowerCase() === "civil / csa"
                                     )}
-                                    currency={currency}
-                                    fxRates={fxRates}
                                 />
 
                                 <CategoryCard
@@ -387,10 +376,7 @@ export default function ReportsExport() {
                                     data={breakdown.find(
                                         (b) => b.name?.trim().toLowerCase() === "utilities & process"
                                     )}
-                                    currency={currency}
-                                    fxRates={fxRates}
                                 />
-
 
                                 <CategoryCard
                                     title="External & Site Development"
@@ -398,12 +384,8 @@ export default function ReportsExport() {
                                         value: infraTotal,
                                         pct: Number(infraPct.toFixed(2)),
                                     }}
-                                    currency={currency}
-                                    fxRates={fxRates}
                                 />
-
                             </div>
-
                         </section>
 
                         {/* Bill of Quantities */}
@@ -417,18 +399,18 @@ export default function ReportsExport() {
                                     "Category",
                                     "Quantity",
                                     "Unit",
-                                    "Rate",
-                                    "Amount",
+                                    "Rate (USD)",
+                                    "Amount (USD)",
                                 ]}
-
-                                rows={infraRows.map((row) => [
+                                rows={infraRows.map((row, index) => [
+                                    index + 1,
                                     row.activity,
+                                    row.category,
                                     fmtNumber(row.quantity || 0),
                                     row.unit,
-                                    fmtMoney(row.rate || 0, currency, fxRates),
-                                    fmtMoney(row.amount || 0, currency, fxRates),
+                                    fmtMoney(row.rate || 0, "USD"),
+                                    fmtMoney(row.amount || 0, "USD"),
                                 ])}
-
                             />
                         </section>
 
@@ -440,7 +422,7 @@ export default function ReportsExport() {
                                 headers={[
                                     "System",
                                     "Discipline",
-                                    "Amount",
+                                    "Amount (USD)",
                                     "% of Utilities",
                                 ]}
                                 rows={utilities.map((u) => {
@@ -459,18 +441,17 @@ export default function ReportsExport() {
                                     return [
                                         u.name,
                                         u.discipline,
-                                        fmtMoney(u.amount || 0, currency, fxRates),
+                                        fmtMoney(u.amount || 0, "USD"),
                                         `${pct}%`,
                                     ];
                                 })}
                             />
 
                             <div className="text-right mt-4 font-bold">
-                                Total Utilities &amp; Process:{" "}
+                                Total Utilities &amp; Process (USD):{" "}
                                 {fmtMoney(
                                     result.utilities_total || 0,
-                                    currency,
-                                    fxRates
+                                    "USD"
                                 )}
                             </div>
                         </section>
@@ -484,8 +465,8 @@ export default function ReportsExport() {
                                     "Activity",
                                     "Quantity",
                                     "Unit",
-                                    "Rate",
-                                    "Amount",
+                                    "Rate (USD)",
+                                    "Amount (USD)",
                                 ]}
                                 rows={boq
                                     .filter((row) => row.category === "Infra")
@@ -493,8 +474,8 @@ export default function ReportsExport() {
                                         row.activity,
                                         fmtNumber(row.quantity || 0),
                                         row.unit,
-                                        fmtMoney(row.rate || 0, currency, fxRates),
-                                        fmtMoney(row.amount || 0, currency, fxRates),
+                                        fmtMoney(row.rate || 0, "USD"),
+                                        fmtMoney(row.amount || 0, "USD"),
                                     ])}
                             />
                         </section>
@@ -566,27 +547,25 @@ export default function ReportsExport() {
                         <section className="p-8">
                             <div className="bg-slate-900 text-white rounded-lg p-6">
                                 <div className="text-xs uppercase tracking-wider text-slate-400">
-                                    Total Project Cost
+                                    Total Project Cost (USD)
                                 </div>
 
                                 <div className="text-3xl font-bold mt-2">
                                     {fmtMoney(
                                         totals.total_project_cost || 0,
-                                        currency,
-                                        fxRates
+                                        "USD"
                                     )}
                                 </div>
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-6 text-sm">
                                     <div>
                                         <div className="text-slate-400">
-                                            Contingency
+                                            Contingency (USD)
                                         </div>
                                         <div className="font-semibold">
                                             {fmtMoney(
                                                 totals.contingency || 0,
-                                                currency,
-                                                fxRates
+                                                "USD"
                                             )}
                                         </div>
                                     </div>
@@ -623,6 +602,7 @@ export default function ReportsExport() {
 
                             <div className="text-center text-xs text-slate-400 mt-6">
                                 Generated from the current project estimate.
+                                All monetary values are displayed in USD ($).
                             </div>
                         </section>
                     </div>
@@ -630,8 +610,8 @@ export default function ReportsExport() {
             </div>
         </div>
     );
-
 }
+
 function SectionTitle({ title }) {
     return (
         <h2 className="text-lg font-bold text-slate-900">
@@ -653,14 +633,14 @@ function ReportCard({ label, value }) {
     );
 }
 
-function CategoryCard({ title, data, currency, fxRates }) {
+function CategoryCard({ title, data }) {
     return (
         <div className="border border-slate-200 rounded-lg p-5">
             <div className="text-xs font-semibold text-slate-500 uppercase">
                 {title}
             </div>
             <div className="text-xl font-bold text-slate-900 mt-2">
-                {fmtMoney(data?.value || 0, currency, fxRates)}
+                {fmtMoney(data?.value || 0, "USD")}
             </div>
             <div className="text-xs text-slate-500 mt-1">
                 {data?.pct || 0}% of total project cost
@@ -710,7 +690,6 @@ function InsightBox({ title, items }) {
             </ul>
         </div>
     );
-
 }
 
 function ReportTable({ headers, rows }) {
@@ -765,7 +744,6 @@ function ReportTable({ headers, rows }) {
             </table>
         </div>
     );
-
 }
 
 function formatLabel(key) {
@@ -776,7 +754,7 @@ function formatLabel(key) {
         power_kva: "Electrical Power Load (kilovolt-amperes)",
         compressed_air_cfm: "Compressed Air Demand (cubic feet per minute)",
         etp_kld: "Effluent Treatment Plant (ETP) Capacity (kilolitres per day)",
-        fire_water_m3: "Fire Water Tank Capacity (cubic metres)"
+        fire_water_m3: "Fire Water Tank Capacity (cubic metres)",
     };
 
     return labels[key] || String(key)
@@ -793,6 +771,3 @@ function formatValue(value) {
     }
     return String(value);
 }
-
-
-

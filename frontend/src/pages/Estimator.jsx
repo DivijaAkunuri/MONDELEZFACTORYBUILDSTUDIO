@@ -37,7 +37,6 @@ import {
 
 import {
   getReference,
-  getFxRates,
   calculateFast,
   getInsights,
 } from "@/lib/api";
@@ -146,7 +145,7 @@ const DEFAULT_INPUTS = {
     remote_site: false,
   },
 
-  currency: "EUR",
+  currency: "USD",
   base_unit: "mm",
   contingency_pct: 8.0,
 
@@ -284,7 +283,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
   const navigate = useNavigate();
 
   const [reference, setReference] = React.useState(null);
-  const [fxRates, setFxRates] = React.useState({});
 
   const [inputs, setInputs] = React.useState(() => {
     try {
@@ -301,6 +299,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
       return {
         ...DEFAULT_INPUTS,
         ...parsed,
+        currency: "USD",
         complexity: {
           ...DEFAULT_INPUTS.complexity,
           ...(parsed.complexity || {}),
@@ -402,33 +401,22 @@ export default function Estimator({ initialView = "new-estimate" }) {
       setResult((previous) => ({
         ...fast,
         insights: previous?.insights,
-        fx_rates: previous?.fx_rates,
       }));
 
       toast.success("Estimate recalculated successfully.");
 
       // Supplementary data is optional. Failure to load
       // exchange rates or insights must not fail the estimate.
+      // Load supplementary AI insights only.
+      // Currency conversion is not required because all costs are in USD.
       try {
-        const [fx, insights] = await Promise.all([
-          getFxRates().catch((error) => {
-            console.warn("Could not refresh exchange rates:", error);
-            return null;
-          }),
+        const insights = await getInsights(inp, fast).catch((error) => {
+          console.warn("Could not load estimate insights:", error);
+          return null;
+        });
 
-          getInsights(inp, fast).catch((error) => {
-            console.warn("Could not load estimate insights:", error);
-            return null;
-          }),
-        ]);
-
-        // Do not apply supplementary data to a newer result.
         if (requestId !== calculationRequestId.current) {
           return;
-        }
-
-        if (fx?.rates && typeof fx.rates === "object") {
-          setFxRates(fx.rates);
         }
 
         setResult((previous) => {
@@ -437,15 +425,10 @@ export default function Estimator({ initialView = "new-estimate" }) {
           return {
             ...previous,
             insights: insights ?? previous.insights,
-            fx_rates: fx?.rates ?? previous.fx_rates,
           };
         });
       } catch (error) {
         console.warn("Optional estimate data failed to load:", error);
-      }
-    } catch (error) {
-      if (requestId !== calculationRequestId.current) {
-        return;
       }
 
       const message = getReadableError(error);
@@ -502,24 +485,16 @@ export default function Estimator({ initialView = "new-estimate" }) {
     }
   }, [result]);
 
-  /* -----------------------------------------------------
-     LOAD REFERENCE DATA AND EXCHANGE RATES
-  ----------------------------------------------------- */
-
   React.useEffect(() => {
     let cancelled = false;
 
     async function loadReferenceData() {
       try {
-        const [ref, fx] = await Promise.all([
-          getReference(),
-          getFxRates(),
-        ]);
+        const ref = await getReference();
 
         if (cancelled) return;
 
         setReference(ref);
-        setFxRates(fx?.rates || {});
       } catch (error) {
         if (!cancelled) {
           console.error("Reference data loading error:", error);
@@ -601,8 +576,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
       state: {
         result,
         inputs,
-        currency: inputs.currency,
-        fxRates,
+        currency: "USD",
         autoPrint: true,
       },
     });
@@ -624,7 +598,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
     recalc(inputs);
   }
 
-  const currency = inputs.currency || "USD";
+  const currency = "USD";
 
   const builtUpArea =
     (Number(inputs.length_m) || 0) *
@@ -638,8 +612,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
       <Sidebar
-        currency={currency}
-        fxRates={fxRates}
         result={result}
         inputs={inputs}
         activeKey={step === 5 ? "dashboard" : "new-estimate"}
@@ -772,8 +744,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                 state: {
                   inputs,
                   result,
-                  currency,
-                  fxRates,
+                  currency: "USD",
                 },
               })
             }
@@ -796,8 +767,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                 state: {
                   result,
                   inputs,
-                  currency,
-                  fxRates,
+                  currency: "USD",
                 },
               });
             }}
@@ -857,11 +827,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
               {result && (
                 <>
-                  <KpiCards
-                    totals={result.totals}
-                    currency={currency}
-                    fxRates={fxRates}
-                  />
+                  <KpiCards totals={result.totals} />
 
                   <TabsBar
                     tabs={TABS}
@@ -893,8 +859,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
                       <div className="xl:col-span-5">
                         <DonutChart
                           data={result.breakdown || []}
-                          currency={currency}
-                          fxRates={fxRates}
                           total={result.totals.total_project_cost}
                         />
                       </div>
@@ -927,27 +891,11 @@ export default function Estimator({ initialView = "new-estimate" }) {
                                     </td>
 
                                     <td className="py-2 text-right font-semibold">
-                                      {fmtMoney(
-                                        item.value,
-                                        currency,
-                                        fxRates
-                                      )}
+                                      {fmtMoney(item.value, "USD")}
                                     </td>
 
                                     <td className="py-2 text-right text-slate-600">
-                                      {fmtMoney(
-                                        item.cost_per_sqm,
-                                        "USD",
-                                        fxRates
-                                      )}{" "}
-                                      / m²
-                                      <br />
-                                      {fmtMoney(
-                                        item.cost_per_sqm,
-                                        currency,
-                                        fxRates
-                                      )}{" "}
-                                      / m²
+                                      {fmtMoney(item.cost_per_sqm, "USD")} / m²
                                     </td>
 
                                     <td className="py-2 text-right text-slate-600">
@@ -979,8 +927,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
                             ).toFixed(2)
                             : 0,
                       }))}
-                      currency={currency}
-                      fxRates={fxRates}
                       testid={TID.boqTable}
                     />
                   )}
@@ -992,8 +938,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
                       <UtilitiesSummary
                         utilities={result.utilities || []}
                         total={result.utilities_total || 0}
-                        currency={currency}
-                        fxRates={fxRates}
                       />
 
                       <div className="w-full">
@@ -1080,7 +1024,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                                 >
                                   <td className="py-2">{item.activity}</td>
                                   <td className="py-2 text-right font-semibold">
-                                    {fmtMoney(item.amount, currency, fxRates)}
+                                    {fmtMoney(item.amount, "USD")}
                                   </td>
                                 </tr>
                               ))}
@@ -1090,7 +1034,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                                   Total External & Site Development
                                 </td>
                                 <td className="py-3 text-right font-bold">
-                                  {fmtMoney(infraTotal, currency, fxRates)}
+                                  {fmtMoney(infraTotal, "USD")}
                                 </td>
                               </tr>
                             </tbody>
@@ -1104,11 +1048,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
                   {/* CASH FLOW */}
 
                   {activeTab === "cashflow" && (
-                    <TrendChart
-                      data={result.cost_trend || []}
-                      currency={currency}
-                      fxRates={fxRates}
-                    />
+                    <TrendChart data={result.cost_trend || []} />
                   )}
 
                   {/* SENSITIVITY */}
@@ -1135,7 +1075,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
                               ["Cement +10%", 0.015],
                               ["Utilities +8%", 0.025],
                               ["Labor +6%", 0.018],
-                              ["Foreign Exchange (FX) +3%", 0.012],
                             ].map(([label, delta]) => (
                               <tr
                                 key={label}
@@ -1149,10 +1088,8 @@ export default function Estimator({ initialView = "new-estimate" }) {
 
                                 <td className="text-right font-semibold">
                                   {fmtMoney(
-                                    result.totals.total_project_cost *
-                                    (1 + delta),
-                                    currency,
-                                    fxRates
+                                    result.totals.total_project_cost * (1 + delta),
+                                    "USD"
                                   )}
                                 </td>
                               </tr>
@@ -1214,10 +1151,8 @@ export default function Estimator({ initialView = "new-estimate" }) {
                       insights.executive_summary ||
                       `This is a concept-stage estimate for ${inputs?.project_name || "the project"} in ${inputs?.location_city || "the selected city"}, ${inputs?.location_country || "the selected country"}. The estimated total project cost is ${fmtMoney(
                         result?.totals?.total_project_cost || 0,
-                        currency,
-                        fxRates
+                        "USD"
                       )}. Actual costs may vary depending on detailed engineering, material prices, site conditions and local requirements.`;
-
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 

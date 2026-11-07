@@ -183,37 +183,6 @@ class Estimate(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
-# ---------- FX Rates ----------
-_fx_cache: Dict[str, Any] = {"ts": 0, "rates": None}
-
-async def get_fx_rates() -> Dict[str, float]:
-    """Fetch USD-based FX rates. Cache for 1 hour. Fallback to static."""
-    import time
-    now = time.time()
-    if _fx_cache["rates"] and now - _fx_cache["ts"] < 3600:
-        return _fx_cache["rates"]
-    # Static fallback - refreshed 08/2026 (live rates come from open.er-api.com).
-    # CZK added for the MDLZ benchmark (Excel contract rate was 21.63).
-    fallback = {
-        "USD": 1.0, "EUR": 0.90, "GBP": 0.77, "INR": 86.5, "JPY": 148.0,
-        "AUD": 1.52, "CAD": 1.37, "CHF": 0.82, "CNY": 7.10, "SGD": 1.32,
-        "AED": 3.6725, "ZAR": 18.8, "BRL": 5.40, "MXN": 18.6, "CZK": 21.63,
-    }
-    try:
-        async with httpx.AsyncClient(timeout=6.0) as c:
-            r = await c.get("https://open.er-api.com/v6/latest/USD")
-            data = r.json()
-            if data.get("result") == "success":
-                rates = {k: v for k, v in data["rates"].items() if k in CURRENCY_SYMBOLS}
-                _fx_cache["rates"] = rates
-                _fx_cache["ts"] = now
-                return rates
-    except Exception as e:
-        logging.warning(f"FX API failed, using fallback: {e}")
-    _fx_cache["rates"] = fallback
-    _fx_cache["ts"] = now
-    return fallback
-
 
 # ---------- Live commodity / material index ----------
 _rate_index_cache: Dict[str, Any] = {"ts": 0, "data": None}
@@ -1373,12 +1342,6 @@ async def root():
     return {"message": "Estimator API online", "version": "1.0.0"}
 
 
-@api_router.get("/estimator/fx-rates")
-async def fx_rates():
-    rates = await get_fx_rates()
-    return {"base": "USD", "rates": rates, "symbols": CURRENCY_SYMBOLS}
-
-
 @api_router.get("/estimator/reference")
 async def reference_data():
     """Return dropdown / static reference data for the wizard - grouped by wizard step."""
@@ -1473,8 +1436,6 @@ async def calculate(inp: ProjectInputs):
     result = compute_estimate(inp, live_index=live_index)
     ai = await generate_ai_insights(inp, result)
     result["insights"] = ai
-    fx = await get_fx_rates()
-    result["fx_rates"] = fx
     return result
 
 

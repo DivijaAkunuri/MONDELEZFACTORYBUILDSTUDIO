@@ -1,13 +1,38 @@
+
 import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+} from "recharts";
+
 import { TID } from "@/constants/testIds";
-import { fmtMoney, fmtNumber } from "@/lib/format";
+import { fmtMoney } from "@/lib/format";
 
-const DONUT_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#64748B"];
-const LINE_COLORS = { base: "#2563EB", current: "#10B981", benchmark: "#F59E0B" };
+const DONUT_COLORS = [
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#8B5CF6",
+  "#EC4899",
+  "#64748B",
+];
 
+const LINE_COLORS = {
+  base: "#2563EB",
+  current: "#10B981",
+  benchmark: "#F59E0B",
+};
 
-export function DonutChart({ data, currency, fxRates, total }) {
+export function DonutChart({ data, total }) {
   return (
     <div
       data-testid={TID.donut}
@@ -46,17 +71,18 @@ export function DonutChart({ data, currency, fxRates, total }) {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                formatter={(v) => fmtMoney(v, currency, fxRates)}
+                formatter={(v) => fmtMoney(v, "USD")}
               />
             </PieChart>
           </ResponsiveContainer>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <div className="text-[10px] text-slate-500 uppercase tracking-wider">
-              {currency}
+              USD ($)
             </div>
+
             <div className="text-base sm:text-lg font-extrabold text-slate-900 font-['Manrope']">
-              {fmtMoney(total, currency, fxRates, { compact: true })}
+              {fmtMoney(total, "USD", null, { compact: true })}
             </div>
           </div>
         </div>
@@ -90,11 +116,7 @@ export function DonutChart({ data, currency, fxRates, total }) {
   );
 }
 
-
-export function TrendChart({ data, currency, fxRates }) {
-  const tooltipFmt = (v) =>
-    fmtMoney(v, currency, fxRates, { compact: true });
-
+export function TrendChart({ data }) {
   return (
     <div
       data-testid={TID.line}
@@ -102,7 +124,7 @@ export function TrendChart({ data, currency, fxRates }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">
-          Cost Trend ({currency})
+          Cost Trend (USD $)
         </h3>
 
         <div className="text-xs text-slate-500 border border-slate-200 rounded px-2 py-1">
@@ -137,13 +159,13 @@ export function TrendChart({ data, currency, fxRates }) {
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) =>
-                fmtMoney(v, currency, fxRates, { compact: true })
+                fmtMoney(v, "USD", null, { compact: true })
               }
             />
 
             <Tooltip
               formatter={(value, name) => [
-                fmtMoney(value, currency, fxRates),
+                fmtMoney(value, "USD"),
                 name,
               ]}
               contentStyle={{
@@ -211,3 +233,4 @@ export function TrendChart({ data, currency, fxRates }) {
     </div>
   );
 }
+

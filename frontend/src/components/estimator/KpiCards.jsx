@@ -1,24 +1,23 @@
 import React from "react";
 import { DollarSign, Grid3x3, Calendar, ShieldCheck, PieChart, TrendingUp } from "lucide-react";
 import { TID } from "@/constants/testIds";
-import { fmtMoney, fmtNumber, CURRENCY_SYMBOLS } from "@/lib/format";
+import { fmtMoney} from "@/lib/format";
 
-export default function KpiCards({ totals, currency, fxRates }) {
+export default function KpiCards({ totals }) {
   if (!totals) return null;
   const t = totals;
   const cards = [
     {
       key: "total-cost",
       label: "TOTAL PROJECT COST",
-      value: fmtMoney(t.total_project_cost, currency, fxRates),
+      value: fmtMoney(t.total_project_cost, "USD"),
       icon: DollarSign,
       iconBg: "bg-slate-900",
       iconClr: "text-white",
     },
     {
       key: "cost-per-sqm", label: "COST / m² (BUILT-UP)",
-      value: `${fmtMoney(t.cost_per_sqm, "USD", fxRates)} /m²`,
-      sub: `${fmtMoney(t.cost_per_sqm, currency, fxRates)} /m²`,
+      value: `${fmtMoney(t.cost_per_sqm, "USD",)} /m²`,
       icon: Grid3x3, iconBg: "bg-purple-100", iconClr: "text-purple-700",
     },
     {
@@ -35,7 +34,7 @@ export default function KpiCards({ totals, currency, fxRates }) {
     },
     {
       key: "contingency", label: "CONTINGENCY",
-      value: fmtMoney(t.contingency, currency, fxRates),
+      value: fmtMoney(t.contingency, "USD"),
       sub: `${t.contingency_pct}% of Total Cost`,
       icon: PieChart, iconBg: "bg-rose-100", iconClr: "text-rose-700",
     },

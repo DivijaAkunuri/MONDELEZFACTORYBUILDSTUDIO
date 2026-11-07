@@ -141,7 +141,7 @@ function LocationCard({
     );
 }
 
-function ResultCard({ title, location, result, currency, fxRates }) {
+function ResultCard({ title, location, result }) {
     const total = Number(result?.totals?.total_project_cost);
 
     return (
@@ -158,7 +158,7 @@ function ResultCard({ title, location, result, currency, fxRates }) {
 
             <p className="mt-1 break-words text-2xl font-bold text-blue-700">
                 {Number.isFinite(total)
-                    ? fmtMoney(total, currency, fxRates)
+                    ? fmtMoney(total, "USD")
                     : "Not available"}
             </p>
 
@@ -253,8 +253,6 @@ export default function CompareOptions() {
     }, [routeLocation.state]);
 
     const regions = reference?.regions || {};
-    const currency = projectInputs.currency || "USD";
-    const fxRates = routeLocation.state?.fxRates || {};
 
     const patchProjectInput = (key, value) => {
         setProjectInputs((previous) => ({
@@ -309,6 +307,7 @@ export default function CompareOptions() {
 
         setLoading(true);
         setComparison(null);
+
         const makePayload = (location) => ({
             ...projectInputs,
 
@@ -366,20 +365,18 @@ export default function CompareOptions() {
 
     const activeProject = {
         name: projectInputs.project_name || "—",
-        location: `${projectInputs.location_city || "—"}${projectInputs.location_country
+        location: `${projectInputs.location_city || "—"}${
+            projectInputs.location_country
                 ? `, ${projectInputs.location_country}`
                 : ""
-            }`,
+        }`,
         builtUp: `${fmtNumber(builtUpArea)} m²`,
         lastSaved: "—",
     };
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-            {/* EXISTING SIDEBAR — KEEP IT */}
             <Sidebar
-                currency={currency}
-                fxRates={fxRates}
                 result={routeLocation.state?.result || null}
                 inputs={projectInputs}
                 liveRateIndex={routeLocation.state?.result?.live_rate_index}
@@ -388,10 +385,8 @@ export default function CompareOptions() {
                 activeProject={activeProject}
             />
 
-            {/* ALL PAGE CONTENT TO THE RIGHT OF THE SIDEBAR */}
             <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
                 <main className="w-full flex-1 p-4 sm:p-6 lg:p-8">
-                    {/* Heading */}
                     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -412,7 +407,6 @@ export default function CompareOptions() {
                         </button>
                     </header>
 
-                    {/* LOCATION A AND B: SIDE BY SIDE */}
                     <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-2">
                         <LocationCard
                             title="Location A"
@@ -437,7 +431,6 @@ export default function CompareOptions() {
                         />
                     </div>
 
-                    {/* SHARED PROJECT INPUTS */}
                     <section className={`${cardClass} mt-5`}>
                         <h2 className="text-lg font-semibold text-slate-900">
                             Shared Project Inputs
@@ -520,7 +513,6 @@ export default function CompareOptions() {
                         </div>
                     </section>
 
-                    {/* COMPARE BUTTON: UNDER THE INPUTS */}
                     <div className="mt-6 flex justify-center">
                         <button
                             type="button"
@@ -542,7 +534,6 @@ export default function CompareOptions() {
                         </button>
                     </div>
 
-                    {/* OUTPUT: UNDER THE COMPARE BUTTON */}
                     {comparison && (
                         <section className="mt-8 space-y-5">
                             <div>
@@ -559,16 +550,12 @@ export default function CompareOptions() {
                                     title="Location A"
                                     location={locationA}
                                     result={comparison.resultA}
-                                    currency={currency}
-                                    fxRates={fxRates}
                                 />
 
                                 <ResultCard
                                     title="Location B"
                                     location={locationB}
                                     result={comparison.resultB}
-                                    currency={currency}
-                                    fxRates={fxRates}
                                 />
                             </div>
 
@@ -585,8 +572,7 @@ export default function CompareOptions() {
                                         <p className="mt-1 break-words text-2xl font-bold text-slate-900">
                                             {fmtMoney(
                                                 Math.abs(comparison.difference),
-                                                currency,
-                                                fxRates
+                                                "USD"
                                             )}
                                         </p>
                                         <p className="mt-1 text-sm text-slate-500">
