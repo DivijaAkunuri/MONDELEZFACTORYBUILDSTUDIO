@@ -10,37 +10,7 @@ export default function KpiCards({ totals, currency, fxRates }) {
     {
       key: "total-cost",
       label: "TOTAL PROJECT COST",
-      value: (
-        <>
-          <div>
-            {fmtMoney(
-              t.total_project_cost_min ?? t.total_project_cost,
-              "USD",
-              fxRates
-            )}
-            {" – "}
-            {fmtMoney(
-              t.total_project_cost_max ?? t.total_project_cost,
-              "USD",
-              fxRates
-            )}
-          </div>
-
-          <div className="text-xs font-normal text-slate-500">
-            {fmtMoney(
-              t.total_project_cost_min ?? t.total_project_cost,
-              currency,
-              fxRates
-            )}
-            {" – "}
-            {fmtMoney(
-              t.total_project_cost_max ?? t.total_project_cost,
-              currency,
-              fxRates
-            )}
-          </div>
-        </>
-      ),
+      value: fmtMoney(t.total_project_cost, currency, fxRates),
       icon: DollarSign,
       iconBg: "bg-slate-900",
       iconClr: "text-white",

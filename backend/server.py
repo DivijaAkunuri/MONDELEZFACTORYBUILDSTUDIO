@@ -848,17 +848,17 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     utility_environment_m = max(0.65, min(1.60, utility_environment_m))
 
     util_base = USA_BASE_UTIL * util_factor
+
     utility_rows = []
     utilities_total = 0.0
-    utilities_total_min = 0.0
-    utilities_total_max = 0.0
 
     product_key = str(inp.product_category or "")
-    preset = INDUSTRY_PRESETS.get(product_key,{"utilities_pct": 0.50})
-    # Chocolate is the reference food-process utility intensity (0.63).
-    # Other categories therefore scale the complete utility basket without
-    # changing the country/city market basis.
-    product_total_m = max(0.35, min(1.35, float(preset.get("utilities_pct", 0.50)) / 0.63))
+    preset = INDUSTRY_PRESETS.get(product_key, {"utilities_pct": 0.50})
+
+    product_total_m = max(
+        0.35,
+        min(1.35, float(preset.get("utilities_pct", 0.50)) / 0.63)
+    )
 
     selected_systems = {
         name for name in UTILITY_SYSTEM_WEIGHTS
@@ -866,19 +866,24 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     }
 
     if selected_systems:
+        # Normalize product factors at reference humidity (40%).
         raw_product = {
-            name: _product_utility_multiplier(inp, name)
+            name: _product_utility_multiplier(
+                inp, name, humidity_pct=40.0
+            )
             for name in selected_systems
         }
+
         weighted_raw = sum(
             UTILITY_SYSTEM_WEIGHTS[name][0] * raw_product[name]
             for name in selected_systems
+        )
 
-)
         selected_weight = sum(
             UTILITY_SYSTEM_WEIGHTS[name][0]
             for name in selected_systems
-            )
+        )
+
         product_normalizer = (
             weighted_raw / selected_weight if selected_weight else 1.0
         )
@@ -894,7 +899,25 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             }.get(discipline, mech_market_m)
 
             raw_product_m = raw_product[name]
-            product_m = raw_product_m / product_normalizer if product_normalizer else 1.0
+
+            product_m = (
+                raw_product_m / product_normalizer
+                if product_normalizer else 1.0
+            )
+
+            # Apply current humidity only to chocolate HVAC.
+            humidity_factor = 1.0
+
+            product_lower = str(inp.product_category or "").lower()
+
+            if name == "HVAC" and (
+                "chocolate" in product_lower or "combo" in product_lower
+            ):
+                humidity_factor = (
+                    1.0
+                    + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
+                )
+
             amount = (
                 util_base
                 * built_up
@@ -903,53 +926,31 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 * discipline_m
                 * utility_environment_m
                 * product_m
+                * humidity_factor
                 * tier_m
                 * project_type_rel
                 * complexity_rel
                 * cost_live_m
-                )
+            )
+
             amount = round(amount, 2)
-            amount_min = amount
-            amount_max = amount
-            product_lower = str(inp.product_category or "").lower()
-            if name == "HVAC" and (
-                "chocolate" in product_lower or "combo" in product_lower
-                ):
-                current_humidity_factor = (
-                    1.0 + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
-                    )
-                min_humidity_factor = (
-                    1.0 + max(0.0, inp.humidity_controlled_min_pct - 40.0) / 1000.0
-                    )
-                max_humidity_factor = (
-                    1.0 + max(0.0, inp.humidity_controlled_max_pct - 40.0) / 1000.0
-                    )
-                amount_min = round(
-                    amount * min_humidity_factor / current_humidity_factor, 2
-                    )
-                amount_max = round(
-                    amount * max_humidity_factor / current_humidity_factor, 2
-                    )
             utilities_total += amount
-            utilities_total_min += amount_min
-            utilities_total_max += amount_max
-            utility_rows.append(
-                    {
-                        "name": name,
-                        "unit": "LS",
-                        "amount": amount,
-                        "amount_min": amount_min,
-                        "amount_max": amount_max,
-                        "discipline": discipline,
-                        "description": description,
-                        "country_factor": round(util_factor, 4),
-                        "city_factor": round(discipline_m, 4),
-                        "product_factor": round(product_total_m * product_m, 4),
-})
+
+            utility_rows.append({
+                "name": name,
+                "unit": "LS",
+                "amount": amount,
+                "discipline": discipline,
+                "description": description,
+                "country_factor": round(util_factor, 4),
+                "city_factor": round(discipline_m, 4),
+                "product_factor": round(
+                    product_total_m * product_m * humidity_factor, 4
+                ),
+            })
 
     utilities_total = round(utilities_total, 2)
-    utilities_total_min = round(utilities_total_min, 2)
-    utilities_total_max = round(utilities_total_max, 2)
+
     if utilities_total > 0:
         boq_rows.append({
             "activity": "Utilities & Process Systems",
@@ -959,9 +960,11 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "amount": utilities_total,
             "category": "Utilities",
             "scope": utility_rows,
-            "cost_basis": "Country utility basket × discipline city factors × product/process factors",
-        })
-
+            "cost_basis": (
+                "Country utility basket × discipline city factors "
+                "× product/process factors"
+            ),
+    })
     # ---------------- Non-direct project basket ----------------
     # Split the country 'others' pool into explicit project scopes, removing
     # the embedded benchmark contingency first.
@@ -1112,15 +1115,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         pre_contingency_subtotal * contingency_pct, 2
 )
     total = round(pre_contingency_subtotal + contingency, 2)
-    utility_delta_min = utilities_total_min - utilities_total
-    utility_delta_max = utilities_total_max - utilities_total
-    total_project_cost_min = round(
-        total + utility_delta_min * (1 + contingency_pct), 2
-    )
-    total_project_cost_max = round(
-        total + utility_delta_max * (1 + contingency_pct), 2
-    )
-
     boq_rows.append({
         "activity": "Contingency",
         "unit": "LS",
@@ -1256,8 +1250,6 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "top_cost_items": top12,
         "utilities": utility_rows,
         "utilities_total": utilities_total,
-        "utilities_total_min": utilities_total_min,
-        "utilities_total_max": utilities_total_max,
         "utility_demand": utility_demand,
         "cost_trend": trend,
         "multipliers": {
