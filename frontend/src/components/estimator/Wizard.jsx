@@ -129,6 +129,57 @@ export default function Wizard({
       };
     }
 
+    // Validate FG Warehouse dimensions
+    const warehouseType = inputs.fg_warehouse_type || "";
+
+    if (warehouseType === "Chocolate" || warehouseType === "Combo") {
+      const dimensions = [
+        ["fg_wh_chocolate_length_m", "Chocolate FG Warehouse Length"],
+        ["fg_wh_chocolate_width_m", "Chocolate FG Warehouse Width"],
+        ["fg_wh_chocolate_height_m", "Chocolate FG Warehouse Height"],
+      ];
+
+      for (const [field, label] of dimensions) {
+        const value = Number(inputs[field]);
+
+        if (
+          inputs[field] === "" ||
+          inputs[field] == null ||
+          !Number.isFinite(value) ||
+          value <= 0
+        ) {
+          return {
+            field,
+            message: `${label} must be greater than 0.`,
+          };
+        }
+      }
+    }
+
+    if (warehouseType === "Bakery" || warehouseType === "Combo") {
+      const dimensions = [
+        ["fg_wh_bakery_length_m", "Bakery FG Warehouse Length"],
+        ["fg_wh_bakery_width_m", "Bakery FG Warehouse Width"],
+        ["fg_wh_bakery_height_m", "Bakery FG Warehouse Height"],
+      ];
+
+      for (const [field, label] of dimensions) {
+        const value = Number(inputs[field]);
+
+        if (
+          inputs[field] === "" ||
+          inputs[field] == null ||
+          !Number.isFinite(value) ||
+          value <= 0
+        ) {
+          return {
+            field,
+            message: `${label} must be greater than 0.`,
+          };
+        }
+      }
+    }
+
     return null;
   };
 
@@ -212,7 +263,8 @@ export default function Wizard({
     if (error) {
       if (
         error.field === "length_m" ||
-        error.field === "width_m"
+        error.field === "width_m" ||
+        error.field.startsWith("fg_wh_")
       ) {
         setStep(1);
         setAttemptedNext(true);
@@ -782,9 +834,15 @@ function Step2({ inputs, patch, reference, showErrors }) {
   const showRMWarehouse =
     selectedComponents.includes("RM Warehouse");
 
-  const showFGWarehouse =
-    selectedComponents.includes("WH-Bakery") ||
-    selectedComponents.includes("WH-Chocolate");
+  const fgWarehouseType = inputs.fg_warehouse_type || "";
+
+  const showChocolateWarehouse =
+    fgWarehouseType === "Chocolate" ||
+    fgWarehouseType === "Combo";
+
+  const showBakeryWarehouse =
+    fgWarehouseType === "Bakery" ||
+    fgWarehouseType === "Combo";
 
   const lengthError =
     inputs.length_m === "" ||
@@ -801,6 +859,19 @@ function Step2({ inputs, patch, reference, showErrors }) {
       width <= 0
       ? "Width must be greater than 0."
       : "";
+  const fgDimensionError = (field, label) => {
+    const value = inputs[field];
+
+    return showErrors &&
+      (
+        value === "" ||
+        value == null ||
+        !Number.isFinite(Number(value)) ||
+        Number(value) <= 0
+      )
+      ? `${label} must be greater than 0.`
+      : "";
+  };
 
   return (
     <>
@@ -892,11 +963,30 @@ function Step2({ inputs, patch, reference, showErrors }) {
         </div>
 
         <CheckboxGrid
-          list={reference?.building_components || []}
-          selected={selectedComponents}
+          list={(reference?.building_components || []).filter(
+            (item) => item !== "WH-Bakery" && item !== "WH-Chocolate"
+          )}
+          selected={selectedComponents.filter(
+            (item) => item !== "WH-Bakery" && item !== "WH-Chocolate"
+          )}
           onToggle={toggle}
           idPrefix="comp"
         />
+
+        <Section title="Finished Goods (FG) Warehouse Selection">
+          <Field label="FG Warehouse Type" span={3}>
+            <SelectF
+              id="fg_warehouse_type"
+              value={fgWarehouseType}
+              onChange={(value) => patch("fg_warehouse_type", value)}
+              options={[
+                { key: "Chocolate", label: "FG WH Chocolate" },
+                { key: "Bakery", label: "FG WH Bakery" },
+                { key: "Combo", label: "FG WH Combo (Chocolate + Bakery)" },
+              ]}
+            />
+          </Field>
+        </Section>
       </div>
 
       {/* 3. EMPLOYEE & STAFF FACILITIES */}
@@ -1065,77 +1155,152 @@ function Step2({ inputs, patch, reference, showErrors }) {
         </Section>
       )}
 
-      {/* 5. FG WAREHOUSE GEOMETRY */}
-      {showFGWarehouse && (
-        <Section
-          title={
-            <>
-              Finished Goods (FG) Warehouse Geometry
-              <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
-                (Please enter all required dimensions)
-              </span>
-            </>
-          }
-        >
+      {/* 5. CHOCOLATE FG WAREHOUSE GEOMETRY */}
+      {showChocolateWarehouse && (
+        <Section title="Chocolate FG Warehouse Geometry">
           <Field label="Length (m)">
             <InputF
-              id="fg_wh_length_m"
+              id="fg_wh_chocolate_length_m"
               type="number"
               min="0"
-              value={inputs.fg_wh_length_m ?? ""}
-              onChange={(value) => patch("fg_wh_length_m", value)}
+              value={inputs.fg_wh_chocolate_length_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_chocolate_length_m", value)
+              }
             />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_chocolate_length_m",
+                "Chocolate FG Warehouse Length"
+              )}
+            </ErrorMessage>
           </Field>
 
           <Field label="Width (m)">
             <InputF
-              id="fg_wh_width_m"
+              id="fg_wh_chocolate_width_m"
               type="number"
               min="0"
-              value={inputs.fg_wh_width_m ?? ""}
-              onChange={(value) => patch("fg_wh_width_m", value)}
-            />
-          </Field>
-
-
-
-          <Field label="Number of Floors">
-            <InputF
-              id="fg_wh_num_floors"
-              type="number"
-              min="1"
-              value={inputs.fg_wh_num_floors ?? ""}
-              onChange={(value) => patch("fg_wh_num_floors", value)}
-            />
-          </Field>
-
-
-          <Field label="Bay Spacing (Column) (m)">
-            <InputF
-              id="fg_wh_bay_spacing_m"
-              type="number"
-              min="0"
-              value={inputs.fg_wh_bay_spacing_m ?? ""}
+              value={inputs.fg_wh_chocolate_width_m ?? ""}
               onChange={(value) =>
-                patch("fg_wh_bay_spacing_m", value)
+                patch("fg_wh_chocolate_width_m", value)
               }
             />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_chocolate_width_m",
+                "Chocolate FG Warehouse Width"
+              )}
+            </ErrorMessage>
+          </Field>
+
+          <Field label="Height (m)">
+            <InputF
+              id="fg_wh_chocolate_height_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_chocolate_height_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_chocolate_height_m", value)
+              }
+            />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_chocolate_height_m",
+                "Chocolate FG Warehouse Height"
+              )}
+            </ErrorMessage>
           </Field>
 
           <Field label="Built-up Area (m²)">
             <InputF
-              id="fg_wh_built_up_area"
+              id="fg_wh_chocolate_built_up_area"
               type="text"
               value={
-                Number(inputs.fg_wh_length_m) > 0 &&
-                  Number(inputs.fg_wh_width_m) > 0 &&
-                  Number(inputs.fg_wh_num_floors) > 0
+                Number(inputs.fg_wh_chocolate_length_m) > 0 &&
+                  Number(inputs.fg_wh_chocolate_width_m) > 0
                   ? (
-                    Number(inputs.fg_wh_length_m) *
-                    Number(inputs.fg_wh_width_m) *
-                    Number(inputs.fg_wh_num_floors)
+                    Number(inputs.fg_wh_chocolate_length_m) *
+                    Number(inputs.fg_wh_chocolate_width_m)
                   ).toLocaleString()
-                  : "Enter dimensions and floors"
+                  : "Enter dimensions"
+              }
+              disabled
+              onChange={() => { }}
+            />
+          </Field>
+        </Section>
+      )}
+
+      {/* 6. BAKERY FG WAREHOUSE GEOMETRY */}
+      {showBakeryWarehouse && (
+        <Section title="Bakery FG Warehouse Geometry">
+          <Field label="Length (m)">
+            <InputF
+              id="fg_wh_bakery_length_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_bakery_length_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_bakery_length_m", value)
+              }
+            />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_bakery_length_m",
+                "Bakery FG Warehouse Length"
+              )}
+            </ErrorMessage>
+          </Field>
+
+          <Field label="Width (m)">
+            <InputF
+              id="fg_wh_bakery_width_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_bakery_width_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_bakery_width_m", value)
+              }
+            />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_bakery_width_m",
+                "Bakery FG Warehouse Width"
+              )}
+            </ErrorMessage>
+          </Field>
+
+          <Field label="Height (m)">
+            <InputF
+              id="fg_wh_bakery_height_m"
+              type="number"
+              min="0"
+              value={inputs.fg_wh_bakery_height_m ?? ""}
+              onChange={(value) =>
+                patch("fg_wh_bakery_height_m", value)
+              }
+            />
+            <ErrorMessage>
+              {fgDimensionError(
+                "fg_wh_bakery_height_m",
+                "Bakery FG Warehouse Height"
+              )}
+            </ErrorMessage>
+          </Field>
+
+          <Field label="Built-up Area (m²)">
+            <InputF
+              id="fg_wh_bakery_built_up_area"
+              type="text"
+              value={
+                Number(inputs.fg_wh_bakery_length_m) > 0 &&
+                  Number(inputs.fg_wh_bakery_width_m) > 0
+                  ? (
+                    Number(inputs.fg_wh_bakery_length_m) *
+                    Number(inputs.fg_wh_bakery_width_m)
+                  ).toLocaleString()
+                  : "Enter dimensions"
               }
               disabled
               onChange={() => { }}
@@ -1146,6 +1311,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
     </>
   );
 }
+
 
 
 

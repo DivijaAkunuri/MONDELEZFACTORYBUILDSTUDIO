@@ -73,8 +73,22 @@ class ProjectInputs(BaseModel):
     height_m: float = 7
     num_floors: int = 1
     bay_spacing_m: float = 8.0
+        # Finished Goods (FG) Warehouse Selection
+    fg_warehouse_type: str = ""
+
+    # Chocolate FG Warehouse Geometry
+    fg_wh_chocolate_length_m: Optional[float] = None
+    fg_wh_chocolate_width_m: Optional[float] = None
+    fg_wh_chocolate_height_m: Optional[float] = None
+    fg_wh_chocolate_num_floors: int = 1
+
+    # Bakery FG Warehouse Geometry
+    fg_wh_bakery_length_m: Optional[float] = None
+    fg_wh_bakery_width_m: Optional[float] = None
+    fg_wh_bakery_height_m: Optional[float] = None
+    fg_wh_bakery_num_floors: int = 1
     building_components: List[str] = Field(default_factory=lambda: [
-    "Admin Building","RM Warehouse","Production Floor","WH-Bakery","WH-Chocolate","Utilities Block","Territory Packaging Hall","R&D Center",
+    "Admin Building","RM Warehouse","Production Floor","Utilities Block","Territory Packaging Hall","R&D Center",
     ])
     # Step 3 - structural & site
     
@@ -171,6 +185,40 @@ class ProjectInputs(BaseModel):
                 "Male Employees + Female Employees must equal "
                 "Total Employees."
             )
+
+        return self
+        @model_validator(mode="after")
+    def validate_fg_warehouse_dimensions(self):
+        warehouse_type = str(self.fg_warehouse_type or "").strip()
+
+        if warehouse_type not in ("", "Chocolate", "Bakery", "Combo"):
+            raise ValueError("Select a valid FG Warehouse Type.")
+
+        if warehouse_type in ("Chocolate", "Combo"):
+            dimensions = {
+                "Length": self.fg_wh_chocolate_length_m,
+                "Width": self.fg_wh_chocolate_width_m,
+                "Height": self.fg_wh_chocolate_height_m,
+            }
+
+            for name, value in dimensions.items():
+                if value is None or not math.isfinite(value) or value <= 0:
+                    raise ValueError(
+                        f"Chocolate FG Warehouse {name} must be greater than 0."
+                    )
+
+        if warehouse_type in ("Bakery", "Combo"):
+            dimensions = {
+                "Length": self.fg_wh_bakery_length_m,
+                "Width": self.fg_wh_bakery_width_m,
+                "Height": self.fg_wh_bakery_height_m,
+            }
+
+            for name, value in dimensions.items():
+                if value is None or not math.isfinite(value) or value <= 0:
+                    raise ValueError(
+                        f"Bakery FG Warehouse {name} must be greater than 0."
+                    )
 
         return self
     
@@ -774,6 +822,65 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     weight_sum = sum(civil_weights[n] for n in civil_scope_names) or 1.0
     boq_rows: List[Dict[str, Any]] = []
     building_total = 0.0
+        # ---------------- FG Warehouse CSA Costs ----------------
+    fg_warehouse_type = str(inp.fg_warehouse_type or "").strip()
+
+    fg_warehouse_areas = []
+
+    if fg_warehouse_type in ("Chocolate", "Combo"):
+        chocolate_area = (
+            float(inp.fg_wh_chocolate_length_m or 0)
+            * float(inp.fg_wh_chocolate_width_m or 0)
+        )
+
+        if chocolate_area > 0:
+            fg_warehouse_areas.append(
+                ("FG Warehouse - Chocolate", chocolate_area)
+            )
+
+    if fg_warehouse_type in ("Bakery", "Combo"):
+        bakery_area = (
+            float(inp.fg_wh_bakery_length_m or 0)
+            * float(inp.fg_wh_bakery_width_m or 0)
+        )
+
+        if bakery_area > 0:
+            fg_warehouse_areas.append(
+                ("FG Warehouse - Bakery", bakery_area)
+            )
+
+    fg_warehouse_total = 0.0
+
+    for warehouse_name, warehouse_area in fg_warehouse_areas:
+        warehouse_cost = round(
+            csa_base * warehouse_area * csa_m,
+            2,
+        )
+
+        fg_warehouse_total += warehouse_cost
+
+        boq_rows.append({
+            "activity": warehouse_name,
+            "unit": "m2",
+            "quantity": round(warehouse_area, 2),
+            "rate": round(warehouse_cost / warehouse_area, 2),
+            "amount": warehouse_cost,
+            "category": "FG Warehouse / CSA",
+            "cost_basis": (
+                "Country CSA benchmark × warehouse built-up area "
+                "× existing city and engineering factors"
+            ),
+        })
+
+    building_total = round(
+        building_total + fg_warehouse_total,
+        2,
+    )
+
+    csa_total = round(
+        csa_total + fg_warehouse_total,
+        2,
+    )
     for activity, unit, _, category in CIVIL_ACTIVITIES:
         if activity not in civil_weights:
             continue
@@ -948,14 +1055,18 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     components = [
         str(component).strip().lower()
         for component in components
+        
+    
 ]
     warehouse_selected = (
         str(inp.product_category or "").strip().lower() == "warehouse"
+        or fg_warehouse_type in ("Chocolate", "Bakery", "Combo")
         or any(
             "warehouse" in component or component.startswith("wh-")
             for component in components
-            )
-)
+        )
+    )
+  
     scope_flags = {
         "Warehouse / ASRS": warehouse_selected,
 
