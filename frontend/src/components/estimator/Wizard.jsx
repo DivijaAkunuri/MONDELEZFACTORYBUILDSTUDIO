@@ -220,6 +220,72 @@ export default function Wizard({
         };
       }
     }
+    // Validate RM Warehouse dimensions
+    if ((inputs.building_components || []).includes("RM Warehouse")) {
+      const dimensions = [
+        ["rm_wh_length_m", "RM Warehouse Length"],
+        ["rm_wh_width_m", "RM Warehouse Width"],
+        ["rm_wh_height_m", "RM Warehouse Floor Height"],
+      ];
+
+      for (const [field, label] of dimensions) {
+        const value = Number(inputs[field]);
+
+        if (
+          inputs[field] === "" ||
+          inputs[field] == null ||
+          !Number.isFinite(value) ||
+          value <= 0
+        ) {
+          return {
+            field,
+            message: `${label} must be greater than 0.`,
+          };
+        }
+      }
+    }// Validate RM Warehouse dimensions
+    if ((inputs.building_components || []).includes("RM Warehouse")) {
+      const dimensions = [
+        ["rm_wh_length_m", "RM Warehouse Length"],
+        ["rm_wh_width_m", "RM Warehouse Width"],
+        ["rm_wh_height_m", "RM Warehouse Floor Height"],
+      ];
+
+      for (const [field, label] of dimensions) {
+        const value = Number(inputs[field]);
+
+        if (
+          inputs[field] === "" ||
+          inputs[field] == null ||
+          !Number.isFinite(value) ||
+          value <= 0
+        ) {
+          return {
+            field,
+            message: `${label} must be greater than 0.`,
+          };
+        }
+      }
+    }
+    // Validate RM Warehouse Bay Spacing
+    if (
+      (inputs.building_components || []).includes("RM Warehouse") &&
+      inputs.rm_wh_optimize_columns === "Yes"
+    ) {
+      const spacing = Number(inputs.rm_wh_bay_spacing_m);
+
+      if (
+        inputs.rm_wh_bay_spacing_m === "" ||
+        inputs.rm_wh_bay_spacing_m == null ||
+        !Number.isFinite(spacing) ||
+        spacing <= 0
+      ) {
+        return {
+          field: "rm_wh_bay_spacing_m",
+          message: "RM Bay Spacing must be greater than 0.",
+        };
+      }
+    }
 
     return null;
   };
@@ -305,7 +371,8 @@ export default function Wizard({
       if (
         error.field === "length_m" ||
         error.field === "width_m" ||
-        error.field.startsWith("fg_wh_")
+        error.field.startsWith("fg_wh_") ||
+        error.field.startsWith("rm_wh_")
       ) {
         setStep(1);
         setAttemptedNext(true);
@@ -1109,92 +1176,30 @@ function Step2({ inputs, patch, reference, showErrors }) {
         </Section>
       )}
 
-      {/* 4. RM WAREHOUSE GEOMETRY */}
-      {showRMWarehouse && (
-        <Section
-          title={
-            <>
-              Raw Material (RM) Warehouse Geometry
-              <span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
-                (Please enter all required dimensions)
-              </span>
-            </>
-          }
-        >
-          <Field label="Length (m)">
-            <InputF
-              id="rm_wh_length_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_length_m ?? ""}
-              onChange={(value) => patch("rm_wh_length_m", value)}
-            />
-          </Field>
+      {inputs.rm_wh_optimize_columns === "Yes" && (
+        <Field label="RM Bay Spacing (Column) (m)">
+          <InputF
+            id="rm_wh_bay_spacing_m"
+            type="number"
+            min="0"
+            value={inputs.rm_wh_bay_spacing_m ?? ""}
+            onChange={(value) =>
+              patch("rm_wh_bay_spacing_m", value)
+            }
+          />
 
-          <Field label="Width (m)">
-            <InputF
-              id="rm_wh_width_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_width_m ?? ""}
-              onChange={(value) => patch("rm_wh_width_m", value)}
-            />
-          </Field>
-
-
-          <Field label="Number of Floors">
-            <InputF
-              id="rm_wh_num_floors"
-              type="number"
-              min="1"
-              value={inputs.rm_wh_num_floors ?? ""}
-              onChange={(value) => patch("rm_wh_num_floors", value)}
-            />
-          </Field>
-
-
-          <Field label="Floor Height (m)">
-            <InputF
-              id="rm_wh_height_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_height_m ?? ""}
-              onChange={(value) => patch("rm_wh_height_m", value)}
-            />
-          </Field>
-
-          <Field label="Bay Spacing (Column) (m)">
-            <InputF
-              id="rm_wh_bay_spacing_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_bay_spacing_m ?? ""}
-              onChange={(value) =>
-                patch("rm_wh_bay_spacing_m", value)
-              }
-            />
-          </Field>
-
-          <Field label="Built-up Area (m²)">
-            <InputF
-              id="rm_wh_built_up_area"
-              type="text"
-              value={
-                Number(inputs.rm_wh_length_m) > 0 &&
-                  Number(inputs.rm_wh_width_m) > 0 &&
-                  Number(inputs.rm_wh_num_floors) > 0
-                  ? (
-                    Number(inputs.rm_wh_length_m) *
-                    Number(inputs.rm_wh_width_m) *
-                    Number(inputs.rm_wh_num_floors)
-                  ).toLocaleString()
-                  : "Enter dimensions and floors"
-              }
-              disabled
-              onChange={() => { }}
-            />
-          </Field>
-        </Section>
+          <ErrorMessage>
+            {showErrors &&
+              (
+                inputs.rm_wh_bay_spacing_m === "" ||
+                inputs.rm_wh_bay_spacing_m == null ||
+                !Number.isFinite(Number(inputs.rm_wh_bay_spacing_m)) ||
+                Number(inputs.rm_wh_bay_spacing_m) <= 0
+              )
+              ? "RM Bay Spacing must be greater than 0."
+              : ""}
+          </ErrorMessage>
+        </Field>
       )}
 
 
