@@ -407,16 +407,13 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
 
           {isChocolate && (
             <Section title="Chocolate Process Utilities">
-              <Field label="Cooling Tunnel Load (tons of refrigeration)">
+              <Field label="Process Cooling Requirement(Tons Of Registration)">
                 <InputF
                   id="cooling_tunnel_load_tr"
                   type="number"
                   value={draft.cooling_tunnel_load_tr}
                   onChange={(v) => patch("cooling_tunnel_load_tr", v)}
                 />
-              </Field>
-              <Field label="Tempering Utility Demand">
-                <SelectF id="tempering_utility_demand" value={draft.tempering_utility_demand} onChange={(v) => patch("tempering_utility_demand", v)} options={reference?.tempering_utility_demand} />
               </Field>
 
               <Field label="Humidity Controlled (%)">

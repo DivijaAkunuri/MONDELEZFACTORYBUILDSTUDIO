@@ -112,7 +112,6 @@ const DEFAULT_INPUTS = {
   annual_output_mt: 36000,
 
   cooling_tunnel_load_tr: 180,
-  tempering_utility_demand: "Medium",
   humidity_controlled_pct: 40,
   humidity_controlled_min_pct: 40,
   humidity_controlled_max_pct: 50,

@@ -110,7 +110,7 @@ class ProjectInputs(BaseModel):
     annual_output_mt: float = 36000.0
     # Chocolate-specific
     cooling_tunnel_load_tr: float = 180.0
-    tempering_utility_demand: str = "Medium"
+    
     humidity_controlled_pct: float = 40.0  # Backward compatibility
     humidity_controlled_min_pct: float = 40.0
     humidity_controlled_max_pct: float = 60.0
@@ -300,7 +300,6 @@ AMBIENT_HVAC_M = {"Tropical (25°C - 40°C)": 1.15, "Temperate (5°C - 30°C)": 
 BUILDING_TYPE_M= {"RCC Industrial Building": 1.10, "Industrial Building (RCC + PEB)": 1.00, "Warehouse-PEB": 0.82}
 PROJECT_TYPE_M = {"Greenfield": 1.00, "Brownfield / Expansion": 0.94}
 INDUSTRY_TYPE_M= { "FMCG": 0.92}
-TEMPERING_M    = {"Low": 0.94, "Medium": 1.00, "High": 1.10, "Very High": 1.22}
 CONVEYOR_M     = {"Light": 0.94, "Standard": 1.00, "Heavy Duty": 1.15}
 
 # ---------- Employee & Staff Facilities ----------
@@ -1497,7 +1496,6 @@ async def reference_data():
              "WWTP",
         ],
         "fuel_types": ["PNG", "LPG", "Diesel", "Biomass", "Electric"],
-        "tempering_utility_demand": ["Low", "Medium", "High", "Very High"],
         "cooling_conveyor_load": ["Light", "Standard", "Heavy Duty"],
         # ---- Step 5: Infra & Site ----
         "water_availability": [

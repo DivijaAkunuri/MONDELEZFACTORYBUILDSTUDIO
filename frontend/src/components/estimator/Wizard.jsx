@@ -1016,7 +1016,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
           idPrefix="comp"
         />
 
-          <Field label="FG Warehouse Type" span={1}>
+          <Field label="FG Warehouse Type" span={3}>
             <SelectF
               id="fg_warehouse_type"
               value={fgWarehouseType}
@@ -1600,7 +1600,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
       {isChocolate && (
         <Section title="Chocolate Process Utilities">
-          <Field label="Cooling Tunnel Load (tons of refrigeration)">
+          <Field label="Process Cooling Requirement(Tons Of Registration)">
             <InputF
               id="cooling_tunnel_load_tr"
               type="number"
@@ -1609,16 +1609,6 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
             />
           </Field>
 
-          <Field label="Tempering Utility Demand">
-            <SelectF
-              id="tempering_utility_demand"
-              value={inputs.tempering_utility_demand}
-              onChange={(value) =>
-                patch("tempering_utility_demand", value)
-              }
-              options={reference?.tempering_utility_demand}
-            />
-          </Field>
 
 
           <Field label="Humidity Controlled Area Range (%)" span={2}>
