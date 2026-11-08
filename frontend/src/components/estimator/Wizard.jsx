@@ -156,6 +156,7 @@ export default function Wizard({
       }
     }
 
+    // Validate Bakery FG Warehouse dimensions
     if (warehouseType === "Bakery" || warehouseType === "Combo") {
       const dimensions = [
         ["fg_wh_bakery_length_m", "Bakery FG Warehouse Length"],
@@ -178,48 +179,45 @@ export default function Wizard({
           };
         }
       }
-      // Validate Chocolate Bay Spacing when column optimization is enabled
-      if (
-        warehouseType === "Chocolate" ||
-        warehouseType === "Combo"
-      ) {
-        if (inputs.fg_wh_chocolate_optimize_columns === "Yes") {
-          const spacing = Number(inputs.fg_wh_chocolate_bay_spacing_m);
+    }
 
-          if (
-            inputs.fg_wh_chocolate_bay_spacing_m === "" ||
-            inputs.fg_wh_chocolate_bay_spacing_m == null ||
-            !Number.isFinite(spacing) ||
-            spacing <= 0
-          ) {
-            return {
-              field: "fg_wh_chocolate_bay_spacing_m",
-              message: "Chocolate Bay Spacing must be greater than 0.",
-            };
-          }
-        }
+    // Validate Chocolate Bay Spacing
+    if (
+      (warehouseType === "Chocolate" || warehouseType === "Combo") &&
+      inputs.fg_wh_chocolate_optimize_columns === "Yes"
+    ) {
+      const spacing = Number(inputs.fg_wh_chocolate_bay_spacing_m);
+
+      if (
+        inputs.fg_wh_chocolate_bay_spacing_m === "" ||
+        inputs.fg_wh_chocolate_bay_spacing_m == null ||
+        !Number.isFinite(spacing) ||
+        spacing <= 0
+      ) {
+        return {
+          field: "fg_wh_chocolate_bay_spacing_m",
+          message: "Chocolate Bay Spacing must be greater than 0.",
+        };
       }
+    }
 
-      // Validate Bakery Bay Spacing when column optimization is enabled
+    // Validate Bakery Bay Spacing
+    if (
+      (warehouseType === "Bakery" || warehouseType === "Combo") &&
+      inputs.fg_wh_bakery_optimize_columns === "Yes"
+    ) {
+      const spacing = Number(inputs.fg_wh_bakery_bay_spacing_m);
+
       if (
-        warehouseType === "Bakery" ||
-        warehouseType === "Combo"
+        inputs.fg_wh_bakery_bay_spacing_m === "" ||
+        inputs.fg_wh_bakery_bay_spacing_m == null ||
+        !Number.isFinite(spacing) ||
+        spacing <= 0
       ) {
-        if (inputs.fg_wh_bakery_optimize_columns === "Yes") {
-          const spacing = Number(inputs.fg_wh_bakery_bay_spacing_m);
-
-          if (
-            inputs.fg_wh_bakery_bay_spacing_m === "" ||
-            inputs.fg_wh_bakery_bay_spacing_m == null ||
-            !Number.isFinite(spacing) ||
-            spacing <= 0
-          ) {
-            return {
-              field: "fg_wh_bakery_bay_spacing_m",
-              message: "Bakery Bay Spacing must be greater than 0.",
-            };
-          }
-        }
+        return {
+          field: "fg_wh_bakery_bay_spacing_m",
+          message: "Bakery Bay Spacing must be greater than 0.",
+        };
       }
     }
 
@@ -1000,7 +998,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
       </Section>
 
       {/* 2. BUILDING COMPONENTS */}
-      <div>
+      <div className="mb-5">
         <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
           Building Components
         </div>
@@ -1016,7 +1014,9 @@ function Step2({ inputs, patch, reference, showErrors }) {
           idPrefix="comp"
         />
 
-          <Field label="FG Warehouse Type" span={3}>
+        {/* FG Warehouse Type aligned to the first column */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+          <Field label="FG Warehouse Type">
             <SelectF
               id="fg_warehouse_type"
               value={fgWarehouseType}
@@ -1028,6 +1028,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               ]}
             />
           </Field>
+        </div>
       </div>
 
       {/* 3. EMPLOYEE & STAFF FACILITIES */}
