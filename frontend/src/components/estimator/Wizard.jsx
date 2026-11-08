@@ -178,6 +178,49 @@ export default function Wizard({
           };
         }
       }
+      // Validate Chocolate Bay Spacing when column optimization is enabled
+      if (
+        warehouseType === "Chocolate" ||
+        warehouseType === "Combo"
+      ) {
+        if (inputs.fg_wh_chocolate_optimize_columns === "Yes") {
+          const spacing = Number(inputs.fg_wh_chocolate_bay_spacing_m);
+
+          if (
+            inputs.fg_wh_chocolate_bay_spacing_m === "" ||
+            inputs.fg_wh_chocolate_bay_spacing_m == null ||
+            !Number.isFinite(spacing) ||
+            spacing <= 0
+          ) {
+            return {
+              field: "fg_wh_chocolate_bay_spacing_m",
+              message: "Chocolate Bay Spacing must be greater than 0.",
+            };
+          }
+        }
+      }
+
+      // Validate Bakery Bay Spacing when column optimization is enabled
+      if (
+        warehouseType === "Bakery" ||
+        warehouseType === "Combo"
+      ) {
+        if (inputs.fg_wh_bakery_optimize_columns === "Yes") {
+          const spacing = Number(inputs.fg_wh_bakery_bay_spacing_m);
+
+          if (
+            inputs.fg_wh_bakery_bay_spacing_m === "" ||
+            inputs.fg_wh_bakery_bay_spacing_m == null ||
+            !Number.isFinite(spacing) ||
+            spacing <= 0
+          ) {
+            return {
+              field: "fg_wh_bakery_bay_spacing_m",
+              message: "Bakery Bay Spacing must be greater than 0.",
+            };
+          }
+        }
+      }
     }
 
     return null;
@@ -974,7 +1017,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
         />
 
         <Section title="Finished Goods (FG) Warehouse Selection">
-          <Field label="FG Warehouse Type" span={3}>
+          <Field label="FG Warehouse Type" span={1}>
             <SelectF
               id="fg_warehouse_type"
               value={fgWarehouseType}
@@ -1155,6 +1198,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
         </Section>
       )}
 
+
       {/* 5. CHOCOLATE FG WAREHOUSE GEOMETRY */}
       {showChocolateWarehouse && (
         <Section title="Chocolate FG Warehouse Geometry">
@@ -1229,6 +1273,34 @@ function Step2({ inputs, patch, reference, showErrors }) {
               onChange={() => { }}
             />
           </Field>
+
+          <Field
+            label="Do you want to optimize the cost of the warehouse with additional columns?"
+            span={2}
+          >
+            <SelectF
+              id="fg_wh_chocolate_optimize_columns"
+              value={inputs.fg_wh_chocolate_optimize_columns ?? "No"}
+              onChange={(value) =>
+                patch("fg_wh_chocolate_optimize_columns", value)
+              }
+              options={["Yes", "No"]}
+            />
+          </Field>
+
+          {inputs.fg_wh_chocolate_optimize_columns === "Yes" && (
+            <Field label="Chocolate Bay Spacing (Column) (m)">
+              <InputF
+                id="fg_wh_chocolate_bay_spacing_m"
+                type="number"
+                min="0"
+                value={inputs.fg_wh_chocolate_bay_spacing_m ?? ""}
+                onChange={(value) =>
+                  patch("fg_wh_chocolate_bay_spacing_m", value)
+                }
+              />
+            </Field>
+          )}
         </Section>
       )}
 
@@ -1306,8 +1378,37 @@ function Step2({ inputs, patch, reference, showErrors }) {
               onChange={() => { }}
             />
           </Field>
+
+          <Field
+            label="Do you want to optimize the cost of the warehouse with additional columns?"
+            span={2}
+          >
+            <SelectF
+              id="fg_wh_bakery_optimize_columns"
+              value={inputs.fg_wh_bakery_optimize_columns ?? "No"}
+              onChange={(value) =>
+                patch("fg_wh_bakery_optimize_columns", value)
+              }
+              options={["Yes", "No"]}
+            />
+          </Field>
+
+          {inputs.fg_wh_bakery_optimize_columns === "Yes" && (
+            <Field label="Bakery Bay Spacing (Column) (m)">
+              <InputF
+                id="fg_wh_bakery_bay_spacing_m"
+                type="number"
+                min="0"
+                value={inputs.fg_wh_bakery_bay_spacing_m ?? ""}
+                onChange={(value) =>
+                  patch("fg_wh_bakery_bay_spacing_m", value)
+                }
+              />
+            </Field>
+          )}
         </Section>
       )}
+
     </>
   );
 }
