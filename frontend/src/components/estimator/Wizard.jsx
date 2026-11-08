@@ -1016,7 +1016,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
           idPrefix="comp"
         />
 
-        <Section title="Finished Goods (FG) Warehouse Selection">
           <Field label="FG Warehouse Type" span={1}>
             <SelectF
               id="fg_warehouse_type"
@@ -1029,7 +1028,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
               ]}
             />
           </Field>
-        </Section>
       </div>
 
       {/* 3. EMPLOYEE & STAFF FACILITIES */}
