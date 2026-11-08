@@ -187,20 +187,17 @@ class ProjectInputs(BaseModel):
             )
 
         return self
-        @model_validator(mode="after")
+    @model_validator(mode="after")
     def validate_fg_warehouse_dimensions(self):
         warehouse_type = str(self.fg_warehouse_type or "").strip()
-
         if warehouse_type not in ("", "Chocolate", "Bakery", "Combo"):
             raise ValueError("Select a valid FG Warehouse Type.")
-
         if warehouse_type in ("Chocolate", "Combo"):
             dimensions = {
                 "Length": self.fg_wh_chocolate_length_m,
                 "Width": self.fg_wh_chocolate_width_m,
                 "Height": self.fg_wh_chocolate_height_m,
             }
-
             for name, value in dimensions.items():
                 if value is None or not math.isfinite(value) or value <= 0:
                     raise ValueError(
