@@ -220,150 +220,26 @@ export default function Wizard({
         };
       }
     }
-    // Validate RM Warehouse dimensions
-    if ((inputs.building_components || []).includes("RM Warehouse")) {
-      const dimensions = [
-        ["rm_wh_length_m", "RM Warehouse Length"],
-        ["rm_wh_width_m", "RM Warehouse Width"],
-        ["rm_wh_height_m", "RM Warehouse Floor Height"],
-      ];
 
-      for (const [field, label] of dimensions) {
-        const value = Number(inputs[field]);
+    // Validate RM Warehouse Bay Spacing
+    if (
+      (inputs.building_components || []).includes("RM Warehouse") &&
+      inputs.rm_wh_optimize_columns === "Yes"
+    ) {
+      const spacing = Number(inputs.rm_wh_bay_spacing_m);
 
-        if (
-          inputs[field] === "" ||
-          inputs[field] == null ||
-          !Number.isFinite(value) ||
-          value <= 0
-        ) {
-          return {
-            field,
-            message: `${label} must be greater than 0.`,
-          };
-        }
+      if (
+        inputs.rm_wh_bay_spacing_m === "" ||
+        inputs.rm_wh_bay_spacing_m == null ||
+        !Number.isFinite(spacing) ||
+        spacing <= 0
+      ) {
+        return {
+          field: "rm_wh_bay_spacing_m",
+          message: "RM Bay Spacing must be greater than 0.",
+        };
       }
     }
-    // Validate RM Warehouse Bay Spacing
-    {/* 4. RM WAREHOUSE GEOMETRY */ }
-    {
-      showRMWarehouse && (
-        <Section title="Raw Material (RM) Warehouse Geometry">
-          <Field label="Length (m)">
-            <InputF
-              id="rm_wh_length_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_length_m ?? ""}
-              onChange={(value) => patch("rm_wh_length_m", value)}
-            />
-            {showErrors && (
-              <ErrorMessage>
-                {fgDimensionError("rm_wh_length_m", "RM Warehouse Length")}
-              </ErrorMessage>
-            )}
-          </Field>
-
-          <Field label="Width (m)">
-            <InputF
-              id="rm_wh_width_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_width_m ?? ""}
-              onChange={(value) => patch("rm_wh_width_m", value)}
-            />
-            {showErrors && (
-              <ErrorMessage>
-                {fgDimensionError("rm_wh_width_m", "RM Warehouse Width")}
-              </ErrorMessage>
-            )}
-          </Field>
-
-          <Field label="Number of Floors">
-            <InputF
-              id="rm_wh_num_floors"
-              type="number"
-              value={1}
-              readOnly
-            />
-          </Field>
-
-          <Field label="Floor Height (m)">
-            <InputF
-              id="rm_wh_height_m"
-              type="number"
-              min="0"
-              value={inputs.rm_wh_height_m ?? ""}
-              onChange={(value) => patch("rm_wh_height_m", value)}
-            />
-            {showErrors && (
-              <ErrorMessage>
-                {fgDimensionError("rm_wh_height_m", "RM Warehouse Floor Height")}
-              </ErrorMessage>
-            )}
-          </Field>
-
-          <Field label="Built-up Area (m²)">
-            <InputF
-              id="rm_wh_built_up_area"
-              type="text"
-              value={
-                Number(inputs.rm_wh_length_m) > 0 &&
-                  Number(inputs.rm_wh_width_m) > 0
-                  ? (
-                    Number(inputs.rm_wh_length_m) *
-                    Number(inputs.rm_wh_width_m)
-                  ).toLocaleString()
-                  : "Enter dimensions"
-              }
-              disabled
-              onChange={() => { }}
-            />
-          </Field>
-
-          <Field
-            label="Do you want to optimize the cost of the warehouse with additional columns?"
-            span={2}
-          >
-            <SelectF
-              id="rm_wh_optimize_columns"
-              value={inputs.rm_wh_optimize_columns ?? "No"}
-              onChange={(value) => {
-                patch("rm_wh_optimize_columns", value);
-                if (value === "No") {
-                  patch("rm_wh_bay_spacing_m", "");
-                }
-              }}
-              options={["Yes", "No"]}
-            />
-          </Field>
-
-          {inputs.rm_wh_optimize_columns === "Yes" && (
-            <Field label="RM Bay Spacing (Column) (m)">
-              <InputF
-                id="rm_wh_bay_spacing_m"
-                type="number"
-                min="0"
-                value={inputs.rm_wh_bay_spacing_m ?? ""}
-                onChange={(value) => patch("rm_wh_bay_spacing_m", value)}
-              />
-              <ErrorMessage>
-                {showErrors &&
-                  (
-                    inputs.rm_wh_bay_spacing_m === "" ||
-                    inputs.rm_wh_bay_spacing_m == null ||
-                    !Number.isFinite(Number(inputs.rm_wh_bay_spacing_m)) ||
-                    Number(inputs.rm_wh_bay_spacing_m) <= 0
-                  )
-                  ? "RM Bay Spacing must be greater than 0."
-                  : ""}
-              </ErrorMessage>
-            </Field>
-          )}
-        </Section>
-      )
-    }
-
     return null;
   };
 
