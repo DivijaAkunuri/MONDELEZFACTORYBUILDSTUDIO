@@ -144,6 +144,7 @@ class ProjectInputs(BaseModel):
     
     @model_validator(mode="after")
     def calculate_site_areas(self):
+        self.far_fsi = 1.2
         length = self.length_m
         width = self.width_m
         land_area = self.land_area_sqm

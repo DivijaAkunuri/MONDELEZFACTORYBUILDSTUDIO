@@ -2050,16 +2050,6 @@ function Step5({
           {showErrors && <ErrorMessage>{landAreaError}</ErrorMessage>}
         </Field>
 
-
-        <Field label="Floor Area Ratio (FAR) / Floor Space Index (FSI)">
-          <InputF
-            id="far_fsi"
-            type="number"
-            value={inputs.far_fsi}
-            onChange={(value) => patch("far_fsi", value)}
-          />
-        </Field>
-
         <Field label="Water Availability">
           <SelectF
             id="water_availability"

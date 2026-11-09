@@ -515,14 +515,7 @@ export default function EditProjectDialog({ open, onOpenChange, inputs, referenc
             </Field>
 
 
-            <Field label="Floor Area Ratio (FAR) / Floor Space Index (FSI)">
-              <InputF
-                id="far_fsi"
-                type="number"
-                value={draft.far_fsi}
-                onChange={(v) => patch("far_fsi", v)}
-              />
-            </Field>
+            
             <Field label="Water Availability">
               <SelectF id="water_availability" value={draft.water_availability} onChange={(v) => patch("water_availability", v)} options={reference?.water_availability} />
             </Field>
