@@ -1013,6 +1013,55 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
   const length = Number(inputs.length_m);
   const width = Number(inputs.width_m);
+  const floors = Number(inputs.num_floors);
+
+  const builtUpArea =
+    length > 0 && width > 0 && floors > 0
+      ? length * width * floors
+      : 0;
+
+  const minimumLandArea = builtUpArea * 2;
+
+  const updateDimension = (field, value) => {
+    patch(field, value);
+
+    const nextLength =
+      field === "length_m" ? Number(value) : length;
+
+    const nextWidth =
+      field === "width_m" ? Number(value) : width;
+
+    const nextFloors =
+      field === "num_floors" ? Number(value) : floors;
+
+    if (
+      value !== "" &&
+      Number.isFinite(nextLength) &&
+      nextLength > 0 &&
+      Number.isFinite(nextWidth) &&
+      nextWidth > 0 &&
+      Number.isFinite(nextFloors) &&
+      nextFloors > 0
+    ) {
+      patch(
+        "land_area_sqm",
+        nextLength * nextWidth * nextFloors * 2
+      );
+    }
+  };
+
+  const landArea = Number(inputs.land_area_sqm);
+
+  const landAreaError =
+    minimumLandArea > 0 &&
+      (
+        inputs.land_area_sqm === "" ||
+        inputs.land_area_sqm == null ||
+        !Number.isFinite(landArea) ||
+        landArea < minimumLandArea
+      )
+      ? `Land Area cannot be less than ${minimumLandArea.toLocaleString()} m².`
+      : "";
 
   const selectedComponents = inputs.building_components || [];
 
@@ -1077,7 +1126,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             type="number"
             min="0"
             value={inputs.length_m}
-            onChange={(value) => patch("length_m", value)}
+            onChange={(value) => updateDimension("length_m", value)}
           />
           {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
         </Field>
@@ -1088,7 +1137,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             type="number"
             min="0"
             value={inputs.width_m}
-            onChange={(value) => patch("width_m", value)}
+            onChange={(value) => updateDimension("width_m", value)}
           />
           {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
         </Field>
@@ -1098,7 +1147,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             id="num_floors"
             type="number"
             value={inputs.num_floors}
-            onChange={(value) => patch("num_floors", value)}
+            onChange={(value) => updateDimension("num_floors", value)}
           />
         </Field>
 
@@ -1138,6 +1187,18 @@ function Step2({ inputs, patch, reference, showErrors }) {
             disabled
             onChange={() => { }}
           />
+        </Field>
+        <Field label="Land Area (m²)">
+          <InputF
+            id="land_area_sqm"
+            type="number"
+            min="0"
+            value={inputs.land_area_sqm ?? ""}
+            onChange={(value) => patch("land_area_sqm", value)}
+            aria-invalid={!!landAreaError}
+          />
+
+          <ErrorMessage>{landAreaError}</ErrorMessage>
         </Field>
       </Section>
 
@@ -1960,32 +2021,6 @@ function Step5({
     ].includes(item.key)
   );
 
-  const length = Number(inputs.length_m);
-  const width = Number(inputs.width_m);
-  const landArea = Number(inputs.land_area_sqm);
-  const minimumArea = length * width;
-
-  const dimensionsValid =
-    inputs.length_m !== "" &&
-    inputs.length_m != null &&
-    Number.isFinite(length) &&
-    length > 0 &&
-    inputs.width_m !== "" &&
-    inputs.width_m != null &&
-    Number.isFinite(width) &&
-    width > 0;
-
-  const landAreaError = !dimensionsValid
-    ? ""
-    : inputs.land_area_sqm === "" ||
-      inputs.land_area_sqm == null ||
-      !Number.isFinite(landArea) ||
-      landArea <= 0
-      ? "Land Area must be greater than 0."
-      : landArea < minimumArea
-        ? `Land Area must be at least ${minimumArea} m² (Built-up Area).`
-        : "";
-
   const toggleBoolean = (key, value) => {
     patch(key, !!value);
   };
@@ -2037,18 +2072,6 @@ function Step5({
       </Section>
 
       <Section title="Site Inputs">
-        <Field label="Land Area (square metres, m²)">
-          <InputF
-            id="land_area_sqm"
-            type="number"
-            min="0"
-            value={inputs.land_area_sqm}
-            onChange={(value) => patch("land_area_sqm", value)}
-            aria-invalid={!!landAreaError && showErrors}
-          />
-
-          {showErrors && <ErrorMessage>{landAreaError}</ErrorMessage>}
-        </Field>
 
         <Field label="Water Availability">
           <SelectF
