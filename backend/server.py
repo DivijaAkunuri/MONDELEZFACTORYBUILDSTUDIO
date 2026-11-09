@@ -62,7 +62,7 @@ class ProjectInputs(BaseModel):
     project_type: str = "Greenfield"           # Greenfield / Brownfield / Retrofit
     industry_type: str = "FMCG"                 # Food / FMCG / Warehouse / Process Building
     product_category: str = "Chocolate"   # Chocolate Plant / Biscuit Plant / ...
-    location_city: str = "Hamburg"
+    location_city: str = "Opava"
     location_country: str = "Germany"
     region: str = "MEU"                      # Stage 2 region                   # Stage 3 world/continent
     location_tier: str = "Metro"                # Metro / Non-Metro / Remote
