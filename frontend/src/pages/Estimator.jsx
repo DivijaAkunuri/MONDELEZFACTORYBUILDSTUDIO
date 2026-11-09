@@ -341,7 +341,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
      fails. Ignores stale responses from earlier requests.
   ----------------------------------------------------- */
 
-  const recalc = React.useCallback(async (inp) => {
+  const recalc = React.useCallback(async (inp, showSuccessToast = false) => {
     const validationError = validateInputs(inp);
 
     if (validationError) {
@@ -402,7 +402,9 @@ export default function Estimator({ initialView = "new-estimate" }) {
         insights: previous?.insights,
       }));
 
-      toast.success("Estimate recalculated successfully.");
+      if (showSuccessToast) {
+        toast.success("Estimate recalculated successfully.");
+      }
 
       // Supplementary data is optional. Failure to load
       // exchange rates or insights must not fail the estimate.
@@ -594,8 +596,9 @@ export default function Estimator({ initialView = "new-estimate" }) {
     }
 
     setStep(5);
-    recalc(inputs);
+    recalc(inputs, true);
   }
+
 
   const currency = "USD";
 
@@ -724,7 +727,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
           <Button
             data-testid={TID.recalcBtn}
             size="sm"
-            onClick={() => recalc(inputs)}
+            onClick={() => recalc(inputs, true)}
             disabled={loading}
           >
             <RefreshCw
