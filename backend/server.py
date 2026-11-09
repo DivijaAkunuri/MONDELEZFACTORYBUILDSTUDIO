@@ -63,7 +63,7 @@ class ProjectInputs(BaseModel):
     industry_type: str = "FMCG"                 # Food / FMCG / Warehouse / Process Building
     product_category: str = "Chocolate"   # Chocolate Plant / Biscuit Plant / ...
     location_city: str = "Opava"
-    location_country: str = "Germany"
+    location_country: str = "Czech Republic"
     region: str = "MEU"                      # Stage 2 region                   # Stage 3 world/continent
     location_tier: str = "Metro"                # Metro / Non-Metro / Remote
     # Step 2 - geometry

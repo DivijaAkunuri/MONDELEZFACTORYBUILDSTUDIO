@@ -55,8 +55,8 @@ const DEFAULT_INPUTS = {
   industry_type: "Food",
   product_category: "Chocolate",
 
-  location_city: "Hamburg",
-  location_country: "Germany",
+  location_city: "Opava",
+  location_country: "Czech Republic",
   region: "MEU",
   continent: "Europe",
   location_tier: "Metro",
