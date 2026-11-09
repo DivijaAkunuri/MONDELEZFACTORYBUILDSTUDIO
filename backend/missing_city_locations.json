@@ -1,0 +1,19 @@
+[
+  {"city":"Sricity","country":"India","state":"Andhra Pradesh","lookup_queries":["Sri City","Tada"]},
+  {"city":"Sinnar (Nashik)","country":"India","state":"Maharashtra","lookup_queries":["Sinnar"]},
+  {"city":"Waluj (Aurangabad)","country":"India","state":"Maharashtra","lookup_queries":["Waluj"]},
+  {"city":"Gummidipoondi","country":"India","state":"Tamil Nadu","lookup_queries":["Gummidipoondi"]},
+  {"city":"Goa (Ponda)","country":"India","state":"Goa","lookup_queries":["Ponda"]},
+  {"city":"Semarang (Ungaran)","country":"Indonesia","state":"Central Java","lookup_queries":["Ungaran","Semarang"]},
+  {"city":"Hai Phong","country":"Vietnam","state":"Coastal","lookup_queries":["Haiphong","Hai Phong"]},
+  {"city":"Iskandar (Johor)","country":"Malaysia","state":"Johor","lookup_queries":["Iskandar Puteri","Johor Bahru"]},
+  {"city":"Calamba (Laguna)","country":"Philippines","state":"Calabarzon","lookup_queries":["Calamba"]},
+  {"city":"Albury-Wodonga","country":"Australia","state":"NSW/VIC","lookup_queries":["Albury","Wodonga"]},
+  {"city":"Pinetown (Durban)","country":"South Africa","state":"KwaZulu-Natal","lookup_queries":["Pinetown"]},
+  {"city":"Sadat City","country":"Egypt","state":"Menoufia","lookup_queries":["Sadat City","Madīnat as Sādāt"]},
+  {"city":"Jebel Ali / DIP","country":"UAE","state":"Dubai","lookup_queries":["Jebel Ali","Dubai Investment Park"]},
+  {"city":"Dammam 2nd Ind.","country":"Saudi Arabia","state":"Eastern Province","lookup_queries":["Dammam","Dammam Second Industrial City"]},
+  {"city":"Valparaíso / Viña","country":"Chile","state":"Valparaíso","lookup_queries":["Valparaiso","Vina del Mar"]},
+  {"city":"Jankowice (Skarbimierz)","country":"Poland","state":"Opole","lookup_queries":["Skarbimierz","Jankowice"]},
+  {"city":"Bursa (Nilüfer)","country":"Turkey","state":"Bursa","lookup_queries":["Nilufer","Nilüfer","Bursa"]}
+]
