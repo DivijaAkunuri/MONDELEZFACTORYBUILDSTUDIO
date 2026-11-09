@@ -1294,15 +1294,6 @@ function Step2({ inputs, patch, reference, showErrors }) {
             </ErrorMessage>
           </Field>
 
-          <Field label="Number of Floors">
-            <InputF
-              id="rm_wh_num_floors"
-              type="number"
-              value={1}
-              readOnly
-            />
-          </Field>
-
           <Field label="Floor Height (m)">
             <InputF
               id="rm_wh_height_m"
@@ -1417,7 +1408,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             </ErrorMessage>
           </Field>
 
-          <Field label="Height (m)">
+          <Field label="Floor Height (m)">
             <InputF
               id="fg_wh_chocolate_height_m"
               type="number"
@@ -1522,7 +1513,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             </ErrorMessage>
           </Field>
 
-          <Field label="Height (m)">
+          <Field label="Floor Height (m)">
             <InputF
               id="fg_wh_bakery_height_m"
               type="number"
