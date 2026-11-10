@@ -53,90 +53,89 @@ export default function Wizard({
   };
 
   const applySmartDefaults = (category) => {
-    setInputs((current) => {
-      const updated = { ...current };
+    const defaults = {
+      building_type: "Industrial Building (RCC + PEB)",
+      sbc_soil_type: "Soft",
+      column_type: "RCC",
+      roof_type: "RCC Slab",
+    };
 
-      const setDefault = (key, value) => {
-        if (!manuallyEditedFields.current.has(key)) {
-          updated[key] = value;
-        }
-      };
-
-      if (category === "Warehouse") {
-        setDefault("building_type", "Warehouse-PEB");
-        setDefault("sbc_soil_type", "Soft");
-        setDefault("column_type", "RCC+Steel");
-        setDefault("roof_type", "PEB + Insulated Panel");
-
-        setDefault("utility_scope", [
+    if (category === "Warehouse") {
+      Object.assign(defaults, {
+        building_type: "Warehouse-PEB",
+        column_type: "RCC+Steel",
+        roof_type: "PEB + Insulated Panel",
+        utility_scope: [
           "Fire Fighting System",
           "Electrical Substation",
           "DG Backup",
           "BMS/EMS",
           "WMS",
           "IT/OT System",
-        ]);
+        ],
+        fg_wh_chocolate_length_m: 50,
+        fg_wh_chocolate_width_m: 24,
+        fg_wh_chocolate_height_m: 14,
+        fg_wh_bakery_length_m: 50,
+        fg_wh_bakery_width_m: 24,
+        fg_wh_bakery_height_m: 14,
+      });
+    } else if (category === "Chocolate") {
+      defaults.utility_scope = [
+        "Air Compressors",
+        "Boiler House",
+        "Chiller Plant",
+        "HVAC System",
+        "WTP",
+        "Fire Fighting System",
+        "Electrical Substation",
+        "Process Piping",
+        "Steam Distribution",
+        "IT/OT System",
+      ];
+    } else if (category === "Bakery") {
+      defaults.utility_scope = [
+        "HVAC System",
+        "Air Compressors",
+        "WTP",
+        "Nitrogen/CO2 Plant",
+        "Fire Fighting System",
+        "Electrical Substation",
+        "DG Backup",
+        "Solar Plant",
+        "Process Piping",
+        "IT/OT System",
+        "BMS/EMS",
+        "WMS",
+        "WWTP",
+      ];
+    } else if (category === "Combo") {
+      defaults.utility_scope = [
+        "Boiler House",
+        "Chiller Plant",
+        "HVAC System",
+        "Air Compressors",
+        "WTP",
+        "Nitrogen/CO2 Plant",
+        "Fire Fighting System",
+        "Electrical Substation",
+        "DG Backup",
+        "Solar Plant",
+        "Steam Distribution",
+        "Process Piping",
+        "IT/OT System",
+        "BMS/EMS",
+        "WMS",
+        "WWTP",
+      ];
+    }
 
-        // Chocolate FG Warehouse default dimensions
-        setDefault("fg_wh_chocolate_length_m", 50);
-        setDefault("fg_wh_chocolate_width_m", 24);
-        setDefault("fg_wh_chocolate_height_m", 14);
+    manuallyEditedFields.current.clear();
 
-        // Bakery FG Warehouse default dimensions
-        setDefault("fg_wh_bakery_length_m", 50);
-        setDefault("fg_wh_bakery_width_m", 24);
-        setDefault("fg_wh_bakery_height_m", 14);
-      } else if (category === "Chocolate") {
-        setDefault("utility_scope", [
-          "Air Compressors",
-          "Boiler House",
-          "Chiller Plant",
-          "HVAC System",
-          "WTP",
-          "Fire Fighting System",
-          "Electrical Substation",
-          "Process Piping",
-          "Steam Distribution",
-          "IT/OT System",
-        ]);
-      } else if (category === "Bakery") {
-        setDefault("utility_scope", [
-          "HVAC System",
-          "Air Compressors",
-          "WTP",
-          "Nitrogen/CO2 Plant",
-          "Fire Fighting System",
-          "Electrical Substation",
-          "DG Backup",
-          "Solar Plant",
-          "Process Piping",
-          "IT/OT System",
-          "BMS/EMS",
-          "WMS",
-          "WWTP",
-        ]);
-      } else if (category === "Combo") {
-        setDefault("utility_scope", [
-          "Boiler House",
-          "Chiller Plant",
-          "HVAC System",
-          "Air Compressors",
-          "WTP",
-          "Nitrogen/CO2 Plant",
-          "Fire Fighting System",
-          "Electrical Substation",
-          "DG Backup",
-          "Solar Plant",
-          "Steam Distribution",
-          "Process Piping",
-          "IT/OT System",
-          "BMS/EMS",
-          "WMS",
-          "WWTP",
-        ]);
-      }
-      return updated;
-    });
+    setInputs((current) => ({
+      ...current,
+      ...defaults,
+    }));
   };
 
   const patchComplexity = (key, value) => {
@@ -1868,8 +1867,6 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
   return (
     <>
-      {(inputs.building_components || []).includes("Utilities Block") && (
-        <>
           <Section title="Production Capacity">
             <Field label="Production Capacity (tons per day)">
               <InputF
@@ -1889,7 +1886,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
               />
             </Field>
           </Section>
-
+          {(inputs.building_components || []).includes("Utilities Block") && (
           <div className="mb-5">
             <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
               Utility Scope
@@ -1902,6 +1899,7 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
               idPrefix="scope"
             />
           </div>
+          )}
 
           {isChocolate && (
             <Section title="Chocolate Process Utilities">
@@ -2074,9 +2072,6 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
           </div>
         </>
       )}
-    </>
-  );
-}
 
 /* ---------- Step 5 : Infra & Site Inputs ---------- */
 
