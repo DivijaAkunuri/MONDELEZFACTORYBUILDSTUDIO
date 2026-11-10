@@ -54,6 +54,7 @@ export default function Wizard({
 
   const applySmartDefaults = (category) => {
     const defaults = {
+      product_category: category,
       building_type: "Industrial Building (RCC + PEB)",
       sbc_soil_type: "Soft",
       column_type: "RCC",
@@ -859,10 +860,7 @@ function Step1({ inputs, patch, applySmartDefaults, reference }) {
           <SelectF
             id="product_category"
             value={inputs.product_category}
-            onChange={(value) => {
-              patch("product_category", value);
-              applySmartDefaults(value);
-            }}
+            onChange={(value) => applySmartDefaults(value)}
             options={reference?.product_categories}
           />
         </Field>
@@ -1867,211 +1865,212 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
   return (
     <>
-          <Section title="Production Capacity">
-            <Field label="Production Capacity (tons per day)">
-              <InputF
-                id="production_capacity_tpd"
-                type="number"
-                value={inputs.production_capacity_tpd}
-                onChange={(value) => patch("production_capacity_tpd", value)}
-              />
-            </Field>
+      <Section title="Production Capacity">
+        <Field label="Production Capacity (tons per day)">
+          <InputF
+            id="production_capacity_tpd"
+            type="number"
+            value={inputs.production_capacity_tpd}
+            onChange={(value) => patch("production_capacity_tpd", value)}
+          />
+        </Field>
 
-            <Field label="Annual Output (metric tons)">
-              <InputF
-                id="annual_output_mt"
-                type="number"
-                value={inputs.annual_output_mt}
-                onChange={(value) => patch("annual_output_mt", value)}
-              />
-            </Field>
-          </Section>
-          {(inputs.building_components || []).includes("Utilities Block") && (
-          <div className="mb-5">
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-              Utility Scope
-            </div>
-
-            <CheckboxGrid
-              list={utilityOptions}
-              selected={inputs.utility_scope || []}
-              onToggle={toggleScope}
-              idPrefix="scope"
-            />
+        <Field label="Annual Output (metric tons)">
+          <InputF
+            id="annual_output_mt"
+            type="number"
+            value={inputs.annual_output_mt}
+            onChange={(value) => patch("annual_output_mt", value)}
+          />
+        </Field>
+      </Section>
+      {(inputs.building_components || []).includes("Utilities Block") && (
+        <div className="mb-5">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+            Utility Scope
           </div>
-          )}
 
-          {isChocolate && (
-            <Section title="Chocolate Process Utilities">
-              <Field label="Process Cooling Requirement(Tons Of Registration)">
-                <InputF
-                  id="cooling_tunnel_load_tr"
-                  type="number"
-                  value={inputs.cooling_tunnel_load_tr}
-                  onChange={(value) => patch("cooling_tunnel_load_tr", value)}
-                />
-              </Field>
-
-
-
-              <Field label="Humidity Controlled Area Range (%)" span={2}>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-slate-500">Minimum (%)</Label>
-                    <InputF
-                      id="humidity_controlled_min_pct"
-                      type="number"
-                      min="40"
-                      max="100"
-                      step="10"
-                      value={inputs.humidity_controlled_min_pct ?? 40}
-                      onChange={(value) =>
-                        patch("humidity_controlled_min_pct", value)
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-xs text-slate-500">Maximum (%)</Label>
-                    <InputF
-                      id="humidity_controlled_max_pct"
-                      type="number"
-                      min="40"
-                      max="100"
-                      step="10"
-                      value={inputs.humidity_controlled_max_pct ?? 50}
-                      onChange={(value) =>
-                        patch("humidity_controlled_max_pct", value)
-                      }
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Enter the expected minimum and maximum area requiring humidity control.
-                </p>
-              </Field>
-
-
-              <Field label="Chocolate Finished Goods Storage Temperature (°C)">
-                <InputF
-                  id="chocolate_storage_temp_c"
-                  type="number"
-                  min="19"
-                  value={inputs.chocolate_storage_temp_c}
-                  onChange={(value) => {
-                    if (value === "") {
-                      patch("chocolate_storage_temp_c", "");
-                      return;
-                    }
-
-                    patch(
-                      "chocolate_storage_temp_c",
-                      Math.max(19, Number(value))
-                    );
-                  }}
-                />
-              </Field>
-
-              <Field label="Process Hot Water (litres per hour)">
-                <InputF
-                  id="process_hot_water_lph"
-                  type="number"
-                  value={inputs.process_hot_water_lph}
-                  onChange={(value) =>
-                    patch("process_hot_water_lph", value)
-                  }
-                />
-              </Field>
-            </Section>
-          )}
-
-          {isBiscuit && (
-            <Section title="Biscuit Process Utilities">
-              <Field label="Oven Capacity (kilograms per hour)">
-                <InputF
-                  id="oven_capacity_kg_hr"
-                  type="number"
-                  value={inputs.oven_capacity_kg_hr}
-                  onChange={(value) =>
-                    patch("oven_capacity_kg_hr", value)
-                  }
-                />
-              </Field>
-
-              <Field label="Fuel Type">
-                <SelectF
-                  id="fuel_type"
-                  value={inputs.fuel_type}
-                  onChange={(value) => patch("fuel_type", value)}
-                  options={reference?.fuel_types}
-                />
-              </Field>
-
-              <Field label="Baking Line Quantity">
-                <InputF
-                  id="baking_line_qty"
-                  type="number"
-                  value={inputs.baking_line_qty}
-                  onChange={(value) => patch("baking_line_qty", value)}
-                />
-              </Field>
-
-              <Field label="Compressed Air Demand (cubic feet per minute)">
-                <InputF
-                  id="compressed_air_demand_cfm"
-                  type="number"
-                  value={inputs.compressed_air_demand_cfm}
-                  onChange={(value) =>
-                    patch("compressed_air_demand_cfm", value)
-                  }
-                />
-              </Field>
-
-              <Field label="Cooling Conveyor Load">
-                <SelectF
-                  id="cooling_conveyor_load"
-                  value={inputs.cooling_conveyor_load}
-                  onChange={(value) =>
-                    patch("cooling_conveyor_load", value)
-                  }
-                  options={reference?.cooling_conveyor_load}
-                />
-              </Field>
-
-              <Field label="Dust Collection Required">
-                <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-                  <Checkbox
-                    data-testid={TID.wizardField("dust_collection_required")}
-                    checked={!!inputs.dust_collection_required}
-                    onCheckedChange={(value) =>
-                      patch("dust_collection_required", !!value)
-                    }
-                  />
-
-                  <span>Yes</span>
-                </label>
-              </Field>
-            </Section>
-          )}
-
-          <div className="mb-2">
-            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-              Process Complexity
-            </div>
-
-            <CheckboxGrid
-              list={processComplexity}
-              selected={Object.keys(inputs.complexity || {}).filter(
-                (key) => inputs.complexity[key]
-              )}
-              onToggle={(key) =>
-                patchComplexity(key, !inputs.complexity?.[key])
-              }
-              idPrefix="complexity"
-            />
-          </div>
-        </>
+          <CheckboxGrid
+            list={utilityOptions}
+            selected={inputs.utility_scope || []}
+            onToggle={toggleScope}
+            idPrefix="scope"
+          />
+        </div>
       )}
+
+      {isChocolate && (
+        <Section title="Chocolate Process Utilities">
+          <Field label="Process Cooling Requirement(Tons Of Registration)">
+            <InputF
+              id="cooling_tunnel_load_tr"
+              type="number"
+              value={inputs.cooling_tunnel_load_tr}
+              onChange={(value) => patch("cooling_tunnel_load_tr", value)}
+            />
+          </Field>
+
+
+
+          <Field label="Humidity Controlled Area Range (%)" span={2}>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-slate-500">Minimum (%)</Label>
+                <InputF
+                  id="humidity_controlled_min_pct"
+                  type="number"
+                  min="40"
+                  max="100"
+                  step="10"
+                  value={inputs.humidity_controlled_min_pct ?? 40}
+                  onChange={(value) =>
+                    patch("humidity_controlled_min_pct", value)
+                  }
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs text-slate-500">Maximum (%)</Label>
+                <InputF
+                  id="humidity_controlled_max_pct"
+                  type="number"
+                  min="40"
+                  max="100"
+                  step="10"
+                  value={inputs.humidity_controlled_max_pct ?? 50}
+                  onChange={(value) =>
+                    patch("humidity_controlled_max_pct", value)
+                  }
+                />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Enter the expected minimum and maximum area requiring humidity control.
+            </p>
+          </Field>
+
+
+          <Field label="Chocolate Finished Goods Storage Temperature (°C)">
+            <InputF
+              id="chocolate_storage_temp_c"
+              type="number"
+              min="19"
+              value={inputs.chocolate_storage_temp_c}
+              onChange={(value) => {
+                if (value === "") {
+                  patch("chocolate_storage_temp_c", "");
+                  return;
+                }
+
+                patch(
+                  "chocolate_storage_temp_c",
+                  Math.max(19, Number(value))
+                );
+              }}
+            />
+          </Field>
+
+          <Field label="Process Hot Water (litres per hour)">
+            <InputF
+              id="process_hot_water_lph"
+              type="number"
+              value={inputs.process_hot_water_lph}
+              onChange={(value) =>
+                patch("process_hot_water_lph", value)
+              }
+            />
+          </Field>
+        </Section>
+      )}
+
+      {isBiscuit && (
+        <Section title="Biscuit Process Utilities">
+          <Field label="Oven Capacity (kilograms per hour)">
+            <InputF
+              id="oven_capacity_kg_hr"
+              type="number"
+              value={inputs.oven_capacity_kg_hr}
+              onChange={(value) =>
+                patch("oven_capacity_kg_hr", value)
+              }
+            />
+          </Field>
+
+          <Field label="Fuel Type">
+            <SelectF
+              id="fuel_type"
+              value={inputs.fuel_type}
+              onChange={(value) => patch("fuel_type", value)}
+              options={reference?.fuel_types}
+            />
+          </Field>
+
+          <Field label="Baking Line Quantity">
+            <InputF
+              id="baking_line_qty"
+              type="number"
+              value={inputs.baking_line_qty}
+              onChange={(value) => patch("baking_line_qty", value)}
+            />
+          </Field>
+
+          <Field label="Compressed Air Demand (cubic feet per minute)">
+            <InputF
+              id="compressed_air_demand_cfm"
+              type="number"
+              value={inputs.compressed_air_demand_cfm}
+              onChange={(value) =>
+                patch("compressed_air_demand_cfm", value)
+              }
+            />
+          </Field>
+
+          <Field label="Cooling Conveyor Load">
+            <SelectF
+              id="cooling_conveyor_load"
+              value={inputs.cooling_conveyor_load}
+              onChange={(value) =>
+                patch("cooling_conveyor_load", value)
+              }
+              options={reference?.cooling_conveyor_load}
+            />
+          </Field>
+
+          <Field label="Dust Collection Required">
+            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+              <Checkbox
+                data-testid={TID.wizardField("dust_collection_required")}
+                checked={!!inputs.dust_collection_required}
+                onCheckedChange={(value) =>
+                  patch("dust_collection_required", !!value)
+                }
+              />
+
+              <span>Yes</span>
+            </label>
+          </Field>
+        </Section>
+      )}
+
+      <div className="mb-2">
+        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+          Process Complexity
+        </div>
+
+        <CheckboxGrid
+          list={processComplexity}
+          selected={Object.keys(inputs.complexity || {}).filter(
+            (key) => inputs.complexity[key]
+          )}
+          onToggle={(key) =>
+            patchComplexity(key, !inputs.complexity?.[key])
+          }
+          idPrefix="complexity"
+        />
+      </div>
+    </>
+  )
+}
 
 /* ---------- Step 5 : Infra & Site Inputs ---------- */
 
