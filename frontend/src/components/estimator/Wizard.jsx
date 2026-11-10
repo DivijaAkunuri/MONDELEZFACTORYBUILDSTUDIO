@@ -41,6 +41,14 @@ export default function Wizard({
     setInputs((current) => ({
       ...current,
       [key]: value,
+      ...(key === "project_type"
+        ? {
+          complexity: {
+            ...(current.complexity || {}),
+            brownfield: value === "Brownfield / Expansion",
+          },
+        }
+        : {}),
     }));
   };
 
@@ -48,13 +56,85 @@ export default function Wizard({
     setInputs((current) => {
       const updated = { ...current };
 
-      if (
-        category === "Warehouse" &&
-        !manuallyEditedFields.current.has("building_type")
-      ) {
-        updated.building_type = "Warehouse-PEB";
-      }
+      const setDefault = (key, value) => {
+        if (!manuallyEditedFields.current.has(key)) {
+          updated[key] = value;
+        }
+      };
 
+      if (category === "Warehouse") {
+        setDefault("building_type", "Warehouse-PEB");
+        setDefault("sbc_soil_type", "Soft");
+        setDefault("column_type", "RCC+Steel");
+        setDefault("roof_type", "PEB + Insulated Panel");
+
+        setDefault("utility_scope", [
+          "Fire Fighting System",
+          "Electrical Substation",
+          "DG Backup",
+          "BMS/EMS",
+          "WMS",
+          "IT/OT System",
+        ]);
+
+        // Chocolate FG Warehouse default dimensions
+        setDefault("fg_wh_chocolate_length_m", 50);
+        setDefault("fg_wh_chocolate_width_m", 24);
+        setDefault("fg_wh_chocolate_height_m", 14);
+
+        // Bakery FG Warehouse default dimensions
+        setDefault("fg_wh_bakery_length_m", 50);
+        setDefault("fg_wh_bakery_width_m", 24);
+        setDefault("fg_wh_bakery_height_m", 14);
+      } else if (category === "Chocolate") {
+        setDefault("utility_scope", [
+          "Air Compressors",
+          "Boiler House",
+          "Chiller Plant",
+          "HVAC System",
+          "WTP",
+          "Fire Fighting System",
+          "Electrical Substation",
+          "Process Piping",
+          "Steam Distribution",
+          "IT/OT System",
+        ]);
+      } else if (category === "Bakery") {
+        setDefault("utility_scope", [
+          "HVAC System",
+          "Air Compressors",
+          "WTP",
+          "Nitrogen/CO2 Plant",
+          "Fire Fighting System",
+          "Electrical Substation",
+          "DG Backup",
+          "Solar Plant",
+          "Process Piping",
+          "IT/OT System",
+          "BMS/EMS",
+          "WMS",
+          "WWTP",
+        ]);
+      } else if (category === "Combo") {
+        setDefault("utility_scope", [
+          "Boiler House",
+          "Chiller Plant",
+          "HVAC System",
+          "Air Compressors",
+          "WTP",
+          "Nitrogen/CO2 Plant",
+          "Fire Fighting System",
+          "Electrical Substation",
+          "DG Backup",
+          "Solar Plant",
+          "Steam Distribution",
+          "Process Piping",
+          "IT/OT System",
+          "BMS/EMS",
+          "WMS",
+          "WWTP",
+        ]);
+      }
       return updated;
     });
   };
@@ -73,37 +153,69 @@ export default function Wizard({
 
   // Validate dimensions and land area only.
   const validateAreas = () => {
+    const isWarehouse = inputs.product_category === "Warehouse";
+
     const length = Number(inputs.length_m);
     const width = Number(inputs.width_m);
+    const floors = Math.max(1, Number(inputs.num_floors) || 1);
     const landArea = Number(inputs.land_area_sqm);
-
-    if (
-      inputs.length_m === "" ||
-      inputs.length_m == null ||
-      !Number.isFinite(length) ||
-      length <= 0
-    ) {
+    const warehouseType = inputs.fg_warehouse_type || "";
+    if (isWarehouse && !warehouseType) {
       return {
-        field: "length_m",
-        message: "Length must be greater than 0.",
+        field: "fg_warehouse_type",
+        message: "Please select an FG Warehouse Type.",
       };
     }
 
-    if (
-      inputs.width_m === "" ||
-      inputs.width_m == null ||
-      !Number.isFinite(width) ||
-      width <= 0
-    ) {
-      return {
-        field: "width_m",
-        message: "Width must be greater than 0.",
-      };
+    // Main building dimensions are required only for non-Warehouse projects.
+    if (!isWarehouse) {
+      if (
+        inputs.length_m === "" ||
+        inputs.length_m == null ||
+        !Number.isFinite(length) ||
+        length <= 0
+      ) {
+        return {
+          field: "length_m",
+          message: "Length must be greater than 0.",
+        };
+      }
+
+      if (
+        inputs.width_m === "" ||
+        inputs.width_m == null ||
+        !Number.isFinite(width) ||
+        width <= 0
+      ) {
+        return {
+          field: "width_m",
+          message: "Width must be greater than 0.",
+        };
+      }
     }
 
-    const minimumArea = length * width * Math.max(1, inputs.num_floors) * 2;
+    // Calculate minimum Land Area.
+    let minimumArea = 0;
 
-    if (!Number.isFinite(minimumArea) || minimumArea <= 0) {
+    if (isWarehouse) {
+      if (warehouseType === "Chocolate" || warehouseType === "Combo") {
+        minimumArea +=
+          Number(inputs.fg_wh_chocolate_length_m || 0) *
+          Number(inputs.fg_wh_chocolate_width_m || 0);
+      }
+
+      if (warehouseType === "Bakery" || warehouseType === "Combo") {
+        minimumArea +=
+          Number(inputs.fg_wh_bakery_length_m || 0) *
+          Number(inputs.fg_wh_bakery_width_m || 0);
+      }
+
+      minimumArea *= 2;
+    } else {
+      minimumArea = length * width * floors * 2;
+    }
+
+    if (!isWarehouse && (!Number.isFinite(minimumArea) || minimumArea <= 0)) {
       return {
         field: "length_m",
         message: "Length × Width must be greater than 0.",
@@ -122,15 +234,14 @@ export default function Wizard({
       };
     }
 
-    if (landArea < minimumArea) {
+    if (minimumArea > 0 && landArea < minimumArea) {
       return {
         field: "land_area_sqm",
-        message: `Land Area must be at least ${minimumArea} m² (Built-up Area).`,
+        message: `Land Area must be at least ${minimumArea.toLocaleString()} m² (Built-up Area).`,
       };
     }
 
     // Validate FG Warehouse dimensions
-    const warehouseType = inputs.fg_warehouse_type || "";
 
     if (warehouseType === "Chocolate" || warehouseType === "Combo") {
       const dimensions = [
@@ -223,6 +334,7 @@ export default function Wizard({
 
     // Validate RM Warehouse Bay Spacing
     if (
+      !isWarehouse &&
       (inputs.building_components || []).includes("RM Warehouse") &&
       inputs.rm_wh_optimize_columns === "Yes"
     ) {
@@ -324,6 +436,7 @@ export default function Wizard({
       if (
         error.field === "length_m" ||
         error.field === "width_m" ||
+        error.field === "fg_warehouse_type" ||
         error.field.startsWith("fg_wh_") ||
         error.field.startsWith("rm_wh_")
       ) {
@@ -734,7 +847,7 @@ function Step1({ inputs, patch, applySmartDefaults, reference }) {
             id="project_type"
             value={inputs.project_type ?? "Greenfield"}
             onChange={(value) => patch("project_type", value)}
-            options={["Greenfield", "Brownfield"]}
+            options={["Greenfield", "Brownfield / Expansion"]}
           />
         </Field>
 
@@ -896,7 +1009,30 @@ function Step2({ inputs, patch, reference, showErrors }) {
       ? length * width * floors
       : 0;
 
-  const minimumLandArea = builtUpArea * 2;
+  const isWarehouse = inputs.product_category === "Warehouse";
+  const fgWarehouseType = inputs.fg_warehouse_type || "";
+
+
+  const chocolateFGArea =
+    Number(inputs.fg_wh_chocolate_length_m || 0) *
+    Number(inputs.fg_wh_chocolate_width_m || 0);
+
+  const bakeryFGArea =
+    Number(inputs.fg_wh_bakery_length_m || 0) *
+    Number(inputs.fg_wh_bakery_width_m || 0);
+
+  const warehouseBuiltUpArea =
+    fgWarehouseType === "Chocolate"
+      ? chocolateFGArea
+      : fgWarehouseType === "Bakery"
+        ? bakeryFGArea
+        : fgWarehouseType === "Combo"
+          ? chocolateFGArea + bakeryFGArea
+          : 0;
+
+  const minimumLandArea = isWarehouse
+    ? warehouseBuiltUpArea * 2
+    : builtUpArea * 2;
 
   const updateDimension = (field, value) => {
     patch(field, value);
@@ -942,9 +1078,8 @@ function Step2({ inputs, patch, reference, showErrors }) {
   const selectedComponents = inputs.building_components || [];
 
   const showRMWarehouse =
-    selectedComponents.includes("RM Warehouse");
+    !isWarehouse && selectedComponents.includes("RM Warehouse");
 
-  const fgWarehouseType = inputs.fg_warehouse_type || "";
 
   const showChocolateWarehouse =
     fgWarehouseType === "Chocolate" ||
@@ -985,6 +1120,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
   return (
     <>
+
       {/* 1. BUILDING ENVELOPE */}
       <Section title="Building Envelope">
         <Field label="Building Type" span={3}>
@@ -996,74 +1132,79 @@ function Step2({ inputs, patch, reference, showErrors }) {
           />
         </Field>
 
-        <Field label="Length (m)">
-          <InputF
-            id="length_m"
-            type="number"
-            min="0"
-            value={inputs.length_m}
-            onChange={(value) => updateDimension("length_m", value)}
-          />
-          {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
-        </Field>
+        {!isWarehouse && (
+          <>
+            <Field label="Length (m)">
+              <InputF
+                id="length_m"
+                type="number"
+                min="0"
+                value={inputs.length_m}
+                onChange={(value) => updateDimension("length_m", value)}
+              />
+              {showErrors && <ErrorMessage>{lengthError}</ErrorMessage>}
+            </Field>
 
-        <Field label="Width (m)">
-          <InputF
-            id="width_m"
-            type="number"
-            min="0"
-            value={inputs.width_m}
-            onChange={(value) => updateDimension("width_m", value)}
-          />
-          {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
-        </Field>
+            <Field label="Width (m)">
+              <InputF
+                id="width_m"
+                type="number"
+                min="0"
+                value={inputs.width_m}
+                onChange={(value) => updateDimension("width_m", value)}
+              />
+              {showErrors && <ErrorMessage>{widthError}</ErrorMessage>}
+            </Field>
 
-        <Field label="Number of Floors">
-          <InputF
-            id="num_floors"
-            type="number"
-            value={inputs.num_floors}
-            onChange={(value) => updateDimension("num_floors", value)}
-          />
-        </Field>
+            <Field label="Number of Floors">
+              <InputF
+                id="num_floors"
+                type="number"
+                value={inputs.num_floors}
+                onChange={(value) => updateDimension("num_floors", value)}
+              />
+            </Field>
 
-        <Field label="Floor Height (m)">
-          <InputF
-            id="height_m"
-            type="number"
-            value={inputs.height_m}
-            onChange={(value) => patch("height_m", value)}
-          />
-        </Field>
+            <Field label="Floor Height (m)">
+              <InputF
+                id="height_m"
+                type="number"
+                value={inputs.height_m}
+                onChange={(value) => patch("height_m", value)}
+              />
+            </Field>
 
-        <Field label="Bay Spacing (Column) (m)">
-          <InputF
-            id="bay_spacing_m"
-            type="number"
-            value={inputs.bay_spacing_m}
-            onChange={(value) => patch("bay_spacing_m", value)}
-          />
-        </Field>
+            <Field label="Bay Spacing (Column) (m)">
+              <InputF
+                id="bay_spacing_m"
+                type="number"
+                value={inputs.bay_spacing_m}
+                onChange={(value) => patch("bay_spacing_m", value)}
+              />
+            </Field>
 
-        <Field label="Built-up Area (m²)">
-          <InputF
-            id="built_up_area_display"
-            type="text"
-            value={
-              length > 0 &&
-                width > 0 &&
-                Number(inputs.num_floors) > 0
-                ? (
-                  length *
-                  width *
-                  Number(inputs.num_floors)
-                ).toLocaleString()
-                : "Enter dimensions and floors"
-            }
-            disabled
-            onChange={() => { }}
-          />
-        </Field>
+            <Field label="Built-up Area (m²)">
+              <InputF
+                id="built_up_area_display"
+                type="text"
+                value={
+                  length > 0 &&
+                    width > 0 &&
+                    Number(inputs.num_floors) > 0
+                    ? (
+                      length *
+                      width *
+                      Number(inputs.num_floors)
+                    ).toLocaleString()
+                    : "Enter dimensions and floors"
+                }
+                disabled
+                onChange={() => { }}
+              />
+            </Field>
+          </>
+        )}
+
         <Field label="Land Area (m²)">
           <InputF
             id="land_area_sqm"
@@ -1077,6 +1218,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
           <ErrorMessage>{landAreaError}</ErrorMessage>
         </Field>
       </Section>
+
 
       {/* 2. BUILDING COMPONENTS */}
       <div className="mb-5">
@@ -1096,12 +1238,40 @@ function Step2({ inputs, patch, reference, showErrors }) {
                 "Territory Packaging Hall",
                 "R&D Center",
               ]
-          ).filter(
-            (item) => item !== "WH-Bakery" && item !== "WH-Chocolate"
-          )}
-          selected={selectedComponents.filter(
-            (item) => item !== "WH-Bakery" && item !== "WH-Chocolate"
-          )}
+          ).filter((item) => {
+            if (item === "WH-Bakery" || item === "WH-Chocolate") return false;
+
+            if (
+              isWarehouse &&
+              [
+                "Production Floor",
+                "Territory Packaging Hall",
+                "R&D Center",
+                "RM Warehouse",
+              ].includes(item)
+            ) {
+              return false;
+            }
+
+            return true;
+          })}
+          selected={selectedComponents.filter((item) => {
+            if (item === "WH-Bakery" || item === "WH-Chocolate") return false;
+
+            if (
+              isWarehouse &&
+              [
+                "Production Floor",
+                "Territory Packaging Hall",
+                "R&D Center",
+                "RM Warehouse",
+              ].includes(item)
+            ) {
+              return false;
+            }
+
+            return true;
+          })}
           onToggle={toggle}
           idPrefix="comp"
         />
@@ -1119,6 +1289,11 @@ function Step2({ inputs, patch, reference, showErrors }) {
                 { key: "Combo", label: "FG WH Combo (Chocolate + Bakery)" },
               ]}
             />
+            {showErrors && isWarehouse && !fgWarehouseType && (
+              <ErrorMessage>
+                Please select an FG Warehouse Type.
+              </ErrorMessage>
+            )}
           </Field>
         </div>
       </div>
@@ -1661,9 +1836,28 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
     inputs.product_category || ""
   );
 
-  const isBiscuit = /biscuit|wafer|cookie|combo/i.test(
+  const isBiscuit = /bakery|biscuit|wafer|cookie|combo/i.test(
     inputs.product_category || ""
   );
+  const warehouseUtilityOptions = [
+    "HVAC System",
+    "WTP",
+    "Fire Fighting System",
+    "Electrical Substation",
+    "DG Backup",
+    "BMS/EMS",
+    "WMS",
+    "IT/OT System",
+  ];
+
+  const utilityOptions =
+    inputs.product_category === "Warehouse"
+      ? (reference?.utility_scope || []).filter((item) =>
+        warehouseUtilityOptions.includes(
+          typeof item === "string" ? item : item.key
+        )
+      )
+      : reference?.utility_scope || [];
 
   const processComplexity = (reference?.complexity || []).filter((item) =>
     [
@@ -1674,208 +1868,212 @@ function Step4({ inputs, patch, patchComplexity, reference }) {
 
   return (
     <>
-      <Section title="Production Capacity">
-        <Field label="Production Capacity (tons per day)">
-          <InputF
-            id="production_capacity_tpd"
-            type="number"
-            value={inputs.production_capacity_tpd}
-            onChange={(value) => patch("production_capacity_tpd", value)}
-          />
-        </Field>
-
-        <Field label="Annual Output (metric tons)">
-          <InputF
-            id="annual_output_mt"
-            type="number"
-            value={inputs.annual_output_mt}
-            onChange={(value) => patch("annual_output_mt", value)}
-          />
-        </Field>
-      </Section>
-
-      <div className="mb-5">
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-          Utility Scope
-        </div>
-
-        <CheckboxGrid
-          list={reference?.utility_scope || []}
-          selected={inputs.utility_scope || []}
-          onToggle={toggleScope}
-          idPrefix="scope"
-        />
-      </div>
-
-      {isChocolate && (
-        <Section title="Chocolate Process Utilities">
-          <Field label="Process Cooling Requirement(Tons Of Registration)">
-            <InputF
-              id="cooling_tunnel_load_tr"
-              type="number"
-              value={inputs.cooling_tunnel_load_tr}
-              onChange={(value) => patch("cooling_tunnel_load_tr", value)}
-            />
-          </Field>
-
-
-
-          <Field label="Humidity Controlled Area Range (%)" span={2}>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-slate-500">Minimum (%)</Label>
-                <InputF
-                  id="humidity_controlled_min_pct"
-                  type="number"
-                  min="40"
-                  max="100"
-                  step="10"
-                  value={inputs.humidity_controlled_min_pct ?? 40}
-                  onChange={(value) =>
-                    patch("humidity_controlled_min_pct", value)
-                  }
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs text-slate-500">Maximum (%)</Label>
-                <InputF
-                  id="humidity_controlled_max_pct"
-                  type="number"
-                  min="40"
-                  max="100"
-                  step="10"
-                  value={inputs.humidity_controlled_max_pct ?? 50}
-                  onChange={(value) =>
-                    patch("humidity_controlled_max_pct", value)
-                  }
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500">
-              Enter the expected minimum and maximum area requiring humidity control.
-            </p>
-          </Field>
-
-
-          <Field label="Chocolate Finished Goods Storage Temperature (°C)">
-            <InputF
-              id="chocolate_storage_temp_c"
-              type="number"
-              min="19"
-              value={inputs.chocolate_storage_temp_c}
-              onChange={(value) => {
-                if (value === "") {
-                  patch("chocolate_storage_temp_c", "");
-                  return;
-                }
-
-                patch(
-                  "chocolate_storage_temp_c",
-                  Math.max(19, Number(value))
-                );
-              }}
-            />
-          </Field>
-
-          <Field label="Process Hot Water (litres per hour)">
-            <InputF
-              id="process_hot_water_lph"
-              type="number"
-              value={inputs.process_hot_water_lph}
-              onChange={(value) =>
-                patch("process_hot_water_lph", value)
-              }
-            />
-          </Field>
-        </Section>
-      )}
-
-      {isBiscuit && (
-        <Section title="Biscuit Process Utilities">
-          <Field label="Oven Capacity (kilograms per hour)">
-            <InputF
-              id="oven_capacity_kg_hr"
-              type="number"
-              value={inputs.oven_capacity_kg_hr}
-              onChange={(value) =>
-                patch("oven_capacity_kg_hr", value)
-              }
-            />
-          </Field>
-
-          <Field label="Fuel Type">
-            <SelectF
-              id="fuel_type"
-              value={inputs.fuel_type}
-              onChange={(value) => patch("fuel_type", value)}
-              options={reference?.fuel_types}
-            />
-          </Field>
-
-          <Field label="Baking Line Quantity">
-            <InputF
-              id="baking_line_qty"
-              type="number"
-              value={inputs.baking_line_qty}
-              onChange={(value) => patch("baking_line_qty", value)}
-            />
-          </Field>
-
-          <Field label="Compressed Air Demand (cubic feet per minute)">
-            <InputF
-              id="compressed_air_demand_cfm"
-              type="number"
-              value={inputs.compressed_air_demand_cfm}
-              onChange={(value) =>
-                patch("compressed_air_demand_cfm", value)
-              }
-            />
-          </Field>
-
-          <Field label="Cooling Conveyor Load">
-            <SelectF
-              id="cooling_conveyor_load"
-              value={inputs.cooling_conveyor_load}
-              onChange={(value) =>
-                patch("cooling_conveyor_load", value)
-              }
-              options={reference?.cooling_conveyor_load}
-            />
-          </Field>
-
-          <Field label="Dust Collection Required">
-            <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
-              <Checkbox
-                data-testid={TID.wizardField("dust_collection_required")}
-                checked={!!inputs.dust_collection_required}
-                onCheckedChange={(value) =>
-                  patch("dust_collection_required", !!value)
-                }
+      {(inputs.building_components || []).includes("Utilities Block") && (
+        <>
+          <Section title="Production Capacity">
+            <Field label="Production Capacity (tons per day)">
+              <InputF
+                id="production_capacity_tpd"
+                type="number"
+                value={inputs.production_capacity_tpd}
+                onChange={(value) => patch("production_capacity_tpd", value)}
               />
+            </Field>
 
-              <span>Yes</span>
-            </label>
-          </Field>
-        </Section>
-      )}
+            <Field label="Annual Output (metric tons)">
+              <InputF
+                id="annual_output_mt"
+                type="number"
+                value={inputs.annual_output_mt}
+                onChange={(value) => patch("annual_output_mt", value)}
+              />
+            </Field>
+          </Section>
 
-      <div className="mb-2">
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-          Process Complexity
-        </div>
+          <div className="mb-5">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+              Utility Scope
+            </div>
 
-        <CheckboxGrid
-          list={processComplexity}
-          selected={Object.keys(inputs.complexity || {}).filter(
-            (key) => inputs.complexity[key]
+            <CheckboxGrid
+              list={utilityOptions}
+              selected={inputs.utility_scope || []}
+              onToggle={toggleScope}
+              idPrefix="scope"
+            />
+          </div>
+
+          {isChocolate && (
+            <Section title="Chocolate Process Utilities">
+              <Field label="Process Cooling Requirement(Tons Of Registration)">
+                <InputF
+                  id="cooling_tunnel_load_tr"
+                  type="number"
+                  value={inputs.cooling_tunnel_load_tr}
+                  onChange={(value) => patch("cooling_tunnel_load_tr", value)}
+                />
+              </Field>
+
+
+
+              <Field label="Humidity Controlled Area Range (%)" span={2}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-slate-500">Minimum (%)</Label>
+                    <InputF
+                      id="humidity_controlled_min_pct"
+                      type="number"
+                      min="40"
+                      max="100"
+                      step="10"
+                      value={inputs.humidity_controlled_min_pct ?? 40}
+                      onChange={(value) =>
+                        patch("humidity_controlled_min_pct", value)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-slate-500">Maximum (%)</Label>
+                    <InputF
+                      id="humidity_controlled_max_pct"
+                      type="number"
+                      min="40"
+                      max="100"
+                      step="10"
+                      value={inputs.humidity_controlled_max_pct ?? 50}
+                      onChange={(value) =>
+                        patch("humidity_controlled_max_pct", value)
+                      }
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Enter the expected minimum and maximum area requiring humidity control.
+                </p>
+              </Field>
+
+
+              <Field label="Chocolate Finished Goods Storage Temperature (°C)">
+                <InputF
+                  id="chocolate_storage_temp_c"
+                  type="number"
+                  min="19"
+                  value={inputs.chocolate_storage_temp_c}
+                  onChange={(value) => {
+                    if (value === "") {
+                      patch("chocolate_storage_temp_c", "");
+                      return;
+                    }
+
+                    patch(
+                      "chocolate_storage_temp_c",
+                      Math.max(19, Number(value))
+                    );
+                  }}
+                />
+              </Field>
+
+              <Field label="Process Hot Water (litres per hour)">
+                <InputF
+                  id="process_hot_water_lph"
+                  type="number"
+                  value={inputs.process_hot_water_lph}
+                  onChange={(value) =>
+                    patch("process_hot_water_lph", value)
+                  }
+                />
+              </Field>
+            </Section>
           )}
-          onToggle={(key) =>
-            patchComplexity(key, !inputs.complexity?.[key])
-          }
-          idPrefix="complexity"
-        />
-      </div>
+
+          {isBiscuit && (
+            <Section title="Biscuit Process Utilities">
+              <Field label="Oven Capacity (kilograms per hour)">
+                <InputF
+                  id="oven_capacity_kg_hr"
+                  type="number"
+                  value={inputs.oven_capacity_kg_hr}
+                  onChange={(value) =>
+                    patch("oven_capacity_kg_hr", value)
+                  }
+                />
+              </Field>
+
+              <Field label="Fuel Type">
+                <SelectF
+                  id="fuel_type"
+                  value={inputs.fuel_type}
+                  onChange={(value) => patch("fuel_type", value)}
+                  options={reference?.fuel_types}
+                />
+              </Field>
+
+              <Field label="Baking Line Quantity">
+                <InputF
+                  id="baking_line_qty"
+                  type="number"
+                  value={inputs.baking_line_qty}
+                  onChange={(value) => patch("baking_line_qty", value)}
+                />
+              </Field>
+
+              <Field label="Compressed Air Demand (cubic feet per minute)">
+                <InputF
+                  id="compressed_air_demand_cfm"
+                  type="number"
+                  value={inputs.compressed_air_demand_cfm}
+                  onChange={(value) =>
+                    patch("compressed_air_demand_cfm", value)
+                  }
+                />
+              </Field>
+
+              <Field label="Cooling Conveyor Load">
+                <SelectF
+                  id="cooling_conveyor_load"
+                  value={inputs.cooling_conveyor_load}
+                  onChange={(value) =>
+                    patch("cooling_conveyor_load", value)
+                  }
+                  options={reference?.cooling_conveyor_load}
+                />
+              </Field>
+
+              <Field label="Dust Collection Required">
+                <label className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded h-9 px-3 bg-white">
+                  <Checkbox
+                    data-testid={TID.wizardField("dust_collection_required")}
+                    checked={!!inputs.dust_collection_required}
+                    onCheckedChange={(value) =>
+                      patch("dust_collection_required", !!value)
+                    }
+                  />
+
+                  <span>Yes</span>
+                </label>
+              </Field>
+            </Section>
+          )}
+
+          <div className="mb-2">
+            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+              Process Complexity
+            </div>
+
+            <CheckboxGrid
+              list={processComplexity}
+              selected={Object.keys(inputs.complexity || {}).filter(
+                (key) => inputs.complexity[key]
+              )}
+              onToggle={(key) =>
+                patchComplexity(key, !inputs.complexity?.[key])
+              }
+              idPrefix="complexity"
+            />
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -2011,22 +2209,24 @@ function Step5({
 
       </Section>
 
-      <div className="mb-5">
-        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
-          Site Complexity
-        </div>
+      {inputs.product_category !== "Warehouse" && (
+        <div className="mb-5">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 border-l-2 border-blue-500 pl-2">
+            Site Complexity
+          </div>
 
-        <CheckboxGrid
-          list={siteComplexity}
-          selected={Object.keys(inputs.complexity || {}).filter(
-            (key) => inputs.complexity[key]
-          )}
-          onToggle={(key) =>
-            patchComplexity(key, !inputs.complexity?.[key])
-          }
-          idPrefix="complexity"
-        />
-      </div>
+          <CheckboxGrid
+            list={siteComplexity}
+            selected={Object.keys(inputs.complexity || {}).filter(
+              (key) => inputs.complexity[key]
+            )}
+            onToggle={(key) =>
+              patchComplexity(key, !inputs.complexity?.[key])
+            }
+            idPrefix="complexity"
+          />
+        </div>
+      )}
 
       <Section title="Contingency">
         <Field
