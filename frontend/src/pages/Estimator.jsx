@@ -148,9 +148,9 @@ const DEFAULT_INPUTS = {
   base_unit: "mm",
   contingency_pct: 8.0,
 
-  male_employees: 0,
-  female_employees: 0,
-  num_employees: 0,
+  male_employees: 100,
+  female_employees: 100,
+  num_employees: 200,
   special_work_clothing: "Yes",
   work_shoes_required: "Yes",
   canteen_dining_required: "Yes",
