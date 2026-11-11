@@ -12,11 +12,10 @@ export function TabsBar({ tabs, active, onChange }) {
           key={t.key}
           data-testid={TID.tab(t.key)}
           onClick={() => onChange(t.key)}
-          className={`py-3 text-sm font-semibold whitespace-nowrap ${
-            active === t.key
+          className={`py-3 text-sm font-semibold whitespace-nowrap ${active === t.key
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-slate-500 hover:text-slate-800"
-          }`}
+            }`}
         >
           {t.label}
         </button>
@@ -121,43 +120,285 @@ export function UtilitiesSummary({ utilities, total }) {
   );
 }
 
+
 export function ProjectOverview({ inputs, totals, onEdit }) {
-  const rows = [
-    ["Project Type", inputs.project_type],
-    ["Industry Type", inputs.industry_type],
-    ["Product Category", inputs.product_category],
-    ["Building Type", inputs.building_type],
-    [
-      "Built-up Area (Length × Width × No. of Floors) (m²)",
-      `${fmtNumber(totals.built_up_area_sqm)} m²`,
+  const isWarehouse = inputs.product_category === "Warehouse";
+  const components = inputs.building_components || [];
+  const complexity = inputs.complexity || {};
+  const fgType = inputs.fg_warehouse_type || "";
+
+  const hasComponent = (name) => components.includes(name);
+
+  const hasValue = (value) =>
+    value !== undefined && value !== null && value !== "";
+
+  const display = (value, suffix = "") => {
+    if (!hasValue(value)) return "—";
+
+    if (Array.isArray(value)) {
+      return value.length ? value.join(", ") : "—";
+    }
+
+    return `${value}${suffix}`;
+  };
+
+  const number = (value, suffix = "") => {
+    if (!hasValue(value)) return "—";
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return "—";
+
+    return `${parsed.toLocaleString("en-IN", {
+      maximumFractionDigits: 2,
+    })}${suffix}`;
+  };
+
+  const yesNo = (value) => (value ? "Yes" : "No");
+
+  const area = (length, width, floors = 1) => {
+    const l = Number(length);
+    const w = Number(width);
+    const f = Number(floors);
+
+    if (!l || !w || !f) return "—";
+
+    return number(l * w * f, " m²");
+  };
+
+  const sections = [];
+
+  // PROJECT DETAILS
+  sections.push({
+    title: "Project Details",
+    rows: [
+      ["Project Type", display(inputs.project_type)],
+      ["Industry Type", display(inputs.industry_type)],
+      ["Product Category", display(inputs.product_category)],
+      ["Building Type", display(inputs.building_type)],
+      ["Location", [inputs.location_city, inputs.location_country].filter(Boolean).join(", ") || "—"],
+      ["Region", display(inputs.region)],
+      ["Location Tier", display(inputs.location_tier)],
+      ["Land Area", number(inputs.land_area_sqm, " m²")],
+      ["Building Components", display(components)],
     ],
-    ["Location", `${inputs.location_city}, ${inputs.location_country}`],
-    ["Region / Tier", `${inputs.region} · ${inputs.location_tier}`],
-    ["Seismic Zone", inputs.seismic_zone],
-    ["Wind Zone", inputs.wind_zone],
-    ["Wind Speed", `${inputs.wind_speed_ms} m/s`],
-    ["Soil Type", inputs.soil_type],
-    ["Safe Bearing Capacity (SBC) / Soil Type", inputs.sbc_soil_type],
-    ["Foundation Type", inputs.foundation_type],
-    ["Groundwater Table Depth", inputs.gwt_depth],
-    ["Roof Type", inputs.roof_type],
-    ["Number of Floors", inputs.num_floors],
-    [
-      "Production Capacity",
-      `${inputs.production_capacity_tpd} tons per day`,
+  });
+
+  // MAIN BUILDING DETAILS - NOT SHOWN FOR WAREHOUSE
+  if (!isWarehouse) {
+    sections.push({
+      title: "Main Building Details",
+      rows: [
+        ["Building Length", number(inputs.length_m, " m")],
+        ["Building Width", number(inputs.width_m, " m")],
+        ["Number of Floors", display(inputs.num_floors)],
+        ["Floor Height", number(inputs.height_m, " m")],
+        ["Bay Spacing", number(inputs.bay_spacing_m, " m")],
+        [
+          "Built-up Area",
+          area(inputs.length_m, inputs.width_m, inputs.num_floors),
+        ],
+      ],
+    });
+  }
+
+  // EMPLOYEE DETAILS - ONLY WHEN ADMIN BUILDING IS SELECTED
+  if (hasComponent("Admin Building")) {
+    sections.push({
+      title: "Employee & Staff Facilities",
+      rows: [
+        ["Male Employees", display(inputs.male_employees)],
+        ["Female Employees", display(inputs.female_employees)],
+        ["Total Employees", display(inputs.num_employees)],
+        ["Special Work Clothing", yesNo(inputs.special_work_clothing)],
+        ["Work Shoes Required", yesNo(inputs.work_shoes_required)],
+      ],
+    });
+  }
+
+  // RAW MATERIAL WAREHOUSE - ONLY WHEN SELECTED
+  if (!isWarehouse && hasComponent("RM Warehouse")) {
+    sections.push({
+      title: "Raw Material Warehouse",
+      rows: [
+        ["RM Warehouse Length", number(inputs.rm_wh_length_m, " m")],
+        ["RM Warehouse Width", number(inputs.rm_wh_width_m, " m")],
+        ["RM Warehouse Height", number(inputs.rm_wh_height_m, " m")],
+        [
+          "RM Warehouse Built-up Area",
+          area(inputs.rm_wh_length_m, inputs.rm_wh_width_m),
+        ],
+        ["Optimize RM Warehouse Columns", yesNo(inputs.rm_wh_optimize_columns)],
+        ["RM Warehouse Bay Spacing", number(inputs.rm_wh_bay_spacing_m, " m")],
+      ],
+    });
+  }
+
+  // FINISHED GOODS WAREHOUSE
+  if (fgType) {
+    const fgRows = [["FG Warehouse Type", fgType]];
+
+    if (fgType === "Chocolate" || fgType === "Combo") {
+      fgRows.push(
+        ["Chocolate Warehouse Length", number(inputs.fg_wh_chocolate_length_m, " m")],
+        ["Chocolate Warehouse Width", number(inputs.fg_wh_chocolate_width_m, " m")],
+        ["Chocolate Warehouse Height", number(inputs.fg_wh_chocolate_height_m, " m")],
+        [
+          "Chocolate Warehouse Built-up Area",
+          area(inputs.fg_wh_chocolate_length_m, inputs.fg_wh_chocolate_width_m),
+        ],
+        [
+          "Optimize Chocolate Warehouse Columns",
+          yesNo(inputs.fg_wh_chocolate_optimize_columns),
+        ],
+        [
+          "Chocolate Warehouse Bay Spacing",
+          number(inputs.fg_wh_chocolate_bay_spacing_m, " m"),
+        ]
+      );
+    }
+
+    if (fgType === "Bakery" || fgType === "Combo") {
+      fgRows.push(
+        ["Bakery Warehouse Length", number(inputs.fg_wh_bakery_length_m, " m")],
+        ["Bakery Warehouse Width", number(inputs.fg_wh_bakery_width_m, " m")],
+        ["Bakery Warehouse Height", number(inputs.fg_wh_bakery_height_m, " m")],
+        [
+          "Bakery Warehouse Built-up Area",
+          area(inputs.fg_wh_bakery_length_m, inputs.fg_wh_bakery_width_m),
+        ],
+        [
+          "Optimize Bakery Warehouse Columns",
+          yesNo(inputs.fg_wh_bakery_optimize_columns),
+        ],
+        [
+          "Bakery Warehouse Bay Spacing",
+          number(inputs.fg_wh_bakery_bay_spacing_m, " m"),
+        ]
+      );
+    }
+
+    sections.push({
+      title: "Finished Goods Warehouse",
+      rows: fgRows,
+    });
+  }
+
+  // STRUCTURAL & SITE CONDITIONS
+  sections.push({
+    title: "Structural & Site Conditions",
+    rows: [
+      ["Foundation Type", display(inputs.foundation_type)],
+      ["Soil Type", display(inputs.sbc_soil_type)],
+      ["Column Type", display(inputs.column_type)],
+      ["Roof Type", display(inputs.roof_type)],
+      ["Seismic Zone", display(inputs.seismic_zone)],
+      ["Wind Zone", display(inputs.wind_zone)],
+      ["Wind Speed", number(inputs.wind_speed_ms, " m/s")],
+      ["Groundwater Table Depth", number(inputs.gwt_depth, " m")],
     ],
-    ["Floor Height (m)", `${Number(inputs.height_m || 0)} m`],
-    ["Bay Spacing (Column) (m)", `${Number(inputs.bay_spacing_m || 0)} m`],
-    ["Annual Output", `${fmtNumber(inputs.annual_output_mt)} metric tons`],
-    ["Water Availability", inputs.water_availability],
-    ["Electrical Grid Reliability", inputs.grid_reliability],
-    ["Ambient Temperature", inputs.ambient_temp_range],
-    ["Relative Humidity", `${inputs.relative_humidity_pct}%`],
-  ];
+  });
+
+  // PRODUCTION DETAILS
+  sections.push({
+    title: "Production Details",
+    rows: [
+      ["Production Capacity", number(inputs.production_capacity_tpd, " tons/day")],
+      ["Annual Output", number(inputs.annual_output_mt, " metric tons")],
+    ],
+  });
+
+  // UTILITIES BLOCK
+  if (hasComponent("Utilities Block")) {
+    sections.push({
+      title: "Utility Scope",
+      rows: [
+        ["Selected Utilities", display(inputs.utility_scope)],
+      ],
+    });
+  }
+
+  // CHOCOLATE PROCESS UTILITIES
+  if (/chocolate|combo/i.test(inputs.product_category || "")) {
+    sections.push({
+      title: "Chocolate Process Utilities",
+      rows: [
+        ["Cooling Tunnel Load", number(inputs.cooling_tunnel_load_tr, " TR")],
+        ["Humidity Control Minimum", number(inputs.humidity_controlled_min_pct, "%")],
+        ["Humidity Control Maximum", number(inputs.humidity_controlled_max_pct, "%")],
+        ["Chocolate Storage Temperature", number(inputs.chocolate_storage_temp_c, " °C")],
+        ["Process Hot Water Demand", number(inputs.process_hot_water_lph, " LPH")],
+      ],
+    });
+  }
+
+  // BAKERY PROCESS UTILITIES
+  if (/bakery|biscuit|wafer|cookie|combo/i.test(inputs.product_category || "")) {
+    sections.push({
+      title: "Bakery Process Utilities",
+      rows: [
+        ["Oven Capacity", number(inputs.oven_capacity_kg_hr, " kg/hr")],
+        ["Fuel Type", display(inputs.fuel_type)],
+        ["Baking Line Quantity", display(inputs.baking_line_qty)],
+        ["Compressed Air Demand", number(inputs.compressed_air_demand_cfm, " CFM")],
+        ["Cooling Conveyor Load", number(inputs.cooling_conveyor_load)],
+        ["Dust Collection Required", yesNo(inputs.dust_collection_required)],
+      ],
+    });
+  }
+
+  // PROCESS COMPLEXITY
+  sections.push({
+    title: "Process Complexity",
+    rows: [
+      ["Explosion Risk", yesNo(complexity.explosion_risk)],
+      ["Utility Redundancy", yesNo(complexity.utility_redundancy)],
+    ],
+  });
+
+  // EXTERNAL WORKS
+  sections.push({
+    title: "External Works",
+    rows: [
+      ["Roads Included", yesNo(inputs.include_roads)],
+      ["Landscaping Included", yesNo(inputs.include_landscaping)],
+      ["Fence Included", yesNo(inputs.include_fence)],
+    ],
+  });
+
+  // SITE INPUTS
+  sections.push({
+    title: "Site Inputs",
+    rows: [
+      ["Water Availability", display(inputs.water_availability)],
+      ["Electrical Grid Reliability", display(inputs.grid_reliability)],
+      ["Ambient Temperature Range", display(inputs.ambient_temp_range)],
+      ["Relative Humidity", number(inputs.relative_humidity_pct, "%")],
+    ],
+  });
+
+  // SITE COMPLEXITY - NOT SHOWN FOR WAREHOUSE
+  if (!isWarehouse) {
+    sections.push({
+      title: "Site Complexity",
+      rows: [
+        ["Remote Site", yesNo(complexity.remote_site)],
+        ["Brownfield Site", yesNo(complexity.brownfield)],
+        ["High Floor Load", yesNo(complexity.high_floor_load)],
+      ],
+    });
+  }
+
+  // CONTINGENCY
+  sections.push({
+    title: "Contingency",
+    rows: [
+      ["Contingency Percentage", number(inputs.contingency_pct, "%")],
+    ],
+  });
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm h-full">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">
           Project Overview
         </h3>
@@ -171,17 +412,27 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
         </button>
       </div>
 
-      <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
-        {rows.map(([k, v]) => (
-          <div key={k} className="flex text-[13px]">
-            <div className="text-slate-500 w-[42%] flex-shrink-0">
-              {k}
-            </div>
+      <div className="space-y-4 max-h-[650px] overflow-y-auto pr-2">
+        {sections.map((section) => (
+          <div key={section.title}>
+            <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700 border-b border-slate-200 pb-1.5 mb-2">
+              {section.title}
+            </h4>
 
-            <div className="text-slate-500 mr-2">:</div>
+            <div className="space-y-1.5">
+              {section.rows.map(([label, value]) => (
+                <div key={label} className="flex text-[13px]">
+                  <div className="text-slate-500 w-[45%] flex-shrink-0">
+                    {label}
+                  </div>
 
-            <div className="text-slate-800 font-medium flex-1 truncate">
-              {v ?? "—"}
+                  <div className="text-slate-500 mr-2">:</div>
+
+                  <div className="text-slate-800 font-medium flex-1 break-words">
+                    {value ?? "—"}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
