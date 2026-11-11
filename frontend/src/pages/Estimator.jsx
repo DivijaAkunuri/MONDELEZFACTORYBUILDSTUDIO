@@ -431,7 +431,8 @@ export default function Estimator({ initialView = "new-estimate" }) {
       } catch (error) {
         console.warn("Optional estimate data failed to load:", error);
       }
-
+      
+      } catch (error) {
       const message = getReadableError(error);
 
       console.error("Calculation API error:", {
