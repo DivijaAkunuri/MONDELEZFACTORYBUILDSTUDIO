@@ -165,7 +165,16 @@ export function ProjectOverview({ inputs }) {
     ["Region", display(inputs.region)],
     ["Location Tier", display(inputs.location_tier)],
     ["Land Area", number(inputs.land_area_sqm, " m²")],
-    ["Building Components", display(components)],
+    [
+      "Building Components",
+      display(
+        isWarehouse
+          ? components.filter((item) =>
+            ["Admin Building", "Utilities Block"].includes(item)
+          )
+          : components
+      ),
+    ],
   ];
 
   // Main building details - not applicable to Warehouse
@@ -263,7 +272,7 @@ export function ProjectOverview({ inputs }) {
     ["Seismic Zone", display(inputs.seismic_zone)],
     ["Wind Zone", display(inputs.wind_zone)],
     ["Wind Speed", number(inputs.wind_speed_ms, " m/s")],
-    ["Groundwater Table Depth", number(inputs.gwt_depth, " m")]
+    ["Groundwater Table Depth", display(inputs.gwt_depth)]
   );
 
   // Production details
