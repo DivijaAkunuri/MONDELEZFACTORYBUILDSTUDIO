@@ -251,50 +251,69 @@ class ProjectInputs(BaseModel):
 
         return self
     
+    
     @model_validator(mode="after")
     def validate_humidity_range(self):
         minimum = float(self.humidity_controlled_min_pct)
         maximum = float(self.humidity_controlled_max_pct)
+
         if not (40 <= minimum <= 100):
-            raise ValueError("Minimum controlled humidity must be between 40 and 100.")
+            raise ValueError(
+                "Minimum controlled humidity must be between 40 and 100."
+            )
+
         if not (minimum <= maximum <= 100):
             raise ValueError(
                 "Maximum controlled humidity must be greater than or equal to "
                 "minimum humidity and cannot exceed 100."
-        )
-            return self
-    
-    @model_validator(mode="after")
-    def validate_fg_warehouse_dimensions(self):
-        warehouse_type = str(self.fg_warehouse_type or "").strip()
-        if warehouse_type not in ("", "Chocolate", "Bakery", "Combo"):
-            raise ValueError("Select a valid FG Warehouse Type.")
-        if warehouse_type in ("Chocolate", "Combo"):
-            dimensions = {
-                "Length": self.fg_wh_chocolate_length_m,
-                "Width": self.fg_wh_chocolate_width_m,
-                "Height": self.fg_wh_chocolate_height_m,
-            }
-            for name, value in dimensions.items():
-                if value is None or not math.isfinite(value) or value <= 0:
-                    raise ValueError(
-                        f"Chocolate FG Warehouse {name} must be greater than 0."
-                    )
-
-        if warehouse_type in ("Bakery", "Combo"):
-            dimensions = {
-                "Length": self.fg_wh_bakery_length_m,
-                "Width": self.fg_wh_bakery_width_m,
-                "Height": self.fg_wh_bakery_height_m,
-            }
-
-            for name, value in dimensions.items():
-                if value is None or not math.isfinite(value) or value <= 0:
-                    raise ValueError(
-                        f"Bakery FG Warehouse {name} must be greater than 0."
-                    )
+            )
 
         return self
+
+    
+    
+    @model_validator(mode="before")
+    @classmethod
+    def validate_fg_warehouse_dimensions(cls, data):
+        if not isinstance(data, dict):
+            return data
+
+        warehouse_type = str(
+            data.get("fg_warehouse_type", "") or ""
+        ).strip()
+
+        if warehouse_type not in ("", "Chocolate", "Bakery", "Combo"):
+            raise ValueError("Select a valid FG Warehouse Type.")
+
+        warehouse_checks = []
+
+        if warehouse_type in ("Chocolate", "Combo"):
+            warehouse_checks.extend([
+                ("fg_wh_chocolate_length_m", "Chocolate FG Warehouse Length", 50.0),
+                ("fg_wh_chocolate_width_m", "Chocolate FG Warehouse Width", 24.0),
+                ("fg_wh_chocolate_height_m", "Chocolate FG Warehouse Height", 14.0),
+            ])
+
+        if warehouse_type in ("Bakery", "Combo"):
+            warehouse_checks.extend([
+                ("fg_wh_bakery_length_m", "Bakery FG Warehouse Length", 50.0),
+                ("fg_wh_bakery_width_m", "Bakery FG Warehouse Width", 24.0),
+                ("fg_wh_bakery_height_m", "Bakery FG Warehouse Height", 14.0),
+            ])
+
+        for field, label, default_value in warehouse_checks:
+            value = data.get(field, default_value)
+
+            try:
+                numeric_value = float(value)
+            except (TypeError, ValueError):
+                raise ValueError(f"{label} must be greater than 0.")
+
+            if not math.isfinite(numeric_value) or numeric_value <= 0:
+                raise ValueError(f"{label} must be greater than 0.")
+
+        return data
+
     
 
 class Estimate(BaseModel):
