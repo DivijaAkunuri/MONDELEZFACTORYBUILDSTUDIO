@@ -24,8 +24,15 @@ export function TabsBar({ tabs, active, onChange }) {
   );
 }
 
+
 export function BoqTable({ rows, testid }) {
-  if (!rows?.length) return <Empty text="No cost items" />;
+  const filteredRows = (rows || []).filter(
+    (r) => !/PCC/i.test(r.activity || "")
+  );
+
+  if (!filteredRows.length) {
+    return <Empty text="No cost items" />;
+  }
 
   return (
     <div
@@ -34,7 +41,7 @@ export function BoqTable({ rows, testid }) {
     >
       <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">
-          Top {rows.length} Cost Items
+          Top {filteredRows.length} Cost Items
         </h3>
       </div>
 
@@ -44,14 +51,13 @@ export function BoqTable({ rows, testid }) {
             <tr>
               <th className="text-left px-4 py-2 w-10">#</th>
               <th className="text-left px-4 py-2">Activity</th>
-              <th className="text-right px-4 py-2">Rate (USD)</th>
               <th className="text-right px-4 py-2">Amount (USD)</th>
               <th className="text-right px-4 py-2 w-24">% of Total</th>
             </tr>
           </thead>
 
           <tbody>
-            {rows.map((r, i) => (
+            {filteredRows.map((r, i) => (
               <tr
                 key={i}
                 data-testid={TID.boqRow(i + 1)}
@@ -63,10 +69,6 @@ export function BoqTable({ rows, testid }) {
 
                 <td className="px-4 py-2 text-slate-800 font-medium">
                   {r.activity}
-                </td>
-
-                <td className="px-4 py-2 text-right text-slate-700">
-                  {fmtMoney(r.rate, "USD")}
                 </td>
 
                 <td className="px-4 py-2 text-right text-slate-900 font-semibold">
@@ -84,6 +86,7 @@ export function BoqTable({ rows, testid }) {
     </div>
   );
 }
+
 
 export function UtilitiesSummary({ utilities, total }) {
   return (
