@@ -13,8 +13,8 @@ export function TabsBar({ tabs, active, onChange }) {
           data-testid={TID.tab(t.key)}
           onClick={() => onChange(t.key)}
           className={`py-3 text-sm font-semibold whitespace-nowrap ${active === t.key
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-slate-500 hover:text-slate-800"
+            ? "text-blue-600 border-b-2 border-blue-600"
+            : "text-slate-500 hover:text-slate-800"
             }`}
         >
           {t.label}
@@ -121,7 +121,8 @@ export function UtilitiesSummary({ utilities, total }) {
 }
 
 
-export function ProjectOverview({ inputs, totals, onEdit }) {
+
+export function ProjectOverview({ inputs }) {
   const isWarehouse = inputs.product_category === "Warehouse";
   const components = inputs.building_components || [];
   const complexity = inputs.complexity || {};
@@ -129,28 +130,18 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
 
   const hasComponent = (name) => components.includes(name);
 
-  const hasValue = (value) =>
-    value !== undefined && value !== null && value !== "";
-
-  const display = (value, suffix = "") => {
-    if (!hasValue(value)) return "—";
-
-    if (Array.isArray(value)) {
-      return value.length ? value.join(", ") : "—";
-    }
-
-    return `${value}${suffix}`;
+  const display = (value) => {
+    if (value === undefined || value === null || value === "") return "—";
+    if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
+    return value;
   };
 
   const number = (value, suffix = "") => {
-    if (!hasValue(value)) return "—";
-
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return "—";
-
-    return `${parsed.toLocaleString("en-IN", {
-      maximumFractionDigits: 2,
-    })}${suffix}`;
+    if (value === undefined || value === null || value === "") return "—";
+    const n = Number(value);
+    return Number.isFinite(n)
+      ? `${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}${suffix}`
+      : "—";
   };
 
   const yesNo = (value) => (value ? "Yes" : "No");
@@ -159,280 +150,186 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     const l = Number(length);
     const w = Number(width);
     const f = Number(floors);
-
     if (!l || !w || !f) return "—";
-
     return number(l * w * f, " m²");
   };
 
-  const sections = [];
-
-  // PROJECT DETAILS
-  sections.push({
-    title: "Project Details",
-    rows: [
-      ["Project Type", display(inputs.project_type)],
-      ["Industry Type", display(inputs.industry_type)],
-      ["Product Category", display(inputs.product_category)],
-      ["Building Type", display(inputs.building_type)],
-      ["Location", [inputs.location_city, inputs.location_country].filter(Boolean).join(", ") || "—"],
-      ["Region", display(inputs.region)],
-      ["Location Tier", display(inputs.location_tier)],
-      ["Land Area", number(inputs.land_area_sqm, " m²")],
-      ["Building Components", display(components)],
+  const rows = [
+    ["Project Type", display(inputs.project_type)],
+    ["Industry Type", display(inputs.industry_type)],
+    ["Product Category", display(inputs.product_category)],
+    ["Building Type", display(inputs.building_type)],
+    [
+      "Location",
+      [inputs.location_city, inputs.location_country].filter(Boolean).join(", ") || "—",
     ],
-  });
+    ["Region", display(inputs.region)],
+    ["Location Tier", display(inputs.location_tier)],
+    ["Land Area", number(inputs.land_area_sqm, " m²")],
+    ["Building Components", display(components)],
+  ];
 
-  // MAIN BUILDING DETAILS - NOT SHOWN FOR WAREHOUSE
+  // Main building details - not applicable to Warehouse
   if (!isWarehouse) {
-    sections.push({
-      title: "Main Building Details",
-      rows: [
-        ["Building Length", number(inputs.length_m, " m")],
-        ["Building Width", number(inputs.width_m, " m")],
-        ["Number of Floors", display(inputs.num_floors)],
-        ["Floor Height", number(inputs.height_m, " m")],
-        ["Bay Spacing", number(inputs.bay_spacing_m, " m")],
-        [
-          "Built-up Area",
-          area(inputs.length_m, inputs.width_m, inputs.num_floors),
-        ],
-      ],
-    });
+    rows.push(
+      ["Building Length", number(inputs.length_m, " m")],
+      ["Building Width", number(inputs.width_m, " m")],
+      ["Number of Floors", display(inputs.num_floors)],
+      ["Floor Height", number(inputs.height_m, " m")],
+      ["Bay Spacing", number(inputs.bay_spacing_m, " m")],
+      ["Main Building Built-up Area", area(inputs.length_m, inputs.width_m, inputs.num_floors)]
+    );
   }
 
-  // EMPLOYEE DETAILS - ONLY WHEN ADMIN BUILDING IS SELECTED
+  // Employee details
   if (hasComponent("Admin Building")) {
-    sections.push({
-      title: "Employee & Staff Facilities",
-      rows: [
-        ["Male Employees", display(inputs.male_employees)],
-        ["Female Employees", display(inputs.female_employees)],
-        ["Total Employees", display(inputs.num_employees)],
-        ["Special Work Clothing", yesNo(inputs.special_work_clothing)],
-        ["Work Shoes Required", yesNo(inputs.work_shoes_required)],
-      ],
-    });
+    rows.push(
+      ["Male Employees", display(inputs.male_employees)],
+      ["Female Employees", display(inputs.female_employees)],
+      ["Total Employees", display(inputs.num_employees)],
+      ["Special Work Clothing", yesNo(inputs.special_work_clothing)],
+      ["Work Shoes Required", yesNo(inputs.work_shoes_required)]
+    );
   }
 
-  // RAW MATERIAL WAREHOUSE - ONLY WHEN SELECTED
+  // Raw material warehouse
   if (!isWarehouse && hasComponent("RM Warehouse")) {
-    sections.push({
-      title: "Raw Material Warehouse",
-      rows: [
-        ["RM Warehouse Length", number(inputs.rm_wh_length_m, " m")],
-        ["RM Warehouse Width", number(inputs.rm_wh_width_m, " m")],
-        ["RM Warehouse Height", number(inputs.rm_wh_height_m, " m")],
-        [
-          "RM Warehouse Built-up Area",
-          area(inputs.rm_wh_length_m, inputs.rm_wh_width_m),
-        ],
-        ["Optimize RM Warehouse Columns", yesNo(inputs.rm_wh_optimize_columns)],
-        ["RM Warehouse Bay Spacing", number(inputs.rm_wh_bay_spacing_m, " m")],
-      ],
-    });
+    rows.push(
+      ["RM Warehouse Length", number(inputs.rm_wh_length_m, " m")],
+      ["RM Warehouse Width", number(inputs.rm_wh_width_m, " m")],
+      ["RM Warehouse Height", number(inputs.rm_wh_height_m, " m")],
+      ["RM Warehouse Built-up Area", area(inputs.rm_wh_length_m, inputs.rm_wh_width_m)],
+      ["Optimize RM Warehouse Columns", yesNo(inputs.rm_wh_optimize_columns)],
+      ["RM Warehouse Bay Spacing", number(inputs.rm_wh_bay_spacing_m, " m")]
+    );
   }
 
-  // FINISHED GOODS WAREHOUSE
+  // Finished goods warehouse
   if (fgType) {
-    const fgRows = [["FG Warehouse Type", fgType]];
+    rows.push(["FG Warehouse Type", fgType]);
 
     if (fgType === "Chocolate" || fgType === "Combo") {
-      fgRows.push(
+      rows.push(
         ["Chocolate Warehouse Length", number(inputs.fg_wh_chocolate_length_m, " m")],
         ["Chocolate Warehouse Width", number(inputs.fg_wh_chocolate_width_m, " m")],
         ["Chocolate Warehouse Height", number(inputs.fg_wh_chocolate_height_m, " m")],
-        [
-          "Chocolate Warehouse Built-up Area",
-          area(inputs.fg_wh_chocolate_length_m, inputs.fg_wh_chocolate_width_m),
-        ],
-        [
-          "Optimize Chocolate Warehouse Columns",
-          yesNo(inputs.fg_wh_chocolate_optimize_columns),
-        ],
-        [
-          "Chocolate Warehouse Bay Spacing",
-          number(inputs.fg_wh_chocolate_bay_spacing_m, " m"),
-        ]
+        ["Chocolate Warehouse Built-up Area", area(inputs.fg_wh_chocolate_length_m, inputs.fg_wh_chocolate_width_m)],
+        ["Optimize Chocolate Warehouse Columns", yesNo(inputs.fg_wh_chocolate_optimize_columns)],
+        ["Chocolate Warehouse Bay Spacing", number(inputs.fg_wh_chocolate_bay_spacing_m, " m")]
       );
     }
 
     if (fgType === "Bakery" || fgType === "Combo") {
-      fgRows.push(
+      rows.push(
         ["Bakery Warehouse Length", number(inputs.fg_wh_bakery_length_m, " m")],
         ["Bakery Warehouse Width", number(inputs.fg_wh_bakery_width_m, " m")],
         ["Bakery Warehouse Height", number(inputs.fg_wh_bakery_height_m, " m")],
-        [
-          "Bakery Warehouse Built-up Area",
-          area(inputs.fg_wh_bakery_length_m, inputs.fg_wh_bakery_width_m),
-        ],
-        [
-          "Optimize Bakery Warehouse Columns",
-          yesNo(inputs.fg_wh_bakery_optimize_columns),
-        ],
-        [
-          "Bakery Warehouse Bay Spacing",
-          number(inputs.fg_wh_bakery_bay_spacing_m, " m"),
-        ]
+        ["Bakery Warehouse Built-up Area", area(inputs.fg_wh_bakery_length_m, inputs.fg_wh_bakery_width_m)],
+        ["Optimize Bakery Warehouse Columns", yesNo(inputs.fg_wh_bakery_optimize_columns)],
+        ["Bakery Warehouse Bay Spacing", number(inputs.fg_wh_bakery_bay_spacing_m, " m")]
       );
     }
-
-    sections.push({
-      title: "Finished Goods Warehouse",
-      rows: fgRows,
-    });
   }
 
-  // STRUCTURAL & SITE CONDITIONS
-  sections.push({
-    title: "Structural & Site Conditions",
-    rows: [
-      ["Foundation Type", display(inputs.foundation_type)],
-      ["Soil Type", display(inputs.sbc_soil_type)],
-      ["Column Type", display(inputs.column_type)],
-      ["Roof Type", display(inputs.roof_type)],
-      ["Seismic Zone", display(inputs.seismic_zone)],
-      ["Wind Zone", display(inputs.wind_zone)],
-      ["Wind Speed", number(inputs.wind_speed_ms, " m/s")],
-      ["Groundwater Table Depth", number(inputs.gwt_depth, " m")],
-    ],
-  });
+  // Structural and site conditions
+  rows.push(
+    ["Foundation Type", display(inputs.foundation_type)],
+    ["Soil Type", display(inputs.sbc_soil_type)],
+    ["Column Type", display(inputs.column_type)],
+    ["Roof Type", display(inputs.roof_type)],
+    ["Seismic Zone", display(inputs.seismic_zone)],
+    ["Wind Zone", display(inputs.wind_zone)],
+    ["Wind Speed", number(inputs.wind_speed_ms, " m/s")],
+    ["Groundwater Table Depth", number(inputs.gwt_depth, " m")]
+  );
 
-  // PRODUCTION DETAILS
-  sections.push({
-    title: "Production Details",
-    rows: [
-      ["Production Capacity", number(inputs.production_capacity_tpd, " tons/day")],
-      ["Annual Output", number(inputs.annual_output_mt, " metric tons")],
-    ],
-  });
+  // Production details
+  rows.push(
+    ["Production Capacity", number(inputs.production_capacity_tpd, " tons/day")],
+    ["Annual Output", number(inputs.annual_output_mt, " metric tons")]
+  );
 
-  // UTILITIES BLOCK
+  // Utility scope
   if (hasComponent("Utilities Block")) {
-    sections.push({
-      title: "Utility Scope",
-      rows: [
-        ["Selected Utilities", display(inputs.utility_scope)],
-      ],
-    });
+    rows.push(["Selected Utilities", display(inputs.utility_scope)]);
   }
 
-  // CHOCOLATE PROCESS UTILITIES
+  // Chocolate process utilities
   if (/chocolate|combo/i.test(inputs.product_category || "")) {
-    sections.push({
-      title: "Chocolate Process Utilities",
-      rows: [
-        ["Cooling Tunnel Load", number(inputs.cooling_tunnel_load_tr, " TR")],
-        ["Humidity Control Minimum", number(inputs.humidity_controlled_min_pct, "%")],
-        ["Humidity Control Maximum", number(inputs.humidity_controlled_max_pct, "%")],
-        ["Chocolate Storage Temperature", number(inputs.chocolate_storage_temp_c, " °C")],
-        ["Process Hot Water Demand", number(inputs.process_hot_water_lph, " LPH")],
-      ],
-    });
+    rows.push(
+      ["Cooling Tunnel Load", number(inputs.cooling_tunnel_load_tr, " TR")],
+      ["Humidity Control Minimum", number(inputs.humidity_controlled_min_pct, "%")],
+      ["Humidity Control Maximum", number(inputs.humidity_controlled_max_pct, "%")],
+      ["Chocolate Storage Temperature", number(inputs.chocolate_storage_temp_c, " °C")],
+      ["Process Hot Water Demand", number(inputs.process_hot_water_lph, " LPH")]
+    );
   }
 
-  // BAKERY PROCESS UTILITIES
+  // Bakery process utilities
   if (/bakery|biscuit|wafer|cookie|combo/i.test(inputs.product_category || "")) {
-    sections.push({
-      title: "Bakery Process Utilities",
-      rows: [
-        ["Oven Capacity", number(inputs.oven_capacity_kg_hr, " kg/hr")],
-        ["Fuel Type", display(inputs.fuel_type)],
-        ["Baking Line Quantity", display(inputs.baking_line_qty)],
-        ["Compressed Air Demand", number(inputs.compressed_air_demand_cfm, " CFM")],
-        ["Cooling Conveyor Load", number(inputs.cooling_conveyor_load)],
-        ["Dust Collection Required", yesNo(inputs.dust_collection_required)],
-      ],
-    });
+    rows.push(
+      ["Oven Capacity", number(inputs.oven_capacity_kg_hr, " kg/hr")],
+      ["Fuel Type", display(inputs.fuel_type)],
+      ["Baking Line Quantity", display(inputs.baking_line_qty)],
+      ["Compressed Air Demand", number(inputs.compressed_air_demand_cfm, " CFM")],
+      ["Cooling Conveyor Load", number(inputs.cooling_conveyor_load)],
+      ["Dust Collection Required", yesNo(inputs.dust_collection_required)]
+    );
   }
 
-  // PROCESS COMPLEXITY
-  sections.push({
-    title: "Process Complexity",
-    rows: [
-      ["Explosion Risk", yesNo(complexity.explosion_risk)],
-      ["Utility Redundancy", yesNo(complexity.utility_redundancy)],
-    ],
-  });
+  // Process complexity
+  rows.push(
+    ["Explosion Risk", yesNo(complexity.explosion_risk)],
+    ["Utility Redundancy", yesNo(complexity.utility_redundancy)]
+  );
 
-  // EXTERNAL WORKS
-  sections.push({
-    title: "External Works",
-    rows: [
-      ["Roads Included", yesNo(inputs.include_roads)],
-      ["Landscaping Included", yesNo(inputs.include_landscaping)],
-      ["Fence Included", yesNo(inputs.include_fence)],
-    ],
-  });
+  // External works
+  rows.push(
+    ["Roads Included", yesNo(inputs.include_roads)],
+    ["Landscaping Included", yesNo(inputs.include_landscaping)],
+    ["Fence Included", yesNo(inputs.include_fence)]
+  );
 
-  // SITE INPUTS
-  sections.push({
-    title: "Site Inputs",
-    rows: [
-      ["Water Availability", display(inputs.water_availability)],
-      ["Electrical Grid Reliability", display(inputs.grid_reliability)],
-      ["Ambient Temperature Range", display(inputs.ambient_temp_range)],
-      ["Relative Humidity", number(inputs.relative_humidity_pct, "%")],
-    ],
-  });
+  // Site inputs
+  rows.push(
+    ["Water Availability", display(inputs.water_availability)],
+    ["Electrical Grid Reliability", display(inputs.grid_reliability)],
+    ["Ambient Temperature Range", display(inputs.ambient_temp_range)],
+    ["Relative Humidity", number(inputs.relative_humidity_pct, "%")]
+  );
 
-  // SITE COMPLEXITY - NOT SHOWN FOR WAREHOUSE
+  // Site complexity - not shown for Warehouse
   if (!isWarehouse) {
-    sections.push({
-      title: "Site Complexity",
-      rows: [
-        ["Remote Site", yesNo(complexity.remote_site)],
-        ["Brownfield Site", yesNo(complexity.brownfield)],
-        ["High Floor Load", yesNo(complexity.high_floor_load)],
-      ],
-    });
+    rows.push(
+      ["Remote Site", yesNo(complexity.remote_site)],
+      ["Brownfield Site", yesNo(complexity.brownfield)],
+      ["High Floor Load", yesNo(complexity.high_floor_load)]
+    );
   }
 
-  // CONTINGENCY
-  sections.push({
-    title: "Contingency",
-    rows: [
-      ["Contingency Percentage", number(inputs.contingency_pct, "%")],
-    ],
-  });
+  // Contingency
+  rows.push(["Contingency Percentage", number(inputs.contingency_pct, "%")]);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-800 font-['Manrope']">
-          Project Overview
-        </h3>
+    <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm w-full">
+      <h3 className="text-sm font-semibold text-slate-800 mb-3">
+        Project Summary
+      </h3>
 
-        <button
-          data-testid="edit-overview-btn"
-          onClick={onEdit}
-          className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-        >
-          <span className="inline-block">✎</span> Edit
-        </button>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5">
+        {rows.map(([label, value]) => (
+          <div
+            key={label}
+            className="flex items-start text-xs py-1 border-b border-slate-100"
+          >
+            <div className="text-slate-500 w-[46%] flex-shrink-0 pr-2">
+              {label}
+            </div>
 
-      <div className="space-y-4 max-h-[650px] overflow-y-auto pr-2">
-        {sections.map((section) => (
-          <div key={section.title}>
-            <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700 border-b border-slate-200 pb-1.5 mb-2">
-              {section.title}
-            </h4>
+            <div className="text-slate-500 mr-2">:</div>
 
-            <div className="space-y-1.5">
-              {section.rows.map(([label, value]) => (
-                <div key={label} className="flex text-[13px]">
-                  <div className="text-slate-500 w-[45%] flex-shrink-0">
-                    {label}
-                  </div>
-
-                  <div className="text-slate-500 mr-2">:</div>
-
-                  <div className="text-slate-800 font-medium flex-1 break-words">
-                    {value ?? "—"}
-                  </div>
-                </div>
-              ))}
+            <div className="text-slate-800 font-medium flex-1 break-words">
+              {value ?? "—"}
             </div>
           </div>
         ))}
@@ -440,6 +337,7 @@ export function ProjectOverview({ inputs, totals, onEdit }) {
     </div>
   );
 }
+
 
 export function AssumptionsBox({ items }) {
   return (
