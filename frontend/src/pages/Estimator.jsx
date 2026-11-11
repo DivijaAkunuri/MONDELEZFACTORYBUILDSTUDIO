@@ -69,14 +69,17 @@ const DEFAULT_INPUTS = {
   bay_spacing_m: 8,
 
 
-  rm_warehouse_length_m: "",
-  rm_warehouse_width_m: "",
-  rm_warehouse_height_m: "",
-  rm_warehouse_built_up_area_sqm: "",
-  fg_warehouse_length_m: "",
-  fg_warehouse_width_m: "",
-  fg_warehouse_height_m: "",
-  fg_warehouse_built_up_area_sqm: "",
+  rm_wh_length_m: 50,
+  rm_wh_width_m: 24,
+  rm_wh_height_m: 14,
+
+  fg_wh_chocolate_length_m: 50,
+  fg_wh_chocolate_width_m: 24,
+  fg_wh_chocolate_height_m: 14,
+
+  fg_wh_bakery_length_m: 50,
+  fg_wh_bakery_width_m: 24,
+  fg_wh_bakery_height_m: 14,
 
   building_components: [
     "Production Block",
@@ -431,8 +434,8 @@ export default function Estimator({ initialView = "new-estimate" }) {
       } catch (error) {
         console.warn("Optional estimate data failed to load:", error);
       }
-      
-      } catch (error) {
+
+    } catch (error) {
       const message = getReadableError(error);
 
       console.error("Calculation API error:", {
