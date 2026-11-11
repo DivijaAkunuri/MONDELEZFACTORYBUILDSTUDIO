@@ -1303,7 +1303,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               id="male_employees"
               type="number"
               min="0"
-              value={inputs.male_employees ?? 0}
+              value={inputs.male_employees ??100}
               onChange={(value) => {
                 const male = Math.max(0, Number(value) || 0);
                 const female = Math.max(
@@ -1322,7 +1322,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               id="female_employees"
               type="number"
               min="0"
-              value={inputs.female_employees ?? 0}
+              value={inputs.female_employees ?? 100}
               onChange={(value) => {
                 const female = Math.max(0, Number(value) || 0);
                 const male = Math.max(
