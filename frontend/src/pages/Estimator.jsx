@@ -658,7 +658,9 @@ export default function Estimator({ initialView = "new-estimate" }) {
                 <span>
                   Location:{" "}
                   <b className="text-slate-700">
-                    {inputs.location_city}, {inputs.location_country}
+                    {[inputs.location_city, inputs.location_country]
+                      .filter(Boolean)
+                      .join(", ")}
                   </b>
                 </span>
 

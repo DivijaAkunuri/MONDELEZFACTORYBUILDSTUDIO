@@ -645,7 +645,7 @@ function CheckboxGrid({ list, selected = [], onToggle, idPrefix }) {
     "WTP": "WTP (Water Treatment Plant)",
     "DG Backup": "DG(Diesel Generator)",
     "WWTP": "WWTP (Wastewater Treatment Plant)",
-    "BMS/EMS": "BMS/EMS (Building Management/System)",
+    "BMS/EMS": "BMS/EMS (Building/Energy Management System)",
     "WMS": "WMS (Warehouse Management System)",
   };
 
@@ -876,7 +876,7 @@ function Step1({ inputs, patch, applySmartDefaults, reference }) {
               setLocations([]);
               setLocationError("");
             }}
-            placeholder="Enter a city"
+            placeholder="Please Enter Full City Name"
           />
 
           <Button
