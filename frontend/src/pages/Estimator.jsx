@@ -537,6 +537,13 @@ export default function Estimator({ initialView = "new-estimate" }) {
       return;
     }
 
+    // Invalidate any request using the previous inputs.
+    calculationRequestId.current += 1;
+
+    // Clear the previous estimate immediately.
+    setResult(null);
+    setLoading(false);
+
     if (recalcTimer.current) {
       clearTimeout(recalcTimer.current);
     }
@@ -551,18 +558,6 @@ export default function Estimator({ initialView = "new-estimate" }) {
       }
     };
   }, [inputs, recalc]);
-
-  React.useEffect(() => {
-    return () => {
-      if (recalcTimer.current) {
-        clearTimeout(recalcTimer.current);
-      }
-
-      // Invalidate any in-flight request when unmounting.
-      calculationRequestId.current += 1;
-    };
-  }, []);
-
   /* -----------------------------------------------------
      SAVE PROJECT
   ----------------------------------------------------- */

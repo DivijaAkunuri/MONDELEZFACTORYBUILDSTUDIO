@@ -35,6 +35,47 @@ export default function Wizard({
 
   const manuallyEditedFields = useRef(new Set());
 
+  // Set default dimensions for FG and RM warehouses.
+  React.useEffect(() => {
+    const defaults = {};
+
+    // FG Warehouse defaults
+    if (inputs.product_category === "Warehouse") {
+      Object.assign(defaults, {
+        fg_wh_chocolate_length_m: 50,
+        fg_wh_chocolate_width_m: 24,
+        fg_wh_chocolate_height_m: 14,
+
+        fg_wh_bakery_length_m: 50,
+        fg_wh_bakery_width_m: 24,
+        fg_wh_bakery_height_m: 14,
+      });
+    }
+
+    // RM Warehouse defaults
+    if ((inputs.building_components || []).includes("RM Warehouse")) {
+      Object.assign(defaults, {
+        rm_wh_length_m: 50,
+        rm_wh_width_m: 24,
+        rm_wh_height_m: 14,
+      });
+    }
+
+    setInputs((current) => {
+      const updates = {};
+
+      Object.entries(defaults).forEach(([field, defaultValue]) => {
+        if (current[field] == null || current[field] === "") {
+          updates[field] = defaultValue;
+        }
+      });
+
+      return Object.keys(updates).length > 0
+        ? { ...current, ...updates }
+        : current;
+    });
+  }, [inputs.product_category, inputs.building_components, setInputs]);
+
   const patch = (key, value) => {
     manuallyEditedFields.current.add(key);
 
@@ -1303,7 +1344,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               id="male_employees"
               type="number"
               min="0"
-              value={inputs.male_employees ??100}
+              value={inputs.male_employees ?? 100}
               onChange={(value) => {
                 const male = Math.max(0, Number(value) || 0);
                 const female = Math.max(
