@@ -121,7 +121,6 @@ export function UtilitiesSummary({ utilities, total }) {
 }
 
 
-
 export function ProjectOverview({ inputs }) {
   const isWarehouse = inputs.product_category === "Warehouse";
   const components = inputs.building_components || [];
@@ -177,7 +176,10 @@ export function ProjectOverview({ inputs }) {
       ["Number of Floors", display(inputs.num_floors)],
       ["Floor Height", number(inputs.height_m, " m")],
       ["Bay Spacing", number(inputs.bay_spacing_m, " m")],
-      ["Main Building Built-up Area", area(inputs.length_m, inputs.width_m, inputs.num_floors)]
+      [
+        "Main Building Built-up Area",
+        area(inputs.length_m, inputs.width_m, inputs.num_floors),
+      ]
     );
   }
 
@@ -198,7 +200,10 @@ export function ProjectOverview({ inputs }) {
       ["RM Warehouse Length", number(inputs.rm_wh_length_m, " m")],
       ["RM Warehouse Width", number(inputs.rm_wh_width_m, " m")],
       ["RM Warehouse Height", number(inputs.rm_wh_height_m, " m")],
-      ["RM Warehouse Built-up Area", area(inputs.rm_wh_length_m, inputs.rm_wh_width_m)],
+      [
+        "RM Warehouse Built-up Area",
+        area(inputs.rm_wh_length_m, inputs.rm_wh_width_m),
+      ],
       ["Optimize RM Warehouse Columns", yesNo(inputs.rm_wh_optimize_columns)],
       ["RM Warehouse Bay Spacing", number(inputs.rm_wh_bay_spacing_m, " m")]
     );
@@ -213,9 +218,18 @@ export function ProjectOverview({ inputs }) {
         ["Chocolate Warehouse Length", number(inputs.fg_wh_chocolate_length_m, " m")],
         ["Chocolate Warehouse Width", number(inputs.fg_wh_chocolate_width_m, " m")],
         ["Chocolate Warehouse Height", number(inputs.fg_wh_chocolate_height_m, " m")],
-        ["Chocolate Warehouse Built-up Area", area(inputs.fg_wh_chocolate_length_m, inputs.fg_wh_chocolate_width_m)],
-        ["Optimize Chocolate Warehouse Columns", yesNo(inputs.fg_wh_chocolate_optimize_columns)],
-        ["Chocolate Warehouse Bay Spacing", number(inputs.fg_wh_chocolate_bay_spacing_m, " m")]
+        [
+          "Chocolate Warehouse Built-up Area",
+          area(inputs.fg_wh_chocolate_length_m, inputs.fg_wh_chocolate_width_m),
+        ],
+        [
+          "Optimize Chocolate Warehouse Columns",
+          yesNo(inputs.fg_wh_chocolate_optimize_columns),
+        ],
+        [
+          "Chocolate Warehouse Bay Spacing",
+          number(inputs.fg_wh_chocolate_bay_spacing_m, " m"),
+        ]
       );
     }
 
@@ -224,9 +238,18 @@ export function ProjectOverview({ inputs }) {
         ["Bakery Warehouse Length", number(inputs.fg_wh_bakery_length_m, " m")],
         ["Bakery Warehouse Width", number(inputs.fg_wh_bakery_width_m, " m")],
         ["Bakery Warehouse Height", number(inputs.fg_wh_bakery_height_m, " m")],
-        ["Bakery Warehouse Built-up Area", area(inputs.fg_wh_bakery_length_m, inputs.fg_wh_bakery_width_m)],
-        ["Optimize Bakery Warehouse Columns", yesNo(inputs.fg_wh_bakery_optimize_columns)],
-        ["Bakery Warehouse Bay Spacing", number(inputs.fg_wh_bakery_bay_spacing_m, " m")]
+        [
+          "Bakery Warehouse Built-up Area",
+          area(inputs.fg_wh_bakery_length_m, inputs.fg_wh_bakery_width_m),
+        ],
+        [
+          "Optimize Bakery Warehouse Columns",
+          yesNo(inputs.fg_wh_bakery_optimize_columns),
+        ],
+        [
+          "Bakery Warehouse Bay Spacing",
+          number(inputs.fg_wh_bakery_bay_spacing_m, " m"),
+        ]
       );
     }
   }
@@ -310,33 +333,45 @@ export function ProjectOverview({ inputs }) {
   // Contingency
   rows.push(["Contingency Percentage", number(inputs.contingency_pct, "%")]);
 
+  // Split rows into two vertical columns
+  const midpoint = Math.ceil(rows.length / 2);
+  const columns = [
+    rows.slice(0, midpoint),
+    rows.slice(midpoint),
+  ];
+
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm w-full">
       <h3 className="text-sm font-semibold text-slate-800 mb-3">
         Project Summary
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5">
-        {rows.map(([label, value]) => (
-          <div
-            key={label}
-            className="flex items-start text-xs py-1 border-b border-slate-100"
-          >
-            <div className="text-slate-500 w-[46%] flex-shrink-0 pr-2">
-              {label}
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        {columns.map((column, columnIndex) => (
+          <div key={columnIndex} className="flex flex-col">
+            {column.map(([label, value]) => (
+              <div
+                key={label}
+                className="flex items-start text-xs py-1 border-b border-slate-100"
+              >
+                <div className="text-slate-500 w-[46%] flex-shrink-0 pr-2">
+                  {label}
+                </div>
 
-            <div className="text-slate-500 mr-2">:</div>
+                <div className="text-slate-500 mr-2">:</div>
 
-            <div className="text-slate-800 font-medium flex-1 break-words">
-              {value ?? "—"}
-            </div>
+                <div className="text-slate-800 font-medium flex-1 break-words">
+                  {value ?? "—"}
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </div>
     </div>
   );
 }
+
 
 
 export function AssumptionsBox({ items }) {
