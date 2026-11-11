@@ -75,28 +75,31 @@ class ProjectInputs(BaseModel):
     num_floors: int = 1
     bay_spacing_m: float = 8.0
         # Finished Goods (FG) Warehouse Selection
+    
+    # Finished Goods Warehouse Selection
     fg_warehouse_type: str = ""
 
     # Chocolate FG Warehouse Geometry
-    fg_wh_chocolate_length_m: Optional[float] = None
-    fg_wh_chocolate_width_m: Optional[float] = None
-    fg_wh_chocolate_height_m: Optional[float] = None
+    fg_wh_chocolate_length_m: Optional[float] = 50.0
+    fg_wh_chocolate_width_m: Optional[float] = 24.0
+    fg_wh_chocolate_height_m: Optional[float] = 14.0
     fg_wh_chocolate_num_floors: int = 1
 
     # Bakery FG Warehouse Geometry
-    fg_wh_bakery_length_m: Optional[float] = None
-    fg_wh_bakery_width_m: Optional[float] = None
-    fg_wh_bakery_height_m: Optional[float] = None
+    fg_wh_bakery_length_m: Optional[float] = 50.0
+    fg_wh_bakery_width_m: Optional[float] = 24.0
+    fg_wh_bakery_height_m: Optional[float] = 14.0
     fg_wh_bakery_num_floors: int = 1
-    
+
     # Raw Material Warehouse
-    rm_wh_length_m: Optional[float] = None
-    rm_wh_width_m: Optional[float] = None
-    rm_wh_height_m: Optional[float] = None
+    rm_wh_length_m: Optional[float] = 50.0
+    rm_wh_width_m: Optional[float] = 24.0
+    rm_wh_height_m: Optional[float] = 14.0
     rm_wh_num_floors: int = 1
     rm_wh_optimize_columns: str = "No"
     rm_wh_bay_spacing_m: Optional[float] = None
     rm_wh_climate_controlled: bool = False
+
     building_components: List[str] = Field(default_factory=lambda: [
     "Admin Building","RM Warehouse","Production Floor","Utilities Block","Territory Packaging Hall","R&D Center",
     ])
@@ -829,13 +832,18 @@ def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
     return canonical_name in selected
 
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    
+
     employee_facilities = calculate_employee_facilities(inp)
 
     components = inp.building_components or []
 
+    # --------------------------------------------------
+    # WAREHOUSE AREA CALCULATIONS
+    # --------------------------------------------------
+
     # RM Warehouse: include only when selected.
     rm_warehouse_area = 0.0
+
     if "RM Warehouse" in components:
         rm_warehouse_area = (
             float(inp.rm_wh_length_m or 0)
@@ -876,43 +884,78 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             * max(1, inp.num_floors)
         )
 
+    # --------------------------------------------------
+    # MARKET AND ENGINEERING FACTORS
+    # --------------------------------------------------
 
     market = _market_factor_set(inp)
     country_data = market["country_data"]
 
-    # Automatic product -> floor-load assignment.
     floor_load_info = get_floor_load_multiplier(
         product_category=inp.product_category,
         country=inp.location_country,
     )
-    floor_load_m = _safe_factor(floor_load_info.get("multiplier"))
 
-    # Location tier is an explicit project-location adjustment.
-    tier_m = _safe_factor(LOCATION_FACTOR.get(inp.location_tier, 1.0))
+    floor_load_m = _safe_factor(
+        floor_load_info.get("multiplier")
+    )
 
-    # Engineering factors are normalized to the benchmark scenario rather
-    # than compounded on top of an already benchmarked country rate.
+    tier_m = _safe_factor(
+        LOCATION_FACTOR.get(inp.location_tier, 1.0)
+    )
+
     structural_rel = _relative_structural_factor(inp)
-    complexity_rel, active_complexity = _relative_complexity_factor(inp)
-    project_type_rel = 1.0 if inp.project_type == "Greenfield" else _safe_factor(PROJECT_TYPE_M.get(inp.project_type, 1.0))
+
+    complexity_rel, active_complexity = (
+        _relative_complexity_factor(inp)
+    )
+
+    project_type_rel = (
+        1.0
+        if inp.project_type == "Greenfield"
+        else _safe_factor(
+            PROJECT_TYPE_M.get(inp.project_type, 1.0)
+        )
+    )
+
     industry_rel = 1.0
 
-    # Live commodity index is allowed to move the material-heavy portions,
-    # but is deliberately capped to prevent a proxy index from dominating.
-    live_m = max(0.85, min(1.15, _safe_factor((live_index or {}).get("material_index", 1.0))))
-    # Live commodity index is reporting-only; the company benchmark is already normalized.
+    live_m = max(
+        0.85,
+        min(
+            1.15,
+            _safe_factor(
+                (live_index or {}).get("material_index", 1.0)
+            ),
+        ),
+    )
+
+    # Live commodity index is reporting-only.
     cost_live_m = 1.0
 
-    csa_factor = _safe_factor(country_data.get("csa_factor"))
-    util_factor = _safe_factor(country_data.get("util_factor"))
-    others_pct = max(0.0, float(country_data.get("others_pct", 0.60)))
+    csa_factor = _safe_factor(
+        country_data.get("csa_factor")
+    )
+
+    util_factor = _safe_factor(
+        country_data.get("util_factor")
+    )
+
+    others_pct = max(
+        0.0,
+        float(country_data.get("others_pct", 0.60)),
+    )
 
     civil_market_m = market["civil_city"]
     mech_market_m = market["mechanical_city"]
     elec_market_m = market["electrical_city"]
 
-    # ---------------- Direct CSA basket ----------------
+    # --------------------------------------------------
+    # DIRECT CSA BASKET
+    # --------------------------------------------------
+
     csa_base = USA_BASE_CSA * csa_factor
+
     csa_m = (
         floor_load_m
         * civil_market_m
@@ -922,9 +965,12 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         * project_type_rel
         * cost_live_m
     )
-    csa_total = round(csa_base * built_up * csa_m, 2)
 
-    # Allocate the direct CSA basket across the existing civil activities.
+    csa_total = round(
+        csa_base * built_up * csa_m,
+        2,
+    )
+
     civil_weights = {
         "Excavation": 0.055,
         "PCC (M10)": 0.025,
@@ -936,16 +982,33 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "Walls (Block + Plaster + Tile)": 0.115,
         "Plumbing & Sanitary": 0.095,
     }
-    civil_scope_names = [name for name, *_ in CIVIL_ACTIVITIES if name in civil_weights]
-    weight_sum = sum(civil_weights[n] for n in civil_scope_names) or 1.0
+
+    civil_scope_names = [
+        name
+        for name, *_ in CIVIL_ACTIVITIES
+        if name in civil_weights
+    ]
+
+    weight_sum = (
+        sum(civil_weights[n] for n in civil_scope_names)
+        or 1.0
+    )
+
     boq_rows: List[Dict[str, Any]] = []
     building_total = 0.0
-        # ---------------- FG Warehouse CSA Costs ----------------
+
+    # --------------------------------------------------
+    # WAREHOUSE CSA COSTS
+    # --------------------------------------------------
+
     fg_warehouse_areas = []
 
     # RM Warehouse is separately costed for manufacturing projects.
     # Warehouse projects already include its area in built_up.
-    if inp.product_category != "Warehouse" and rm_warehouse_area > 0:
+    if (
+        inp.product_category != "Warehouse"
+        and rm_warehouse_area > 0
+    ):
         fg_warehouse_areas.append(
             ("RM Warehouse", rm_warehouse_area)
         )
@@ -953,6 +1016,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     # FG warehouses are controlled by FG Warehouse Type.
     # Warehouse projects already include these areas in built_up.
     if inp.product_category != "Warehouse":
+
         if chocolate_area > 0:
             fg_warehouse_areas.append(
                 ("FG Warehouse - Chocolate", chocolate_area)
@@ -966,6 +1030,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     fg_warehouse_total = 0.0
 
     for warehouse_name, warehouse_area in fg_warehouse_areas:
+
         warehouse_cost = round(
             csa_base * warehouse_area * csa_m,
             2,
@@ -977,7 +1042,10 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "activity": warehouse_name,
             "unit": "m2",
             "quantity": round(warehouse_area, 2),
-            "rate": round(warehouse_cost / warehouse_area, 2),
+            "rate": round(
+                warehouse_cost / warehouse_area,
+                2,
+            ),
             "amount": warehouse_cost,
             "category": "Warehouse / CSA",
             "cost_basis": (
@@ -986,20 +1054,30 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             ),
         })
 
-    
     direct_csa_total = round(
         csa_total + fg_warehouse_total,
         2,
-        )
+    )
+
     building_total = round(
         building_total + fg_warehouse_total,
         2,
-        )
+    )
+
     for activity, unit, _, category in CIVIL_ACTIVITIES:
+
         if activity not in civil_weights:
             continue
-        amount = round(csa_total * civil_weights[activity] / weight_sum, 2)
+
+        amount = round(
+            csa_total
+            * civil_weights[activity]
+            / weight_sum,
+            2,
+        )
+
         building_total += amount
+
         boq_rows.append({
             "activity": activity,
             "unit": unit,
@@ -1007,30 +1085,63 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "rate": amount,
             "amount": amount,
             "category": category,
-            "cost_basis": "Country CSA basket × city × floor-load × engineering factors",
+            "cost_basis": (
+                "Country CSA basket × city × floor-load "
+                "× engineering factors"
+            ),
         })
 
     building_total = round(building_total, 2)
 
-    # ---------------- Utility basket ----------------
-    # Country utility benchmark is allocated by discipline-specific city factors.
+    # --------------------------------------------------
+    # UTILITY BASKET
+    # --------------------------------------------------
+
     utility_city_weight = (
         0.35 * mech_market_m
         + 0.35 * elec_market_m
         + 0.30 * market["civil_city"]
     )
-    grid_reference = 1.0 + GRID_DG_ADD.get("Good", 0.0)
-    grid_requested = 1.0 + GRID_DG_ADD.get(inp.grid_reliability, 0.0)
+
+    grid_reference = (
+        1.0 + GRID_DG_ADD.get("Good", 0.0)
+    )
+
+    grid_requested = (
+        1.0 + GRID_DG_ADD.get(inp.grid_reliability, 0.0)
+    )
+
     utility_environment_m = (
-        _safe_factor(FUEL_M.get(inp.fuel_type, 1.0))
-        * _safe_factor(WATER_AVAIL_M.get(inp.water_availability, 1.0))
+        _safe_factor(
+            FUEL_M.get(inp.fuel_type, 1.0)
+        )
+        * _safe_factor(
+            WATER_AVAIL_M.get(
+                inp.water_availability,
+                1.0,
+            )
+        )
         * (
-            _safe_factor(AMBIENT_HVAC_M.get(inp.ambient_temp_range, 1.0))
-            / _safe_factor(AMBIENT_HVAC_M.get("Temperate (5°C - 30°C)", 1.0))
+            _safe_factor(
+                AMBIENT_HVAC_M.get(
+                    inp.ambient_temp_range,
+                    1.0,
+                )
+            )
+            / _safe_factor(
+                AMBIENT_HVAC_M.get(
+                    "Temperate (5°C - 30°C)",
+                    1.0,
+                )
+            )
         ) ** 0.35
         * (grid_requested / grid_reference)
     )
-    utility_environment_m = max(0.65, min(1.60, utility_environment_m))
+
+    utility_environment_m = max(
+        0.65,
+        min(1.60, utility_environment_m),
+    )
 
     util_base = USA_BASE_UTIL * util_factor
 
@@ -1038,29 +1149,42 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     utilities_total = 0.0
 
     product_key = str(inp.product_category or "")
-    preset = INDUSTRY_PRESETS.get(product_key, {"utilities_pct": 0.50})
+
+    preset = INDUSTRY_PRESETS.get(
+        product_key,
+        {"utilities_pct": 0.50},
+    )
 
     product_total_m = max(
         0.35,
-        min(1.35, float(preset.get("utilities_pct", 0.50)) / 0.63)
+        min(
+            1.35,
+            float(
+                preset.get("utilities_pct", 0.50)
+            ) / 0.63,
+        ),
     )
 
     selected_systems = {
-        name for name in UTILITY_SYSTEM_WEIGHTS
+        name
+        for name in UTILITY_SYSTEM_WEIGHTS
         if _system_scope_enabled(inp, name)
     }
 
     if selected_systems:
-        # Normalize product factors at reference humidity (40%).
+
         raw_product = {
             name: _product_utility_multiplier(
-                inp, name, humidity_pct=40.0
+                inp,
+                name,
+                humidity_pct=40.0,
             )
             for name in selected_systems
         }
 
         weighted_raw = sum(
-            UTILITY_SYSTEM_WEIGHTS[name][0] * raw_product[name]
+            UTILITY_SYSTEM_WEIGHTS[name][0]
+            * raw_product[name]
             for name in selected_systems
         )
 
@@ -1070,10 +1194,17 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         )
 
         product_normalizer = (
-            weighted_raw / selected_weight if selected_weight else 1.0
+            weighted_raw / selected_weight
+            if selected_weight
+            else 1.0
         )
 
-        for name, (weight, discipline, description) in UTILITY_SYSTEM_WEIGHTS.items():
+        for name, (
+            weight,
+            discipline,
+            description,
+        ) in UTILITY_SYSTEM_WEIGHTS.items():
+
             if name not in selected_systems:
                 continue
 
@@ -1081,58 +1212,90 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 "mechanical": mech_market_m,
                 "electrical": elec_market_m,
                 "civil": market["civil_city"],
-            }.get(discipline, mech_market_m)
+            }.get(
+                discipline,
+                mech_market_m,
+            )
 
             raw_product_m = raw_product[name]
 
             product_m = (
                 raw_product_m / product_normalizer
-                if product_normalizer else 1.0
+                if product_normalizer
+                else 1.0
             )
+
             humidity_factor = 1.0
+
             if name == "HVAC":
+
                 ambient_humidity_factor = (
                     1.0
-                    + max(0.0, inp.relative_humidity_pct - 70.0) * 0.0025
-                    )
-                minimum_rh = float(inp.humidity_controlled_min_pct)
-                maximum_rh = float(inp.humidity_controlled_max_pct)
-                humidity_band = maximum_rh - minimum_rh
+                    + max(
+                        0.0,
+                        inp.relative_humidity_pct - 70.0,
+                    ) * 0.0025
+                )
+
+                minimum_rh = float(
+                    inp.humidity_controlled_min_pct
+                )
+
+                maximum_rh = float(
+                    inp.humidity_controlled_max_pct
+                )
+
+                humidity_band = (
+                    maximum_rh - minimum_rh
+                )
+
                 dehumidification_factor = (
-                    max(0.0, maximum_rh - 60.0) * 0.0025
-                    )
+                    max(0.0, maximum_rh - 60.0)
+                    * 0.0025
+                )
+
                 humidification_factor = (
-                    max(0.0, 40.0 - minimum_rh) * 0.0025
-                    )
+                    max(0.0, 40.0 - minimum_rh)
+                    * 0.0025
+                )
+
                 precision_factor = (
-                    max(0.0, 20.0 - humidity_band) * 0.005
-                    )
+                    max(0.0, 20.0 - humidity_band)
+                    * 0.005
+                )
+
                 controlled_humidity_factor = (
                     1.0
                     + dehumidification_factor
                     + humidification_factor
                     + precision_factor
-                    )
+                )
+
                 humidity_factor = (
                     ambient_humidity_factor
                     * controlled_humidity_factor
-                    )
-                amount = (
-                    util_base
-                    * built_up
-                    * weight
-                    * product_total_m
-                    * discipline_m
-                    * utility_environment_m
-                    * product_m
-                    * humidity_factor
-                    * tier_m
-                    * project_type_rel
-                    * complexity_rel
-                    * cost_live_m
                 )
 
+            # IMPORTANT:
+            # Calculate every selected utility system.
+            # Previously this calculation was inside the HVAC condition.
+            amount = (
+                util_base
+                * built_up
+                * weight
+                * product_total_m
+                * discipline_m
+                * utility_environment_m
+                * product_m
+                * humidity_factor
+                * tier_m
+                * project_type_rel
+                * complexity_rel
+                * cost_live_m
+            )
+
             amount = round(amount, 2)
+
             utilities_total += amount
 
             utility_rows.append({
@@ -1141,16 +1304,29 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 "amount": amount,
                 "discipline": discipline,
                 "description": description,
-                "country_factor": round(util_factor, 4),
-                "city_factor": round(discipline_m, 4),
+                "country_factor": round(
+                    util_factor,
+                    4,
+                ),
+                "city_factor": round(
+                    discipline_m,
+                    4,
+                ),
                 "product_factor": round(
-                    product_total_m * product_m * humidity_factor, 4
+                    product_total_m
+                    * product_m
+                    * humidity_factor,
+                    4,
                 ),
             })
 
-    utilities_total = round(utilities_total, 2)
+    utilities_total = round(
+        utilities_total,
+        2,
+    )
 
     if utilities_total > 0:
+
         boq_rows.append({
             "activity": "Utilities & Process Systems",
             "unit": "LS",
@@ -1163,34 +1339,47 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 "Country utility basket × discipline city factors "
                 "× product/process factors"
             ),
-    })
-    # ---------------- Non-direct project basket ----------------
-    # Split the country 'others' pool into explicit project scopes, removing
-    # the embedded benchmark contingency first.
-    direct_total = direct_csa_total + utilities_total
-    benchmark_other_pool = direct_total * others_pct
+        })
+
+    # --------------------------------------------------
+    # NON-DIRECT PROJECT BASKET
+    # --------------------------------------------------
+
+    direct_total = (
+        direct_csa_total + utilities_total
+    )
+
+    benchmark_other_pool = (
+        direct_total * others_pct
+    )
+
     precont_other = max(
         0.0,
-        (benchmark_other_pool - BENCHMARK_CONTINGENCY_RATE * direct_total)
+        (
+            benchmark_other_pool
+            - BENCHMARK_CONTINGENCY_RATE * direct_total
+        )
         / (1.0 + BENCHMARK_CONTINGENCY_RATE),
     )
 
     components = inp.building_components or []
+
     components = [
         str(component).strip().lower()
         for component in components
-        
-    
-]
+    ]
+
     warehouse_selected = (
-        str(inp.product_category or "").strip().lower() == "warehouse"
+        str(inp.product_category or "").strip().lower()
+        == "warehouse"
         or fg_type in ("Chocolate", "Bakery", "Combo")
         or any(
-            "warehouse" in component or component.startswith("wh-")
+            "warehouse" in component
+            or component.startswith("wh-")
             for component in components
         )
     )
-  
+
     scope_flags = {
         "Warehouse / ASRS": warehouse_selected,
 
@@ -1198,81 +1387,117 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             inp.include_roads
             or inp.include_landscaping
             or inp.include_fence
-            ),
+        ),
+
         "EPCM & Project Management": True,
         "Permits & Insurance / Statutory": True,
         "Safety & Working Dynamics": True,
-}
+    }
+
     active_weights = {
         key: weight
         for key, weight in OTHER_SCOPE_WEIGHTS.items()
-    if scope_flags.get(key, True)
-}
-    weight_total = sum(active_weights.values()) or 1.0
-    
+        if scope_flags.get(key, True)
+    }
+
+    weight_total = (
+        sum(active_weights.values()) or 1.0
+    )
+
     other_rows = []
     other_total = 0.0
-    
+
     for name, weight in active_weights.items():
+
         amount = round(
-        precont_other * weight / weight_total,
-        2
-    )
+            precont_other * weight / weight_total,
+            2,
+        )
+
         if name == "External / Site Development":
+
             external_items = []
+
             if inp.include_roads:
                 external_items.append({
                     "activity": "Roads, Pathways & Parking",
                     "unit": "m2",
                     "quantity": max(
-                        0.0, float(inp.land_area_sqm) * 0.30
-                        ),
+                        0.0,
+                        float(inp.land_area_sqm) * 0.30,
+                    ),
                     "category": "Infra",
-            })
+                })
+
             if inp.include_fence:
                 external_items.append({
                     "activity": "Compound Wall / Fence",
                     "unit": "m",
                     "quantity": max(
                         0.0,
-                        4 * (float(inp.land_area_sqm) ** 0.5),
+                        4 * (
+                            float(inp.land_area_sqm) ** 0.5
                         ),
+                    ),
                     "category": "Infra",
-            })
+                })
+
             if inp.include_landscaping:
                 external_items.append({
                     "activity": "Landscaping",
                     "unit": "m2",
                     "quantity": max(
-                        0.0, float(inp.land_area_sqm) * 0.15
-                        ),
+                        0.0,
+                        float(inp.land_area_sqm) * 0.15,
+                    ),
                     "category": "Infra",
-            })
-                total_quantity = sum(
-                    item["quantity"] for item in external_items
-        )
+                })
+
+            # Calculate after all selected external items are added.
+            total_quantity = sum(
+                item["quantity"]
+                for item in external_items
+            )
+
             for item in external_items:
+
                 share = (
                     item["quantity"] / total_quantity
-                    if total_quantity > 0 else 0
-            )
-                item_amount = round(amount * share, 2)
+                    if total_quantity > 0
+                    else 0
+                )
+
+                item_amount = round(
+                    amount * share,
+                    2,
+                )
+
                 other_rows.append({
                     **item,
-                    "quantity": round(item["quantity"], 2),
+                    "quantity": round(
+                        item["quantity"],
+                        2,
+                    ),
                     "rate": (
-                        round(item_amount / item["quantity"], 2)
-                        if item["quantity"] > 0 else 0
-                ),
+                        round(
+                            item_amount / item["quantity"],
+                            2,
+                        )
+                        if item["quantity"] > 0
+                        else 0
+                    ),
                     "amount": item_amount,
                     "cost_basis": (
                         "Allocated share of existing external/site "
                         "development estimate; quantity is indicative"
-                ),
-            })
+                    ),
+                })
+
             other_total += amount
             continue
+
         other_total += amount
+
         other_rows.append({
             "activity": name,
             "unit": "LS",
@@ -1283,12 +1508,23 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "cost_basis": (
                 "Allocated share of existing non-direct project "
                 "estimate; quantity is indicative"
-            ),})
+            ),
+        })
 
+    # --------------------------------------------------
+    # EMPLOYEE AND STAFF FACILITIES
+    # --------------------------------------------------
 
-    # Employee facilities are an explicit additional scope driven by employee count.
-    employee_facility_cost = round(employee_facilities.get("estimated_cost", 0), 2)
+    employee_facility_cost = round(
+        employee_facilities.get(
+            "estimated_cost",
+            0,
+        ),
+        2,
+    )
+
     if employee_facility_cost > 0:
+
         other_rows.append({
             "activity": "Employee & Staff Facilities",
             "unit": "LS",
@@ -1300,24 +1536,52 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "employees": employee_facilities["employees"],
             "lockers": employee_facilities["lockers"],
             "area_sqm": employee_facilities["total_area_sqm"],
-            "cost_status": "Costed from country-specific employee facility rates",
+            "cost_status": (
+                "Costed from country-specific employee facility rates"
+            ),
         })
 
     for row in other_rows:
         boq_rows.append(row)
 
-    other_total = round(other_total, 2)
-
-    # User contingency is applied exactly once, after all pre-contingency scope.
-    pre_contingency_subtotal = round(
-        building_total + utilities_total + other_total + employee_facility_cost,
+    other_total = round(
+        other_total,
         2,
     )
-    contingency_pct = max(0.0, inp.contingency_pct) / 100.0
+
+    # --------------------------------------------------
+    # CONTINGENCY AND FINAL TOTAL
+    # --------------------------------------------------
+
+    pre_contingency_subtotal = round(
+        building_total
+        + utilities_total
+        + other_total
+        + employee_facility_cost,
+        2,
+    )
+
+    user_contingency_pct = max(
+        0.0,
+        float(
+            getattr(inp, "contingency_pct", 0.0) or 0.0
+        ),
+    )
+
+    contingency_pct = (
+        user_contingency_pct / 100.0
+    )
+
     contingency = round(
-        pre_contingency_subtotal * contingency_pct, 2
-)
-    total = round(pre_contingency_subtotal + contingency, 2)
+        pre_contingency_subtotal * contingency_pct,
+        2,
+    )
+
+    total = round(
+        pre_contingency_subtotal + contingency,
+        2,
+    )
+
     boq_rows.append({
         "activity": "Contingency",
         "unit": "LS",
@@ -1327,124 +1591,420 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "category": "Contingency",
     })
 
-    # Keep a separate external total for UI compatibility.
+    # --------------------------------------------------
+    # EXTERNAL DEVELOPMENT TOTAL
+    # --------------------------------------------------
+
     external_activities = {
-    "Roads, Pathways & Parking",
-    "Compound Wall / Fence",
-    "Landscaping",
-}
+        "Roads, Pathways & Parking",
+        "Compound Wall / Fence",
+        "Landscaping",
+    }
+
     external_total = round(
         sum(
             r["amount"]
             for r in other_rows
             if r["activity"] in external_activities
-            ),
+        ),
         2,
-        )
+    )
+
+    # --------------------------------------------------
+    # CONFIDENCE SCORE
+    # --------------------------------------------------
 
     confidence = 88
+
     if not market["country_known"]:
         confidence -= 10
-    if not market["city_requested"].get("matched", False):
+
+    if not market["city_requested"].get(
+        "matched",
+        False,
+    ):
         confidence -= 4
+
     if inp.project_type != "Greenfield":
         confidence -= 5
+
     if inp.location_tier == "Remote":
         confidence -= 4
+
     if (live_index or {}).get("source") == "fallback":
         confidence -= 1
-    confidence = max(45, min(96, confidence))
-    conf_label = "High" if confidence >= 85 else "Medium" if confidence >= 70 else "Low"
+
+    confidence = max(
+        45,
+        min(96, confidence),
+    )
+
+    conf_label = (
+        "High"
+        if confidence >= 85
+        else "Medium"
+        if confidence >= 70
+        else "Low"
+    )
 
     def pct(x):
-        return round((x / total) * 100, 2) if total > 0 else 0
+        return (
+            round((x / total) * 100, 2)
+            if total > 0
+            else 0
+        )
 
     def cost_per_sqm(x):
-        return round(x / built_up, 2) if built_up > 0 else 0
+        return (
+            round(x / built_up, 2)
+            if built_up > 0
+            else 0
+        )
+
+    # --------------------------------------------------
+    # COST BREAKDOWN
+    # --------------------------------------------------
 
     breakdown = [
-        {"name": "Civil / CSA", "value": building_total, "cost_per_sqm": cost_per_sqm(building_total), "pct": pct(building_total)},
-        {"name": "Utilities & Process", "value": utilities_total, "cost_per_sqm": cost_per_sqm(utilities_total), "pct": pct(utilities_total)},
-        {"name": "External / Site Development", "value": external_total, "cost_per_sqm": cost_per_sqm(external_total), "pct": pct(external_total)},
-        {"name": "EPCM & Project Management", "value": round(sum(r["amount"] for r in other_rows if r["activity"] == "EPCM & Project Management"), 2), "cost_per_sqm": cost_per_sqm(sum(r["amount"] for r in other_rows if r["activity"] == "EPCM & Project Management")), "pct": pct(sum(r["amount"] for r in other_rows if r["activity"] == "EPCM & Project Management"))},
-        {"name": "Permits & Insurance / Statutory", "value": round(sum(r["amount"] for r in other_rows if r["activity"] == "Permits & Insurance / Statutory"), 2), "cost_per_sqm": cost_per_sqm(sum(r["amount"] for r in other_rows if r["activity"] == "Permits & Insurance / Statutory")), "pct": pct(sum(r["amount"] for r in other_rows if r["activity"] == "Permits & Insurance / Statutory"))},
-        {"name": "Safety & Working Dynamics", "value": round(sum(r["amount"] for r in other_rows if r["activity"] == "Safety & Working Dynamics"), 2), "cost_per_sqm": cost_per_sqm(sum(r["amount"] for r in other_rows if r["activity"] == "Safety & Working Dynamics")), "pct": pct(sum(r["amount"] for r in other_rows if r["activity"] == "Safety & Working Dynamics"))},
-        {"name": "Warehouse / ASRS", "value": round(sum(r["amount"] for r in other_rows if r["activity"] == "Warehouse / ASRS"), 2), "cost_per_sqm": cost_per_sqm(sum(r["amount"] for r in other_rows if r["activity"] == "Warehouse / ASRS")), "pct": pct(sum(r["amount"] for r in other_rows if r["activity"] == "Warehouse / ASRS"))},
-        {"name": "Employee & Staff Facilities", "value": employee_facility_cost, "cost_per_sqm": cost_per_sqm(employee_facility_cost), "pct": pct(employee_facility_cost)},
-        {"name": "Contingency", "value": contingency, "cost_per_sqm": cost_per_sqm(contingency), "pct": pct(contingency)},
+        {
+            "name": "Civil / CSA",
+            "value": building_total,
+            "cost_per_sqm": cost_per_sqm(building_total),
+            "pct": pct(building_total),
+        },
+        {
+            "name": "Utilities & Process",
+            "value": utilities_total,
+            "cost_per_sqm": cost_per_sqm(utilities_total),
+            "pct": pct(utilities_total),
+        },
+        {
+            "name": "External / Site Development",
+            "value": external_total,
+            "cost_per_sqm": cost_per_sqm(external_total),
+            "pct": pct(external_total),
+        },
+        {
+            "name": "EPCM & Project Management",
+            "value": round(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "EPCM & Project Management"
+                ),
+                2,
+            ),
+            "cost_per_sqm": cost_per_sqm(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "EPCM & Project Management"
+                )
+            ),
+            "pct": pct(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "EPCM & Project Management"
+                )
+            ),
+        },
+        {
+            "name": "Permits & Insurance / Statutory",
+            "value": round(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Permits & Insurance / Statutory"
+                ),
+                2,
+            ),
+            "cost_per_sqm": cost_per_sqm(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Permits & Insurance / Statutory"
+                )
+            ),
+            "pct": pct(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Permits & Insurance / Statutory"
+                )
+            ),
+        },
+        {
+            "name": "Safety & Working Dynamics",
+            "value": round(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Safety & Working Dynamics"
+                ),
+                2,
+            ),
+            "cost_per_sqm": cost_per_sqm(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Safety & Working Dynamics"
+                )
+            ),
+            "pct": pct(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Safety & Working Dynamics"
+                )
+            ),
+        },
+        {
+            "name": "Warehouse / ASRS",
+            "value": round(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Warehouse / ASRS"
+                ),
+                2,
+            ),
+            "cost_per_sqm": cost_per_sqm(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Warehouse / ASRS"
+                )
+            ),
+            "pct": pct(
+                sum(
+                    r["amount"]
+                    for r in other_rows
+                    if r["activity"] == "Warehouse / ASRS"
+                )
+            ),
+        },
+        {
+            "name": "Employee & Staff Facilities",
+            "value": employee_facility_cost,
+            "cost_per_sqm": cost_per_sqm(employee_facility_cost),
+            "pct": pct(employee_facility_cost),
+        },
+        {
+            "name": "Contingency",
+            "value": contingency,
+            "cost_per_sqm": cost_per_sqm(contingency),
+            "pct": pct(contingency),
+        },
     ]
 
-    sorted_boq = sorted(boq_rows, key=lambda r: r["amount"], reverse=True)
+    # --------------------------------------------------
+    # BOQ RANKING
+    # --------------------------------------------------
+
+    sorted_boq = sorted(
+        boq_rows,
+        key=lambda r: r["amount"],
+        reverse=True,
+    )
+
     top12 = []
-    for i, row in enumerate(sorted_boq[:12], start=1):
+
+    for i, row in enumerate(
+        sorted_boq[:12],
+        start=1,
+    ):
         r2 = dict(row)
         r2["rank"] = i
-        r2["pct_of_total"] = round((row["amount"] / total) * 100, 2) if total > 0 else 0
+        r2["pct_of_total"] = (
+            round(
+                (row["amount"] / total) * 100,
+                2,
+            )
+            if total > 0
+            else 0
+        )
         top12.append(r2)
 
-    duration = round(8 + built_up / 6000 + (0.15 * inp.num_floors), 1)
+    # --------------------------------------------------
+    # PROJECT DURATION AND UTILITY DEMAND
+    # --------------------------------------------------
+
+    duration = round(
+        8 + built_up / 6000 + (0.15 * inp.num_floors),
+        1,
+    )
+
     cap = inp.production_capacity_tpd
-    is_chocolate = "chocolate" in (inp.product_category or "").lower() or "combo" in (inp.product_category or "").lower()
-    is_biscuit = any(t in (inp.product_category or "").lower() for t in ["biscuit", "bakery", "wafer", "cookie"])
+
+    is_chocolate = (
+        "chocolate" in (inp.product_category or "").lower()
+        or "combo" in (inp.product_category or "").lower()
+    )
+
+    is_biscuit = any(
+        t in (inp.product_category or "").lower()
+        for t in [
+            "biscuit",
+            "bakery",
+            "wafer",
+            "cookie",
+        ]
+    )
 
     utility_demand = {
-        "water_kld": round(max(20, 0.30 * cap * 10), 0),
-        "steam_kg_hr": round(
-            1800 if is_chocolate else
-            2200 if is_biscuit else
-            max(1200, cap * 15), 0
+        "water_kld": round(
+            max(20, 0.30 * cap * 10),
+            0,
         ),
-        "chiller_tr": round(inp.cooling_tunnel_load_tr, 0),
-        "power_kva": round(max(500, cap * 12), 0),
-        "compressed_air_cfm": round(inp.compressed_air_demand_cfm, 0),
-        "etp_kld": round(max(30, cap * 1.2), 0),
+        "steam_kg_hr": round(
+            1800 if is_chocolate
+            else 2200 if is_biscuit
+            else max(1200, cap * 15),
+            0,
+        ),
+        "chiller_tr": round(
+            inp.cooling_tunnel_load_tr,
+            0,
+        ),
+        "power_kva": round(
+            max(500, cap * 12),
+            0,
+        ),
+        "compressed_air_cfm": round(
+            inp.compressed_air_demand_cfm,
+            0,
+        ),
+        "etp_kld": round(
+            max(30, cap * 1.2),
+            0,
+        ),
         "fire_water_m3": 600,
     }
 
-    n = max(6, min(24, int(round(duration))))
+    # --------------------------------------------------
+    # COST TREND
+    # --------------------------------------------------
+
+    n = max(
+        6,
+        min(24, int(round(duration))),
+    )
+
     trend = []
+
     start = datetime.now(timezone.utc)
     cum = 0.0
+
     for i in range(n):
+
         x = (i + 1) / n
-        cum_pct = 1 / (1 + math.exp(-10 * (x - 0.5)))
-        period_amount = round(total * cum_pct - cum, 0)
+
+        cum_pct = (
+            1 / (1 + math.exp(-10 * (x - 0.5)))
+        )
+
+        period_amount = round(
+            total * cum_pct - cum,
+            0,
+        )
+
         cum = total * cum_pct
-        month = (start.month - 1 + i) % 12 + 1
-        year_off = (start.month - 1 + i) // 12
-        label = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month - 1]
+
+        month = (
+            (start.month - 1 + i) % 12 + 1
+        )
+
+        year_off = (
+            (start.month - 1 + i) // 12
+        )
+
+        label = [
+            "Jan", "Feb", "Mar", "Apr",
+            "May", "Jun", "Jul", "Aug",
+            "Sep", "Oct", "Nov", "Dec",
+        ][month - 1]
+
         trend.append({
-            "period": f"{label} '{str(start.year + year_off)[-2:]}",
-            "base": round(period_amount * 0.96, 0),
-            "current": round(period_amount, 0),
-            "benchmark": round(period_amount * 1.05, 0),
+            "period": (
+                f"{label} '{str(start.year + year_off)[-2:]}"
+            ),
+            "base": round(
+                period_amount * 0.96,
+                0,
+            ),
+            "current": round(
+                period_amount,
+                0,
+            ),
+            "benchmark": round(
+                period_amount * 1.05,
+                0,
+            ),
         })
 
-    # Overall market delta is shown for transparency only; it is not used as
-    # a second global multiplier.
-    benchmark_direct = USA_BASE_CSA + USA_BASE_UTIL
-    market_direct_psm = (USA_BASE_CSA * csa_factor) + (USA_BASE_UTIL * util_factor)
-    market_delta = round((market_direct_psm / benchmark_direct - 1.0) * 100.0, 1)
+    # --------------------------------------------------
+    # MARKET DELTA
+    # --------------------------------------------------
+
+    benchmark_direct = (
+        USA_BASE_CSA + USA_BASE_UTIL
+    )
+
+    market_direct_psm = (
+        USA_BASE_CSA * csa_factor
+        + USA_BASE_UTIL * util_factor
+    )
+
+    market_delta = round(
+        (
+            market_direct_psm / benchmark_direct - 1.0
+        ) * 100.0,
+        1,
+    )
+
+    # --------------------------------------------------
+    # FINAL RESPONSE
+    # --------------------------------------------------
 
     return {
         "employee_facilities": employee_facilities,
+
         "totals": {
             "total_project_cost": total,
-            "cost_per_sqm": round(total / built_up, 2) if built_up else 0,
-            "cost_per_mt": round(total / inp.annual_output_mt, 2) if inp.annual_output_mt else 0,
+            "cost_per_sqm": (
+                round(total / built_up, 2)
+                if built_up
+                else 0
+            ),
+            "cost_per_mt": (
+                round(total / inp.annual_output_mt, 2)
+                if inp.annual_output_mt
+                else 0
+            ),
             "duration_months": duration,
             "confidence_score": confidence,
             "confidence_label": conf_label,
             "contingency": contingency,
-            "contingency_pct": inp.contingency_pct,
+            "contingency_pct": user_contingency_pct,
             "region_benchmark_delta_pct": market_delta,
-            "built_up_area_sqm": round(built_up, 2),
-            "employee_facility_area_sqm": round(employee_facilities["total_area_sqm"], 2),
+            "built_up_area_sqm": round(
+                built_up,
+                2,
+            ),
+            "employee_facility_area_sqm": round(
+                employee_facilities["total_area_sqm"],
+                2,
+            ),
             "employee_lockers": employee_facilities["lockers"],
             "employee_seating": employee_facilities["seating"],
-            "employee_shoe_storage_positions": employee_facilities["street_shoe_storage_positions"] + employee_facilities["work_shoe_storage_positions"],
+            "employee_shoe_storage_positions": (
+                employee_facilities["street_shoe_storage_positions"]
+                + employee_facilities["work_shoe_storage_positions"]
+            ),
             "employee_facility_cost": employee_facility_cost,
         },
+
         "breakdown": breakdown,
         "employee_facilities": employee_facilities,
         "boq": sorted_boq,
@@ -1453,6 +2013,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "utilities_total": utilities_total,
         "utility_demand": utility_demand,
         "cost_trend": trend,
+
         "multipliers": {
             "region": 1.0,
             "tier": round(tier_m, 4),
@@ -1465,26 +2026,56 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "floor_load_info": floor_load_info,
             "building_components_scope": 1.0,
             "combined": round(
-                floor_load_m * structural_rel * complexity_rel * tier_m * project_type_rel,
+                floor_load_m
+                * structural_rel
+                * complexity_rel
+                * tier_m
+                * project_type_rel,
                 4,
             ),
             "roof_types_by_floor": inp.roof_types_by_floor,
         },
+
         "market_factors": {
-            "cost_method": "Country benchmark basket + normalized city adjustment + product/floor-load scope drivers",
+            "cost_method": (
+                "Country benchmark basket + normalized city "
+                "adjustment + product/floor-load scope drivers"
+            ),
             "region": market["region"],
             "country": market["country"],
             "country_known": market["country_known"],
             "csa_factor": round(csa_factor, 4),
             "util_factor": round(util_factor, 4),
             "others_pct": round(others_pct, 4),
-            "city_requested": market["city_requested"].get("resolved"),
-            "city_benchmark": market["city_benchmark"].get("resolved") if isinstance(market["city_benchmark"], dict) else None,
-            "city_relative": {k: round(v, 4) for k, v in market["city_relative"].items()},
-            "civil_effective": round(civil_market_m, 4),
-            "mechanical_effective": round(mech_market_m, 4),
-            "electrical_effective": round(elec_market_m, 4),
+            "city_requested": market["city_requested"].get(
+                "resolved"
+            ),
+            "city_benchmark": (
+                market["city_benchmark"].get("resolved")
+                if isinstance(
+                    market["city_benchmark"],
+                    dict,
+                )
+                else None
+            ),
+            "city_relative": {
+                k: round(v, 4)
+                for k, v in market["city_relative"].items()
+            },
+            "civil_effective": round(
+                civil_market_m,
+                4,
+            ),
+            "mechanical_effective": round(
+                mech_market_m,
+                4,
+            ),
+            "electrical_effective": round(
+                elec_market_m,
+                4,
+            ),
         },
+
         "active_complexity": active_complexity,
         "live_rate_index": live_index or {},
     }
@@ -1675,9 +2266,28 @@ async def calculate(inp: ProjectInputs):
 
 @api_router.post("/estimator/calculate-fast")
 async def calculate_fast(inp: ProjectInputs):
-    """Same as calculate but skips AI (for live slider preview)."""
-    live_index = await get_live_rate_index()
-    return compute_estimate(inp, live_index=live_index)
+    """Fast estimate endpoint for live dashboard calculations."""
+
+    try:
+        live_index = await get_live_rate_index()
+
+        result = compute_estimate(
+            inp,
+            live_index=live_index,
+        )
+
+        return result
+
+    except Exception as e:
+        import traceback
+
+        print("ERROR IN calculate-fast:")
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Estimator calculation failed: {str(e)}",
+        )
 
 
 @api_router.post("/estimator/save")
