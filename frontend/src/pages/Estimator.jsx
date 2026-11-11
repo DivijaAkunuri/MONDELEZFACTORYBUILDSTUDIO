@@ -287,6 +287,7 @@ export default function Estimator({ initialView = "new-estimate" }) {
   const [reference, setReference] = React.useState(null);
 
   const [inputs, setInputs] = React.useState(() => {
+
     try {
       const saved = sessionStorage.getItem("estimator_inputs");
 
@@ -329,9 +330,23 @@ export default function Estimator({ initialView = "new-estimate" }) {
   });
 
   const [loading, setLoading] = React.useState(false);
-  const [step, setStep] = React.useState(initialView === "dashboard" ? 5 : 0);
+  const [step, setStep] = React.useState(() => {
+    if (initialView === "dashboard") return 5;
+
+    const savedStep = sessionStorage.getItem("estimator_step");
+    const parsedStep = Number(savedStep);
+
+    return savedStep !== null && parsedStep >= 0 && parsedStep <= 5
+      ? parsedStep
+      : 0;
+  });
   const [activeTab, setActiveTab] = React.useState("breakdown");
   const [editOpen, setEditOpen] = React.useState(false);
+  React.useEffect(() => {
+    if (step >= 0 && step <= 5) {
+      sessionStorage.setItem("estimator_step", String(step));
+    }
+  }, [step]);
 
   const isFirstInputsChange = React.useRef(true);
   const recalcTimer = React.useRef(null);
@@ -618,13 +633,12 @@ export default function Estimator({ initialView = "new-estimate" }) {
         activeKey={step === 5 ? "dashboard" : "new-estimate"}
         liveRateIndex={result?.live_rate_index}
         onDashboard={() => {
-          setStep(5);
           setActiveTab("breakdown");
         }}
         onNewEstimate={() => {
+          sessionStorage.removeItem("estimator_step");
           setStep(0);
         }}
-
         activeProject={{
           name: inputs.project_name,
           location: `${inputs.location_city}, ${inputs.location_country}`,
