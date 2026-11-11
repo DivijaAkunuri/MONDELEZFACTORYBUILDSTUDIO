@@ -1325,6 +1325,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
                 { key: "Chocolate", label: "FG WH Chocolate" },
                 { key: "Bakery", label: "FG WH Bakery" },
                 { key: "Combo", label: "FG WH Combo (Chocolate + Bakery)" },
+                { key: "None", label: "None" },
               ]}
             />
             {showErrors && isWarehouse && !fgWarehouseType && (

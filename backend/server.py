@@ -282,7 +282,7 @@ class ProjectInputs(BaseModel):
             data.get("fg_warehouse_type", "") or ""
         ).strip()
 
-        if warehouse_type not in ("", "Chocolate", "Bakery", "Combo"):
+        if warehouse_type not in ("", "Chocolate", "Bakery", "Combo", "None"):
             raise ValueError("Select a valid FG Warehouse Type.")
 
         warehouse_checks = []
