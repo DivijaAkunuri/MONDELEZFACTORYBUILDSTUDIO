@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+from numpy import minimum
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from location_data import lookup_city_location
@@ -87,6 +88,15 @@ class ProjectInputs(BaseModel):
     fg_wh_bakery_width_m: Optional[float] = None
     fg_wh_bakery_height_m: Optional[float] = None
     fg_wh_bakery_num_floors: int = 1
+    
+    # Raw Material Warehouse
+    rm_wh_length_m: Optional[float] = None
+    rm_wh_width_m: Optional[float] = None
+    rm_wh_height_m: Optional[float] = None
+    rm_wh_num_floors: int = 1
+    rm_wh_optimize_columns: str = "No"
+    rm_wh_bay_spacing_m: Optional[float] = None
+    rm_wh_climate_controlled: bool = False
     building_components: List[str] = Field(default_factory=lambda: [
     "Admin Building","RM Warehouse","Production Floor","Utilities Block","Territory Packaging Hall","R&D Center",
     ])
@@ -150,24 +160,45 @@ class ProjectInputs(BaseModel):
         land_area = self.land_area_sqm
         is_warehouse = str(self.product_category or "").strip() == "Warehouse"
 
+        
         if is_warehouse:
             warehouse_type = str(self.fg_warehouse_type or "").strip()
+            components = self.building_components or []
 
             minimum_area = 0.0
 
+            # RM Warehouse is included only when selected.
+            if "RM Warehouse" in components:
+                rm_length = float(self.rm_wh_length_m or 0)
+                rm_width = float(self.rm_wh_width_m or 0)
+                rm_floors = self.rm_wh_num_floors
+
+                if not math.isfinite(rm_length) or rm_length <= 0:
+                    raise ValueError("RM Warehouse Length must be greater than 0.")
+                if not math.isfinite(rm_width) or rm_width <= 0:
+                    raise ValueError("RM Warehouse Width must be greater than 0.")
+                if rm_floors < 1:
+                    raise ValueError("RM Warehouse Floors must be at least 1.")
+
+                minimum_area += rm_length * rm_width * rm_floors
+
+            # FG Warehouse is included based on the user's FG Warehouse Type.
             if warehouse_type in ("Chocolate", "Combo"):
                 minimum_area += (
                     float(self.fg_wh_chocolate_length_m or 0)
                     * float(self.fg_wh_chocolate_width_m or 0)
+                    * max(1, self.fg_wh_chocolate_num_floors)
                 )
 
             if warehouse_type in ("Bakery", "Combo"):
                 minimum_area += (
                     float(self.fg_wh_bakery_length_m or 0)
                     * float(self.fg_wh_bakery_width_m or 0)
+                    * max(1, self.fg_wh_bakery_num_floors)
                 )
 
             minimum_area *= 2
+
 
         else:
             length = self.length_m
@@ -216,6 +247,20 @@ class ProjectInputs(BaseModel):
             )
 
         return self
+    
+    @model_validator(mode="after")
+    def validate_humidity_range(self):
+        minimum = float(self.humidity_controlled_min_pct)
+        maximum = float(self.humidity_controlled_max_pct)
+        if not (40 <= minimum <= 100):
+            raise ValueError("Minimum controlled humidity must be between 40 and 100.")
+        if not (minimum <= maximum <= 100):
+            raise ValueError(
+                "Maximum controlled humidity must be greater than or equal to "
+                "minimum humidity and cannot exceed 100."
+        )
+            return self
+    
     @model_validator(mode="after")
     def validate_fg_warehouse_dimensions(self):
         warehouse_type = str(self.fg_warehouse_type or "").strip()
@@ -316,7 +361,7 @@ async def get_live_rate_index() -> Dict[str, Any]:
 
 # ---------- Fine-grained input multipliers ----------
 FOUNDATION_M   = {"Isolated Footing": 0.90, "Raft Foundation": 1.00, "Pile Foundation": 1.28, "Engineering Fill": 1.10}
-SBC_M          = {"Hard": 0.92,"Soft": 1.14}
+SBC_M          = {"Hard": 1.14,"Soft": 0.92}
 GWT_M          = {"Shallow (<3 m)": 1.18, "Medium (3-8 m)": 1.05, "Deep (>8 m)": 1.00}
 WIND_ZONE_M    = {"Zone 1 (Low)": 0.96, "Zone 2": 1.00, "Zone 3": 1.05, "Zone 4 (High)": 1.10, "Zone 5 (Cyclonic)": 1.18}
 SEISMIC_ZONE_M = {"Zone 0 (Very Low)": 0.97, "Zone I": 1.00, "Zone II": 1.03, "Zone III": 1.06, "Zone IV": 1.10, "Zone V (High)": 1.16}
@@ -566,7 +611,8 @@ UTILITY_SCOPE_MAP = {
     "Solar Plant": "Electrical Infrastructure",
     "IT/OT System": "IT/OT System",
     "BMS/EMS": "IT/OT System",
-    "WMS": "WMS (Warehouse Management System)",
+    "WMS": "IT/OT System",
+    "Warehouse Management System": "IT/OT System",
     "Wastewater Treatment": "Wastewater Treatment",
     "WWTP": "Wastewater Treatment",
     "Steam & Boiler System": "Steam & Boiler System",
@@ -724,7 +770,7 @@ def _relative_structural_factor(inp: ProjectInputs) -> float:
         inp.wind_speed_ms, inp.far_fsi, inp.num_floors, inp.roof_types_by_floor,
     )
     reference = raw_factor(
-        "Isolated Footing", "Hard", "Medium (3-8 m)", "Zone 2",
+        "Isolated Footing", "Soft", "Medium (3-8 m)", "Zone 2",
         "Zone 0 (Very Low)", "Steel", "PEB + Insulated Panel",
         "Industrial Building (RCC + PEB)", 8.0, 24.0, 1.2, 1,
         [["PEB + Insulated Panel"]],
@@ -748,6 +794,8 @@ def _product_utility_multiplier(
     system_name: str,
     humidity_pct: Optional[float] = None,
 ) -> float:
+    
+    
     product = str(inp.product_category or "")
     base = PRODUCT_UTILITY_INTENSITY.get(product, {}).get(system_name, 1.0)
 
@@ -781,21 +829,53 @@ def _system_scope_enabled(inp: ProjectInputs, canonical_name: str) -> bool:
     return canonical_name in selected
 
 def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    
+    employee_facilities = calculate_employee_facilities(inp)
+
+    components = inp.building_components or []
+
+    # RM Warehouse: include only when selected.
+    rm_warehouse_area = 0.0
+    if "RM Warehouse" in components:
+        rm_warehouse_area = (
+            float(inp.rm_wh_length_m or 0)
+            * float(inp.rm_wh_width_m or 0)
+            * max(1, inp.rm_wh_num_floors)
+        )
+
+    # FG Warehouse: controlled by FG Warehouse Type.
+    fg_type = str(inp.fg_warehouse_type or "").strip()
+
+    chocolate_area = 0.0
+    bakery_area = 0.0
+
+    if fg_type in ("Chocolate", "Combo"):
+        chocolate_area = (
+            float(inp.fg_wh_chocolate_length_m or 0)
+            * float(inp.fg_wh_chocolate_width_m or 0)
+            * max(1, inp.fg_wh_chocolate_num_floors)
+        )
+
+    if fg_type in ("Bakery", "Combo"):
+        bakery_area = (
+            float(inp.fg_wh_bakery_length_m or 0)
+            * float(inp.fg_wh_bakery_width_m or 0)
+            * max(1, inp.fg_wh_bakery_num_floors)
+        )
+
     if str(inp.product_category or "").strip() == "Warehouse":
-       fg_type = str(inp.fg_warehouse_type or "").strip()
-       
-       chocolate_area = (
-           float(inp.fg_wh_chocolate_length_m or 0)
-           * float(inp.fg_wh_chocolate_width_m or 0)
-           ) if fg_type in ("Chocolate", "Combo") else 0
-       bakery_area = (
-           float(inp.fg_wh_bakery_length_m or 0)
-           * float(inp.fg_wh_bakery_width_m or 0)
-           ) if fg_type in ("Bakery", "Combo") else 0
-       built_up = chocolate_area + bakery_area
+        built_up = (
+            rm_warehouse_area
+            + chocolate_area
+            + bakery_area
+        )
     else:
-        built_up = inp.length_m * inp.width_m * max(1, inp.num_floors)
-        employee_facilities = calculate_employee_facilities(inp)
+        built_up = (
+            inp.length_m
+            * inp.width_m
+            * max(1, inp.num_floors)
+        )
+
 
     market = _market_factor_set(inp)
     country_data = market["country_data"]
@@ -861,26 +941,22 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     boq_rows: List[Dict[str, Any]] = []
     building_total = 0.0
         # ---------------- FG Warehouse CSA Costs ----------------
-    fg_warehouse_type = str(inp.fg_warehouse_type or "").strip()
-
     fg_warehouse_areas = []
 
-    if (inp.product_category != "Warehouse"and fg_warehouse_type in ("Chocolate", "Combo")):
-        chocolate_area = (
-            float(inp.fg_wh_chocolate_length_m or 0)
-            * float(inp.fg_wh_chocolate_width_m or 0)
+    # RM Warehouse is separately costed for manufacturing projects.
+    # Warehouse projects already include its area in built_up.
+    if inp.product_category != "Warehouse" and rm_warehouse_area > 0:
+        fg_warehouse_areas.append(
+            ("RM Warehouse", rm_warehouse_area)
         )
 
+    # FG warehouses are controlled by FG Warehouse Type.
+    # Warehouse projects already include these areas in built_up.
+    if inp.product_category != "Warehouse":
         if chocolate_area > 0:
             fg_warehouse_areas.append(
                 ("FG Warehouse - Chocolate", chocolate_area)
             )
-
-    if (inp.product_category != "Warehouse"and fg_warehouse_type in ("Bakery", "Combo")):
-        bakery_area = (
-            float(inp.fg_wh_bakery_length_m or 0)
-            * float(inp.fg_wh_bakery_width_m or 0)
-        )
 
         if bakery_area > 0:
             fg_warehouse_areas.append(
@@ -903,22 +979,22 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "quantity": round(warehouse_area, 2),
             "rate": round(warehouse_cost / warehouse_area, 2),
             "amount": warehouse_cost,
-            "category": "FG Warehouse / CSA",
+            "category": "Warehouse / CSA",
             "cost_basis": (
                 "Country CSA benchmark × warehouse built-up area "
                 "× existing city and engineering factors"
             ),
         })
 
+    
+    direct_csa_total = round(
+        csa_total + fg_warehouse_total,
+        2,
+        )
     building_total = round(
         building_total + fg_warehouse_total,
         2,
-    )
-
-    csa_total = round(
-        csa_total + fg_warehouse_total,
-        2,
-    )
+        )
     for activity, unit, _, category in CIVIL_ACTIVITIES:
         if activity not in civil_weights:
             continue
@@ -1013,38 +1089,48 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
                 raw_product_m / product_normalizer
                 if product_normalizer else 1.0
             )
-
-            # Apply current humidity only to chocolate HVAC.
             humidity_factor = 1.0
             if name == "HVAC":
-                
                 ambient_humidity_factor = (
                     1.0
                     + max(0.0, inp.relative_humidity_pct - 70.0) * 0.0025
                     )
-                humidity_factor *= ambient_humidity_factor
-                product_lower = str(inp.product_category or "").lower()
-                if "chocolate" in product_lower or "combo" in product_lower:
-                    controlled_humidity_factor = (
-                        1.0
-                        + max(0.0, inp.humidity_controlled_pct - 40.0) / 1000.0
-        )
-                    humidity_factor *= controlled_humidity_factor
-
-            amount = (
-                util_base
-                * built_up
-                * weight
-                * product_total_m
-                * discipline_m
-                * utility_environment_m
-                * product_m
-                * humidity_factor
-                * tier_m
-                * project_type_rel
-                * complexity_rel
-                * cost_live_m
-            )
+                minimum_rh = float(inp.humidity_controlled_min_pct)
+                maximum_rh = float(inp.humidity_controlled_max_pct)
+                humidity_band = maximum_rh - minimum_rh
+                dehumidification_factor = (
+                    max(0.0, maximum_rh - 60.0) * 0.0025
+                    )
+                humidification_factor = (
+                    max(0.0, 40.0 - minimum_rh) * 0.0025
+                    )
+                precision_factor = (
+                    max(0.0, 20.0 - humidity_band) * 0.005
+                    )
+                controlled_humidity_factor = (
+                    1.0
+                    + dehumidification_factor
+                    + humidification_factor
+                    + precision_factor
+                    )
+                humidity_factor = (
+                    ambient_humidity_factor
+                    * controlled_humidity_factor
+                    )
+                amount = (
+                    util_base
+                    * built_up
+                    * weight
+                    * product_total_m
+                    * discipline_m
+                    * utility_environment_m
+                    * product_m
+                    * humidity_factor
+                    * tier_m
+                    * project_type_rel
+                    * complexity_rel
+                    * cost_live_m
+                )
 
             amount = round(amount, 2)
             utilities_total += amount
@@ -1081,7 +1167,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
     # ---------------- Non-direct project basket ----------------
     # Split the country 'others' pool into explicit project scopes, removing
     # the embedded benchmark contingency first.
-    direct_total = csa_total + utilities_total
+    direct_total = direct_csa_total + utilities_total
     benchmark_other_pool = direct_total * others_pct
     precont_other = max(
         0.0,
@@ -1098,7 +1184,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 ]
     warehouse_selected = (
         str(inp.product_category or "").strip().lower() == "warehouse"
-        or fg_warehouse_type in ("Chocolate", "Bakery", "Combo")
+        or fg_type in ("Chocolate", "Bakery", "Combo")
         or any(
             "warehouse" in component or component.startswith("wh-")
             for component in components
