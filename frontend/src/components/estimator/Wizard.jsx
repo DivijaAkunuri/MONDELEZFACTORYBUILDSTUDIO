@@ -239,16 +239,28 @@ export default function Wizard({
     let minimumArea = 0;
 
     if (isWarehouse) {
+      // Include RM Warehouse only when selected.
+      if ((inputs.building_components || []).includes("RM Warehouse")) {
+        minimumArea +=
+          Number(inputs.rm_wh_length_m || 0) *
+          Number(inputs.rm_wh_width_m || 0) *
+          Math.max(1, Number(inputs.rm_wh_num_floors) || 1);
+      }
+
+      // Include Chocolate FG Warehouse when selected.
       if (warehouseType === "Chocolate" || warehouseType === "Combo") {
         minimumArea +=
           Number(inputs.fg_wh_chocolate_length_m || 0) *
-          Number(inputs.fg_wh_chocolate_width_m || 0);
+          Number(inputs.fg_wh_chocolate_width_m || 0) *
+          Math.max(1, Number(inputs.fg_wh_chocolate_num_floors) || 1);
       }
 
+      // Include Bakery FG Warehouse when selected.
       if (warehouseType === "Bakery" || warehouseType === "Combo") {
         minimumArea +=
           Number(inputs.fg_wh_bakery_length_m || 0) *
-          Number(inputs.fg_wh_bakery_width_m || 0);
+          Number(inputs.fg_wh_bakery_width_m || 0) *
+          Math.max(1, Number(inputs.fg_wh_bakery_num_floors) || 1);
       }
 
       minimumArea *= 2;
@@ -1051,22 +1063,33 @@ function Step2({ inputs, patch, reference, showErrors }) {
   const fgWarehouseType = inputs.fg_warehouse_type || "";
 
 
+  const rmWarehouseSelected =
+    (inputs.building_components || []).includes("RM Warehouse");
+
+  const rmWarehouseArea = rmWarehouseSelected
+    ? Number(inputs.rm_wh_length_m || 0) *
+    Number(inputs.rm_wh_width_m || 0) *
+    Math.max(1, Number(inputs.rm_wh_num_floors) || 1)
+    : 0;
+
   const chocolateFGArea =
     Number(inputs.fg_wh_chocolate_length_m || 0) *
-    Number(inputs.fg_wh_chocolate_width_m || 0);
+    Number(inputs.fg_wh_chocolate_width_m || 0) *
+    Math.max(1, Number(inputs.fg_wh_chocolate_num_floors) || 1);
 
   const bakeryFGArea =
     Number(inputs.fg_wh_bakery_length_m || 0) *
-    Number(inputs.fg_wh_bakery_width_m || 0);
+    Number(inputs.fg_wh_bakery_width_m || 0) *
+    Math.max(1, Number(inputs.fg_wh_bakery_num_floors) || 1);
 
   const warehouseBuiltUpArea =
-    fgWarehouseType === "Chocolate"
+    rmWarehouseArea +
+    (fgWarehouseType === "Chocolate" || fgWarehouseType === "Combo"
       ? chocolateFGArea
-      : fgWarehouseType === "Bakery"
-        ? bakeryFGArea
-        : fgWarehouseType === "Combo"
-          ? chocolateFGArea + bakeryFGArea
-          : 0;
+      : 0) +
+    (fgWarehouseType === "Bakery" || fgWarehouseType === "Combo"
+      ? bakeryFGArea
+      : 0);
 
   const minimumLandArea = isWarehouse
     ? warehouseBuiltUpArea * 2
