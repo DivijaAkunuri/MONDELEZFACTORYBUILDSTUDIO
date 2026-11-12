@@ -3136,7 +3136,7 @@ def _market_factor_set(inp: ProjectInputs) -> Dict[str, Any]:
     for discipline in ("civil", "mechanical", "electrical", "labour"):
         if not requested_city.get("matched", False):
             city_rel[discipline] = 1.0
-        continue
+            continue
 
     req = _safe_factor(requested_city.get(discipline))
     bench = _safe_factor(benchmark_city.get(discipline))
@@ -3144,9 +3144,9 @@ def _market_factor_set(inp: ProjectInputs) -> Dict[str, Any]:
     city_rel[discipline] = req / bench if bench else 1.0
 
     # Blend city material + labour separately by discipline.
-    civil_city = 0.70 * city_rel["civil"] + 0.30 * city_rel["labour"]
-    mech_city = 0.70 * city_rel["mechanical"] + 0.30 * city_rel["labour"]
-    elec_city = 0.70 * city_rel["electrical"] + 0.30 * city_rel["labour"]
+    civil_city = (0.70 * city_rel.get("civil", 1.0)+ 0.30 * city_rel.get("labour", 1.0))
+    mech_city = 0.70 * city_rel.get("mechanical", 1.0) + 0.30 * city_rel.get("labour", 1.0)
+    elec_city = 0.70 * city_rel.get("electrical", 1.0) + 0.30 * city_rel.get("labour", 1.0)
 
     return {
         "country": country,
