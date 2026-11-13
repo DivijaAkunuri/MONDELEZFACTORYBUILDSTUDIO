@@ -37,6 +37,42 @@ export default function Sidebar({
 
   const currency = "USD";
 
+  // Use the exact same built-up-area calculation as Wizard.validateAreas()
+  const isWarehouse = inputs?.product_category === "Warehouse";
+  const warehouseType = inputs?.fg_warehouse_type || "";
+  const components = inputs?.building_components || [];
+
+  const mainBuildingArea = !isWarehouse
+    ? Number(inputs?.length_m || 0) *
+    Number(inputs?.width_m || 0) *
+    Math.max(1, Number(inputs?.num_floors) || 1)
+    : 0;
+
+  const rmWarehouseArea =
+    !isWarehouse && components.includes("RM Warehouse")
+      ? Number(inputs?.rm_wh_length_m || 0) *
+      Number(inputs?.rm_wh_width_m || 0) *
+      Math.max(1, Number(inputs?.rm_wh_num_floors) || 1)
+      : 0;
+
+  const chocolateFGArea =
+    warehouseType === "Chocolate" || warehouseType === "Combo"
+      ? Number(inputs?.fg_wh_chocolate_length_m || 0) *
+      Number(inputs?.fg_wh_chocolate_width_m || 0)
+      : 0;
+
+  const bakeryFGArea =
+    warehouseType === "Bakery" || warehouseType === "Combo"
+      ? Number(inputs?.fg_wh_bakery_length_m || 0) *
+      Number(inputs?.fg_wh_bakery_width_m || 0)
+      : 0;
+
+  const totalBuiltUpArea =
+    mainBuildingArea +
+    rmWarehouseArea +
+    chocolateFGArea +
+    bakeryFGArea;
+
   const active =
     items.find((item) => location.pathname === item.path)?.key ||
     (location.pathname.startsWith("/dashboard")
@@ -140,11 +176,10 @@ export default function Sidebar({
               key={key}
               data-testid={TID.navItem(key)}
               onClick={() => handleNavigation(key)}
-              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${
-                isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
-              }`}
+              className={`w-full flex items-center gap-3 px-5 py-2.5 text-sm font-medium ${isActive
+                ? "bg-blue-600 text-white"
+                : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
+                }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span>{label}</span>
@@ -164,7 +199,14 @@ export default function Sidebar({
         </div>
 
         <Row label="Location" value={activeProject?.location} />
-        <Row label="Built-up Area (m²)" value={activeProject?.builtUp} />
+        <Row
+          label="Built-up Area (m²)"
+          value={
+            totalBuiltUpArea > 0
+              ? `${totalBuiltUpArea.toLocaleString("en-IN")} m²`
+              : activeProject?.builtUp ?? "—"
+          }
+        />
         <Row label="Version" value="1.0" />
         <Row label="Last Saved" value={activeProject?.lastSaved ?? "—"} />
       </div>
