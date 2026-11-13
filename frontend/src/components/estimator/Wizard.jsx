@@ -236,37 +236,38 @@ export default function Wizard({
     }
 
     // Calculate minimum Land Area.
+    // Calculate minimum Land Area using all selected building areas.
     let minimumArea = 0;
 
-    if (isWarehouse) {
-      // Include RM Warehouse only when selected.
-      if ((inputs.building_components || []).includes("RM Warehouse")) {
-        minimumArea +=
-          Number(inputs.rm_wh_length_m || 0) *
-          Number(inputs.rm_wh_width_m || 0) *
-          Math.max(1, Number(inputs.rm_wh_num_floors) || 1);
-      }
-
-      // Include Chocolate FG Warehouse when selected.
-      if (warehouseType === "Chocolate" || warehouseType === "Combo") {
-        minimumArea +=
-          Number(inputs.fg_wh_chocolate_length_m || 0) *
-          Number(inputs.fg_wh_chocolate_width_m || 0) *
-          Math.max(1, Number(inputs.fg_wh_chocolate_num_floors) || 1);
-      }
-
-      // Include Bakery FG Warehouse when selected.
-      if (warehouseType === "Bakery" || warehouseType === "Combo") {
-        minimumArea +=
-          Number(inputs.fg_wh_bakery_length_m || 0) *
-          Number(inputs.fg_wh_bakery_width_m || 0) *
-          Math.max(1, Number(inputs.fg_wh_bakery_num_floors) || 1);
-      }
-
-      minimumArea *= 2;
-    } else {
-      minimumArea = length * width * floors * 2;
+    // Main building is included only for non-Warehouse projects.
+    if (!isWarehouse) {
+      minimumArea += length * width * floors;
     }
+
+    // Include RM Warehouse only when selected.
+    if ((inputs.building_components || []).includes("RM Warehouse")) {
+      minimumArea +=
+        Number(inputs.rm_wh_length_m || 0) *
+        Number(inputs.rm_wh_width_m || 0) *
+        Math.max(1, Number(inputs.rm_wh_num_floors) || 1);
+    }
+
+    // Include Chocolate FG Warehouse when selected.
+    if (warehouseType === "Chocolate" || warehouseType === "Combo") {
+      minimumArea +=
+        Number(inputs.fg_wh_chocolate_length_m || 0) *
+        Number(inputs.fg_wh_chocolate_width_m || 0);
+    }
+
+    // Include Bakery FG Warehouse when selected.
+    if (warehouseType === "Bakery" || warehouseType === "Combo") {
+      minimumArea +=
+        Number(inputs.fg_wh_bakery_length_m || 0) *
+        Number(inputs.fg_wh_bakery_width_m || 0);
+    }
+
+    // Land area must be at least twice the combined built-up area.
+    minimumArea *= 2;
 
     if (!isWarehouse && (!Number.isFinite(minimumArea) || minimumArea <= 0)) {
       return {
@@ -1042,12 +1043,38 @@ function Step2({ inputs, patch, reference, showErrors }) {
     const current = inputs.building_components || [];
     const has = current.includes(item);
 
-    patch(
-      "building_components",
-      has
-        ? current.filter((component) => component !== item)
-        : [...current, item]
-    );
+    const nextComponents = has
+      ? current.filter((component) => component !== item)
+      : [...current, item];
+
+    patch("building_components", nextComponents);
+
+    const nextRM =
+  !isWarehouse && nextComponents.includes("RM Warehouse")
+      ? Number(inputs.rm_wh_length_m || 0) *
+      Number(inputs.rm_wh_width_m || 0) *
+      Math.max(1, Number(inputs.rm_wh_num_floors) || 1)
+      : 0;
+
+    const nextChocolate =
+      fgWarehouseType === "Chocolate" || fgWarehouseType === "Combo"
+        ? Number(inputs.fg_wh_chocolate_length_m || 0) *
+        Number(inputs.fg_wh_chocolate_width_m || 0)
+        : 0;
+
+    const nextBakery =
+      fgWarehouseType === "Bakery" || fgWarehouseType === "Combo"
+        ? Number(inputs.fg_wh_bakery_length_m || 0) *
+        Number(inputs.fg_wh_bakery_width_m || 0)
+        : 0;
+
+    const nextMain = isWarehouse ? 0 : builtUpArea;
+
+    const totalArea = nextMain + nextRM + nextChocolate + nextBakery;
+
+    if (totalArea > 0) {
+      patch("land_area_sqm", totalArea * 2);
+    }
   };
 
   const length = Number(inputs.length_m);
@@ -1064,7 +1091,8 @@ function Step2({ inputs, patch, reference, showErrors }) {
 
 
   const rmWarehouseSelected =
-    (inputs.building_components || []).includes("RM Warehouse");
+  !isWarehouse &&
+  (inputs.building_components || []).includes("RM Warehouse");
 
   const rmWarehouseArea = rmWarehouseSelected
     ? Number(inputs.rm_wh_length_m || 0) *
@@ -1091,9 +1119,10 @@ function Step2({ inputs, patch, reference, showErrors }) {
       ? bakeryFGArea
       : 0);
 
-  const minimumLandArea = isWarehouse
-    ? warehouseBuiltUpArea * 2
-    : builtUpArea * 2;
+  const totalBuiltUpArea =
+    (isWarehouse ? 0 : builtUpArea) + warehouseBuiltUpArea;
+
+  const minimumLandArea = totalBuiltUpArea * 2;
 
   const updateDimension = (field, value) => {
     patch(field, value);
@@ -1107,19 +1136,103 @@ function Step2({ inputs, patch, reference, showErrors }) {
     const nextFloors =
       field === "num_floors" ? Number(value) : floors;
 
-    if (
-      value !== "" &&
-      Number.isFinite(nextLength) &&
-      nextLength > 0 &&
-      Number.isFinite(nextWidth) &&
-      nextWidth > 0 &&
-      Number.isFinite(nextFloors) &&
-      nextFloors > 0
-    ) {
-      patch(
-        "land_area_sqm",
-        nextLength * nextWidth * nextFloors * 2
-      );
+    const nextMainArea =
+      !isWarehouse &&
+        nextLength > 0 &&
+        nextWidth > 0 &&
+        nextFloors > 0
+        ? nextLength * nextWidth * nextFloors
+        : 0;
+
+    const nextRM =
+      rmWarehouseSelected
+        ? Number(inputs.rm_wh_length_m || 0) *
+        Number(inputs.rm_wh_width_m || 0) *
+        Math.max(1, Number(inputs.rm_wh_num_floors) || 1)
+        : 0;
+
+    const nextChocolate =
+      fgWarehouseType === "Chocolate" || fgWarehouseType === "Combo"
+        ? Number(inputs.fg_wh_chocolate_length_m || 0) *
+        Number(inputs.fg_wh_chocolate_width_m || 0)
+        : 0;
+
+    const nextBakery =
+      fgWarehouseType === "Bakery" || fgWarehouseType === "Combo"
+        ? Number(inputs.fg_wh_bakery_length_m || 0) *
+        Number(inputs.fg_wh_bakery_width_m || 0)
+        : 0;
+
+    const nextTotalArea =
+      nextMainArea + nextRM + nextChocolate + nextBakery;
+
+    if (nextTotalArea > 0) {
+      patch("land_area_sqm", nextTotalArea * 2);
+    }
+  };
+
+  const updateWarehouseDimension = (field, value) => {
+    patch(field, value);
+
+    const getValue = (key) =>
+      Number(field === key ? value : inputs[key] || 0);
+
+    const nextRM = rmWarehouseSelected
+      ? getValue("rm_wh_length_m") *
+      getValue("rm_wh_width_m") *
+      Math.max(1, Number(inputs.rm_wh_num_floors) || 1)
+      : 0;
+
+    const nextChocolate =
+      fgWarehouseType === "Chocolate" || fgWarehouseType === "Combo"
+        ? getValue("fg_wh_chocolate_length_m") *
+        getValue("fg_wh_chocolate_width_m")
+        : 0;
+
+    const nextBakery =
+      fgWarehouseType === "Bakery" || fgWarehouseType === "Combo"
+        ? getValue("fg_wh_bakery_length_m") *
+        getValue("fg_wh_bakery_width_m")
+        : 0;
+
+    const nextMain = isWarehouse ? 0 : builtUpArea;
+
+    const totalArea =
+      nextMain + nextRM + nextChocolate + nextBakery;
+
+    if (totalArea > 0) {
+      patch("land_area_sqm", totalArea * 2);
+    }
+  };
+
+  const updateFGWarehouseType = (value) => {
+    patch("fg_warehouse_type", value);
+
+    const nextRM = rmWarehouseSelected
+      ? Number(inputs.rm_wh_length_m || 0) *
+      Number(inputs.rm_wh_width_m || 0) *
+      Math.max(1, Number(inputs.rm_wh_num_floors) || 1)
+      : 0;
+
+    const nextChocolate =
+      value === "Chocolate" || value === "Combo"
+        ? Number(inputs.fg_wh_chocolate_length_m || 0) *
+        Number(inputs.fg_wh_chocolate_width_m || 0)
+        : 0;
+
+    const nextBakery =
+      value === "Bakery" || value === "Combo"
+        ? Number(inputs.fg_wh_bakery_length_m || 0) *
+        Number(inputs.fg_wh_bakery_width_m || 0)
+        : 0;
+
+    const nextMain = isWarehouse ? 0 : builtUpArea;
+
+    const totalArea =
+      nextMain + nextRM + nextChocolate + nextBakery;
+
+    if (totalArea > 0) {
+      patch("land_area_sqm", totalArea * 2);
     }
   };
 
@@ -1343,7 +1456,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
             <SelectF
               id="fg_warehouse_type"
               value={fgWarehouseType}
-              onChange={(value) => patch("fg_warehouse_type", value)}
+              onChange={updateFGWarehouseType}
               options={[
                 { key: "Chocolate", label: "FG WH Chocolate" },
                 { key: "Bakery", label: "FG WH Bakery" },
@@ -1448,7 +1561,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               type="number"
               min="0"
               value={inputs.rm_wh_length_m ?? ""}
-              onChange={(value) => patch("rm_wh_length_m", value)}
+              onChange={(value) => updateWarehouseDimension("rm_wh_length_m", value)}
             />
             <ErrorMessage>
               {showErrors ? fgDimensionError("rm_wh_length_m", "RM Warehouse Length") : ""}
@@ -1461,7 +1574,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               type="number"
               min="0"
               value={inputs.rm_wh_width_m ?? ""}
-              onChange={(value) => patch("rm_wh_width_m", value)}
+              onChange={(value) => updateWarehouseDimension("rm_wh_width_m", value)}
             />
             <ErrorMessage>
               {showErrors ? fgDimensionError("rm_wh_width_m", "RM Warehouse Width") : ""}
@@ -1553,7 +1666,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               min="0"
               value={inputs.fg_wh_chocolate_length_m ?? ""}
               onChange={(value) =>
-                patch("fg_wh_chocolate_length_m", value)
+                updateWarehouseDimension("fg_wh_chocolate_length_m", value)
               }
             />
             <ErrorMessage>
@@ -1571,7 +1684,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               min="0"
               value={inputs.fg_wh_chocolate_width_m ?? ""}
               onChange={(value) =>
-                patch("fg_wh_chocolate_width_m", value)
+                updateWarehouseDimension("fg_wh_chocolate_width_m", value)
               }
             />
             <ErrorMessage>
@@ -1658,7 +1771,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               min="0"
               value={inputs.fg_wh_bakery_length_m ?? ""}
               onChange={(value) =>
-                patch("fg_wh_bakery_length_m", value)
+                updateWarehouseDimension("fg_wh_bakery_length_m", value)
               }
             />
             <ErrorMessage>
@@ -1676,7 +1789,7 @@ function Step2({ inputs, patch, reference, showErrors }) {
               min="0"
               value={inputs.fg_wh_bakery_width_m ?? ""}
               onChange={(value) =>
-                patch("fg_wh_bakery_width_m", value)
+                updateWarehouseDimension("fg_wh_bakery_width_m", value)
               }
             />
             <ErrorMessage>

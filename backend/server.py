@@ -2548,86 +2548,85 @@ class ProjectInputs(BaseModel):
     special_work_clothing: str = "Yes"
     work_shoes_required: str = "Yes" 
     
-   
     @model_validator(mode="after")
     def calculate_site_areas(self):
         self.far_fsi = 1.2
-
+        
         land_area = self.land_area_sqm
         is_warehouse = str(self.product_category or "").strip() == "Warehouse"
-        
-        # Validate main building geometry
         if not math.isfinite(self.height_m) or self.height_m <= 0:
             raise ValueError("Building Height must be greater than 0.")
         if self.num_floors < 1:
             raise ValueError("Number of Floors must be at least 1.")
         if not math.isfinite(self.bay_spacing_m) or self.bay_spacing_m <= 0:
             raise ValueError("Bay Spacing must be greater than 0.")
-
-        
         if is_warehouse:
             warehouse_type = str(self.fg_warehouse_type or "").strip()
-            components = self.building_components or []
-
             minimum_area = 0.0
-
-            # RM Warehouse is included only when selected.
-            if "RM Warehouse" in components:
-                rm_length = float(self.rm_wh_length_m or 0)
-                rm_width = float(self.rm_wh_width_m or 0)
-                rm_floors = self.rm_wh_num_floors
-
-                if not math.isfinite(rm_length) or rm_length <= 0:
-                    raise ValueError("RM Warehouse Length must be greater than 0.")
-                if not math.isfinite(rm_width) or rm_width <= 0:
-                    raise ValueError("RM Warehouse Width must be greater than 0.")
-                if rm_floors < 1:
-                    raise ValueError("RM Warehouse Floors must be at least 1.")
-
-                minimum_area += rm_length * rm_width * rm_floors
-
-            # FG Warehouse is included based on the user's FG Warehouse Type.
             if warehouse_type in ("Chocolate", "Combo"):
-                minimum_area += (
-                    float(self.fg_wh_chocolate_length_m or 0)
-                    * float(self.fg_wh_chocolate_width_m or 0)
-                    * max(1, self.fg_wh_chocolate_num_floors)
-                )
-
+                chocolate_length = float(self.fg_wh_chocolate_length_m or 0)
+                chocolate_width = float(self.fg_wh_chocolate_width_m or 0)
+                if not math.isfinite(chocolate_length) or chocolate_length <= 0:
+                    raise ValueError("FG Chocolate Warehouse Length must be greater than 0.")
+                if not math.isfinite(chocolate_width) or chocolate_width <= 0:
+                    raise ValueError("FG Chocolate Warehouse Width must be greater than 0.")
+                minimum_area += chocolate_length * chocolate_width
             if warehouse_type in ("Bakery", "Combo"):
-                minimum_area += (
-                    float(self.fg_wh_bakery_length_m or 0)
-                    * float(self.fg_wh_bakery_width_m or 0)
-                    * max(1, self.fg_wh_bakery_num_floors)
-                )
-
+                bakery_length = float(self.fg_wh_bakery_length_m or 0)
+                bakery_width = float(self.fg_wh_bakery_width_m or 0)
+                if not math.isfinite(bakery_length) or bakery_length <= 0:
+                    raise ValueError("FG Bakery Warehouse Length must be greater than 0.")
+                if not math.isfinite(bakery_width) or bakery_width <= 0:
+                    raise ValueError("FG Bakery Warehouse Width must be greater than 0.")
+                minimum_area += bakery_length * bakery_width
             minimum_area *= 2
-
-
         else:
             length = self.length_m
             width = self.width_m
-
+            components = self.building_components or []
+            warehouse_type = str(self.fg_warehouse_type or "").strip()
             if not math.isfinite(length) or length <= 0:
                 raise ValueError("Length must be greater than 0.")
 
             if not math.isfinite(width) or width <= 0:
                 raise ValueError("Width must be greater than 0.")
 
-            minimum_area = (
-                length * width * max(1, self.num_floors) * 2
+            minimum_area = length * width * max(1, self.num_floors)
+
+            if "RM Warehouse" in components:
+                rm_length = float(self.rm_wh_length_m or 0)
+                rm_width = float(self.rm_wh_width_m or 0)
+                if not math.isfinite(rm_length) or rm_length <= 0:
+                    raise ValueError("RM Warehouse Length must be greater than 0.")
+                if not math.isfinite(rm_width) or rm_width <= 0:
+                    raise ValueError("RM Warehouse Width must be greater than 0.")
+
+                minimum_area += (
+                rm_length * rm_width * max(1, self.rm_wh_num_floors)
             )
 
-        if not math.isfinite(land_area) or land_area <= 0:
-            raise ValueError("Land Area must be greater than 0.")
-
-        if minimum_area > 0 and land_area < minimum_area:
-            raise ValueError(
-                f"Land Area must be at least {minimum_area:g} m² "
-                "(Built-up Area)."
+            if warehouse_type in ("Chocolate", "Combo"):
+               minimum_area += (
+                float(self.fg_wh_chocolate_length_m or 0)
+                * float(self.fg_wh_chocolate_width_m or 0)
             )
 
-        return self
+            if warehouse_type in ("Bakery", "Combo"):
+                minimum_area += (
+                float(self.fg_wh_bakery_length_m or 0)
+                * float(self.fg_wh_bakery_width_m or 0)
+            )
+
+            minimum_area *= 2
+            if not math.isfinite(land_area) or land_area <= 0:
+                raise ValueError("Land Area must be greater than 0.")
+            if minimum_area > 0 and land_area < minimum_area:
+                raise ValueError(
+            f"Land Area must be at least {minimum_area:g} m² "
+            "(Built-up Area)."
+        )
+            return self
+
 
 
     @model_validator(mode="after")
@@ -3307,6 +3306,16 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             inp.length_m
             * inp.width_m
             * max(1, inp.num_floors)
+        )
+        # Combined area used only for cost-per-sqm calculations.
+    if str(inp.product_category or "").strip() == "Warehouse":
+        cost_area_sqm = chocolate_area + bakery_area
+    else:
+        cost_area_sqm = (
+            built_up
+            + rm_warehouse_area
+            + chocolate_area
+            + bakery_area
         )
 
     # --------------------------------------------------
@@ -4146,8 +4155,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
 
     def cost_per_sqm(x):
         return (
-            round(x / built_up, 2)
-            if built_up > 0
+            round(x / cost_area_sqm, 2)
+            if cost_area_sqm > 0
             else 0
         )
 
