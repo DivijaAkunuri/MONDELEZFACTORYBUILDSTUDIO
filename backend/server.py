@@ -2676,7 +2676,9 @@ class ProjectInputs(BaseModel):
     @classmethod
     def validate_fg_warehouse_dimensions(cls, data):
         if not isinstance(data, dict):
-            return data
+            raise ValueError(
+        "Project inputs must be a valid object."
+    )
 
         warehouse_type = str(
             data.get("fg_warehouse_type", "") or ""
