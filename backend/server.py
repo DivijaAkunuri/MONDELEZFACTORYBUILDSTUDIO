@@ -2618,14 +2618,17 @@ class ProjectInputs(BaseModel):
             )
 
             minimum_area *= 2
-            if not math.isfinite(land_area) or land_area <= 0:
-                raise ValueError("Land Area must be greater than 0.")
-            if minimum_area > 0 and land_area < minimum_area:
-                raise ValueError(
-            f"Land Area must be at least {minimum_area:g} m² "
-            "(Built-up Area)."
-        )
-            return self
+
+        if not math.isfinite(land_area) or land_area <= 0:
+            raise ValueError("Land Area must be greater than 0.")
+
+        if minimum_area > 0 and land_area < minimum_area:
+            raise ValueError(
+                f"Land Area must be at least {minimum_area:g} m² "
+                "(Built-up Area)."
+            )
+
+        return self
 
 
 
