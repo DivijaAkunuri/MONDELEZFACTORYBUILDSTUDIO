@@ -212,7 +212,7 @@ export default function Sidebar({
       </div>
 
       {/* Units and Currency Card */}
-      <div className="mx-3 mb-4 p-3 rounded-md bg-slate-900/70 border border-slate-800 text-[12px]">
+      <div className="mx-3 mb-3 p-2 rounded-md bg-slate-900/70 border border-slate-800 text-[10px]">
         <Row label="Units" value="All dimensions in metres (m)" />
         <Row label="Currency" value="USD ($)" />
 
