@@ -4477,8 +4477,8 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
         "totals": {
             "total_project_cost": total,
             "cost_per_sqm": (
-                round(total / built_up, 2)
-                if built_up
+                round(total / cost_area_sqm, 2)
+                if cost_area_sqm > 0
                 else 0
             ),
             "cost_per_mt": (
@@ -4492,10 +4492,7 @@ def compute_estimate(inp: ProjectInputs, live_index: Optional[Dict[str, Any]] = 
             "contingency": contingency,
             "contingency_pct": user_contingency_pct,
             "region_benchmark_delta_pct": market_delta,
-            "built_up_area_sqm": round(
-                built_up,
-                2,
-            ),
+            "built_up_area_sqm": round(cost_area_sqm,2,),
             "employee_facility_area_sqm": round(
                 employee_facilities["total_area_sqm"],
                 2,
